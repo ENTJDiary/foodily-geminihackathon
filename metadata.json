@@ -1,0 +1,7 @@
+{
+  "name": "Food.ily",
+  "description": "A premium food discovery app that uses Gemini's advanced reasoning and Google Maps/Search grounding to find the perfect dish or restaurant near you. Includes AI chat assistance and high-quality food image generation.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
