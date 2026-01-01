@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../../services/storageService';
+import Footer from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -107,33 +108,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </nav>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto px-6 pt-32 pb-24 w-full">
+      <main className="flex-1 max-w-5xl mx-auto px-6 pt-32 pb-12 w-full">
         {children}
       </main>
 
       {/* Conditional Footer - Hidden on Profile page */}
-      {!isActive('/Profile') && (
-        <footer className="bg-white border-t border-orange-50 pt-16 pb-32 lg:pb-16 px-8 animate-in fade-in slide-in-from-bottom-2 duration-700">
-          <div className="max-w-5xl mx-auto flex flex-col items-center">
-            <div className="flex items-center gap-2 mb-8 grayscale opacity-20">
-              <div className="w-5 h-5 bg-slate-900 rounded flex items-center justify-center text-white font-black text-[10px]">F</div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">Food.ily</span>
-            </div>
-
-            <div className="flex items-center justify-center gap-8 md:gap-16">
-              <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">ToS</a>
-              <div className="w-px h-3 bg-slate-100 hidden md:block"></div>
-              <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">Privacy</a>
-              <div className="w-px h-3 bg-slate-100 hidden md:block"></div>
-              <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">Cookies</a>
-            </div>
-
-            <div className="mt-12 text-[9px] font-bold text-slate-300 uppercase tracking-[0.4em]">
-              &copy; {new Date().getFullYear()} Gourmet Insights
-            </div>
-          </div>
-        </footer>
-      )}
+      {!isActive('/Profile') && <Footer />}
 
       {/* Mobile Nav */}
       <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white border-t border-orange-50 flex justify-around items-center h-16 z-50">

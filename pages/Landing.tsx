@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import Footer from '../components/layout/Footer';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
@@ -31,9 +31,9 @@ const Landing: React.FC = () => {
             The premium discovery engine for your next favorite dish. Powered by Gemini AI for hyper-personal recommendations.
           </p>
 
-          <div className="pt-8">
+          <div className="pt-8 space-y-4">
             <button
-              onClick={() => navigate('/FoodHunter')}
+              onClick={() => navigate('/signup')}
               className="group relative bg-slate-900 hover:bg-orange-600 text-white px-12 py-6 rounded-2xl font-black text-lg uppercase tracking-widest transition-all duration-300 shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-4 mx-auto"
             >
               Start Exploring
@@ -41,6 +41,21 @@ const Landing: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </button>
+
+            <div className="flex items-center justify-center gap-4">
+              <button
+                onClick={() => navigate('/signup')}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-300 shadow-lg hover:shadow-orange-500/50 hover:scale-105 active:scale-95"
+              >
+                Sign Up
+              </button>
+              <button
+                onClick={() => navigate('/login')}
+                className="bg-white hover:bg-slate-100 text-slate-900 px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 border-2 border-slate-200"
+              >
+                Login
+              </button>
+            </div>
           </div>
         </div>
 
@@ -86,26 +101,10 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Footer Section */}
-      <footer className="mt-auto border-t border-slate-100 py-16 px-6 bg-white">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-black text-sm">F</div>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Food.ily</span>
-          </div>
-
-          <div className="flex items-center gap-12">
-            <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">ToS</a>
-            <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">Privacy</a>
-            <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">Cookies</a>
-          </div>
-
-          <div className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">
-            &copy; {new Date().getFullYear()} Gourmet Insights Inc.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
+
 
 export default Landing;
