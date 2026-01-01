@@ -40,37 +40,40 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-orange-50 z-50 px-8 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
+        <button
+          onClick={() => setActiveTab('search')}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
+        >
           <div className="w-9 h-9 bg-orange-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-md shadow-orange-200">
             F
           </div>
           <h1 className="text-xl font-extrabold tracking-tight text-orange-600">
             Food.ily
           </h1>
-        </div>
-        
+        </button>
+
         <nav className="hidden lg:flex items-center gap-10">
-          <button 
+          <button
             onClick={() => setActiveTab('search')}
             className={`text-sm font-bold transition-colors ${activeTab === 'search' ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
             Find Restaurants
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('chat')}
             className={`text-sm font-bold transition-colors ${activeTab === 'chat' ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
             Food Assistant
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('concierge')}
             className={`text-sm font-bold transition-colors ${activeTab === 'concierge' ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
             Dining Concierge
           </button>
-          
+
           <div className="relative" ref={dropdownRef}>
-            <button 
+            <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={`flex items-center justify-center w-8 h-8 rounded-full transition-all text-white font-bold text-xs bg-orange-500 hover:scale-105 active:scale-95 shadow-md shadow-orange-100`}
             >
@@ -79,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
 
             {isDropdownOpen && (
               <div className="absolute right-0 mt-4 w-52 bg-[#121212] rounded-xl shadow-2xl border border-white/5 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60]">
-                <button 
+                <button
                   onClick={navigateToSettings}
                   className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-orange-600/20 transition-colors"
                 >
@@ -88,7 +91,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
                   </svg>
                   <span className="font-semibold text-sm">Settings</span>
                 </button>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-orange-600/20 transition-colors"
                 >
@@ -115,7 +118,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
               <div className="w-5 h-5 bg-slate-900 rounded flex items-center justify-center text-white font-black text-[10px]">F</div>
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">Food.ily</span>
             </div>
-            
+
             <div className="flex items-center justify-center gap-8 md:gap-16">
               <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">ToS</a>
               <div className="w-px h-3 bg-slate-100 hidden md:block"></div>
@@ -123,7 +126,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
               <div className="w-px h-3 bg-slate-100 hidden md:block"></div>
               <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">Cookies</a>
             </div>
-            
+
             <div className="mt-12 text-[9px] font-bold text-slate-300 uppercase tracking-[0.4em]">
               &copy; {new Date().getFullYear()} Gourmet Insights
             </div>
@@ -133,28 +136,28 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
 
       {/* Mobile Nav */}
       <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white border-t border-orange-50 flex justify-around items-center h-16 z-50">
-        <button 
+        <button
           onClick={() => setActiveTab('search')}
           className={`flex flex-col items-center gap-1 ${activeTab === 'search' ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <span className="text-[10px] font-bold uppercase tracking-widest">Search</span>
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('chat')}
           className={`flex flex-col items-center gap-1 ${activeTab === 'chat' ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
           <span className="text-[10px] font-bold uppercase tracking-widest">Assistant</span>
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('concierge')}
           className={`flex flex-col items-center gap-1 ${activeTab === 'concierge' ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
           <span className="text-[10px] font-bold uppercase tracking-widest">Concierge</span>
         </button>
-        <button 
+        <button
           onClick={() => {
             setIsDropdownOpen(false);
             setActiveTab('profile');

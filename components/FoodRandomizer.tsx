@@ -41,7 +41,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   const [combinations, setCombinations] = useState<FoodCombination[]>(DEFAULT_COMBINATIONS);
   const [cuisine, setCuisine] = useState('');
   const [foodType, setFoodType] = useState('');
-  
+
   const [dynamicCuisines, setDynamicCuisines] = useState<string[]>([]);
   const [dynamicFoods, setDynamicFoods] = useState<string[]>([]);
   const [isExpanding, setIsExpanding] = useState(false);
@@ -50,7 +50,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   const [isRollingFood, setIsRollingFood] = useState(false);
   const [lockedCuisine, setLockedCuisine] = useState(false);
   const [lockedFood, setLockedFood] = useState(false);
-  
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCuisine, setNewCuisine] = useState('');
   const [newFood, setNewFood] = useState('');
@@ -109,7 +109,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
     if (isRollingCuisine) {
       timer = setInterval(() => {
         if (availableCuisines.length > 0) {
-            setCuisine(availableCuisines[Math.floor(Math.random() * availableCuisines.length)]);
+          setCuisine(availableCuisines[Math.floor(Math.random() * availableCuisines.length)]);
         }
       }, 80);
     }
@@ -121,7 +121,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
     if (isRollingFood) {
       timer = setInterval(() => {
         if (availableFoods.length > 0) {
-            setFoodType(availableFoods[Math.floor(Math.random() * availableFoods.length)]);
+          setFoodType(availableFoods[Math.floor(Math.random() * availableFoods.length)]);
         }
       }, 80);
     }
@@ -139,17 +139,19 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   };
 
   const handleFinalize = () => {
-    onSelection(cuisine, foodType);
+    const finalCuisine = lockedCuisine ? cuisine : '';
+    const finalFood = lockedFood ? foodType : '';
+    onSelection(finalCuisine, finalFood);
   };
 
   const handleAddCustom = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCuisine || !newFood) return;
     const newItem: FoodCombination = {
-        id: Math.random().toString(36).substr(2, 9),
-        cuisine: newCuisine,
-        food: newFood,
-        isCustom: true
+      id: Math.random().toString(36).substr(2, 9),
+      cuisine: newCuisine,
+      food: newFood,
+      isCustom: true
     };
     setCombinations(prev => [...prev, newItem]);
     setNewCuisine('');
@@ -168,11 +170,11 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
           </h4>
           <p className="text-slate-400 font-medium text-sm">Indecisive? Let the wheel choose your next meal.</p>
         </div>
-        <button 
+        <button
           onClick={() => setShowAddModal(true)}
           className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100"
         >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" strokeLinecap="round" strokeLinejoin="round" /></svg>
           Add
         </button>
       </div>
@@ -209,10 +211,10 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         <div className="space-y-4">
           <div className={`relative h-32 bg-slate-50 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 ${lockedCuisine ? 'border-orange-500 bg-white shadow-md scale-[1.02]' : 'border-transparent'}`}>
             {isExpanding && !lockedCuisine ? (
-               <div className="flex flex-col items-center gap-2 animate-pulse">
-                 <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
-                 <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Expanding Pool...</span>
-               </div>
+              <div className="flex flex-col items-center gap-2 animate-pulse">
+                <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
+                <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Expanding Pool...</span>
+              </div>
             ) : (
               <span className={`text-xl font-black transition-all text-center px-4 uppercase tracking-tight ${isRollingCuisine ? 'blur-sm opacity-50' : 'text-slate-900'}`}>
                 {cuisine}
@@ -220,7 +222,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
             )}
             {lockedCuisine && <div className="absolute top-3 right-3"><div className="w-2 h-2 bg-orange-500 rounded-full"></div></div>}
           </div>
-          <button 
+          <button
             onClick={() => setLockedCuisine(!lockedCuisine)}
             className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lockedCuisine ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-orange-50 hover:text-orange-600'}`}
           >
@@ -232,10 +234,10 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         <div className="space-y-4">
           <div className={`relative h-32 bg-slate-50 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 ${lockedFood ? 'border-orange-500 bg-white shadow-md scale-[1.02]' : 'border-transparent'}`}>
             {isExpanding && !lockedFood ? (
-               <div className="flex flex-col items-center gap-2 animate-pulse">
-                 <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
-                 <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Finding Varietals...</span>
-               </div>
+              <div className="flex flex-col items-center gap-2 animate-pulse">
+                <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
+                <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Finding Varietals...</span>
+              </div>
             ) : (
               <span className={`text-xl font-black transition-all text-center px-4 uppercase tracking-tight ${isRollingFood ? 'blur-sm opacity-50' : 'text-slate-900'}`}>
                 {foodType}
@@ -243,7 +245,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
             )}
             {lockedFood && <div className="absolute top-3 right-3"><div className="w-2 h-2 bg-orange-500 rounded-full"></div></div>}
           </div>
-          <button 
+          <button
             onClick={() => setLockedFood(!lockedFood)}
             className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lockedFood ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-orange-50 hover:text-orange-600'}`}
           >
@@ -253,7 +255,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <button 
+        <button
           onClick={handleRoll}
           disabled={isRollingCuisine || isRollingFood || (lockedCuisine && lockedFood) || isExpanding}
           className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-black py-5 rounded-2xl transition-all shadow-md disabled:opacity-20 flex items-center justify-center gap-3 uppercase text-xs tracking-widest"
@@ -261,9 +263,9 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
           Spin Wheel
         </button>
-        
+
         {(lockedCuisine || lockedFood) && (
-          <button 
+          <button
             onClick={handleFinalize}
             disabled={isExpanding}
             className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-black py-5 rounded-2xl transition-all border border-orange-100 uppercase text-xs tracking-widest animate-in fade-in slide-in-from-right-4 disabled:opacity-50"

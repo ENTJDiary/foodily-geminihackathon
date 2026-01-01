@@ -48,7 +48,7 @@ const ConciergeInterface: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">The Occasion</label>
-              <input 
+              <input
                 type="text"
                 placeholder="e.g. New Year's Eve Date"
                 value={occasion}
@@ -58,7 +58,7 @@ const ConciergeInterface: React.FC = () => {
             </div>
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">The Group</label>
-              <input 
+              <input
                 type="text"
                 placeholder="e.g. My partner"
                 value={people}
@@ -70,7 +70,7 @@ const ConciergeInterface: React.FC = () => {
 
           <div className="space-y-3">
             <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Your Vision</label>
-            <textarea 
+            <textarea
               placeholder="e.g. Find a posh restaurant with a jazz band, intimate lighting, and a great wine list."
               value={request}
               onChange={(e) => setRequest(e.target.value)}
@@ -78,10 +78,10 @@ const ConciergeInterface: React.FC = () => {
             />
           </div>
 
-          <button 
+          <button
             disabled={loading || !occasion || !people || !request}
             type="submit"
-            className="w-full bg-slate-900 hover:bg-black disabled:bg-slate-100 text-white font-black py-5 rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 text-sm uppercase tracking-[0.2em] active:scale-[0.98]"
+            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-slate-100 text-white font-black py-5 rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 text-sm uppercase tracking-[0.2em] active:scale-[0.98]"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -99,50 +99,50 @@ const ConciergeInterface: React.FC = () => {
 
       {result && (
         <div ref={resultRef} className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          <div className="bg-slate-900 text-white p-12 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-             <div className="absolute top-0 right-0 p-8 opacity-10">
-                <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.827c.073-.441.344-.794.677-.794.404 0 .73.512.73 1.144 0 .633-.326 1.145-.73 1.145-.333 0-.604-.353-.677-.794-.037.228-.11.433-.202.595-.19.336-.45.541-.75.541-.3 0-.56-.205-.75-.541-.092-.162-.165-.367-.202-.595-.073.441-.344.794-.677.794-.404 0-.73-.512-.73-1.145 0-.632.326-1.144.73-1.144.333 0 .604.353.677.794.037-.228.11-.433.202-.595.19-.336.45-.541.75-.541.3 0 .56.205.75.541.092.162.165.367.202.595zM4.394 5.827c.073-.441.344-.794.677-.794.404 0 .73.512.73 1.144 0 .633-.326 1.145-.73 1.145-.333 0-.604-.353-.677-.794-.037.228-.11.433-.202.595-.19.336-.45.541-.75.541-.3 0-.56-.205-.75-.541-.092-.162-.165-.367-.202-.595-.073.441-.344.794-.677.794-.404 0-.73-.512-.73-1.145 0-.632.326-1.144.73-1.144.333 0 .604.353.677.794.037-.228.11-.433.202-.595.19-.336.45-.541.75-.541.3 0 .56.205.75.541.092.162.165.367.202.595z"/></svg>
-             </div>
-             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-400 mb-8 flex items-center gap-3">
-               <span className="w-12 h-px bg-orange-400/30"></span>
-               Concierge Recommendations
-             </h3>
-             <div className="whitespace-pre-wrap font-medium text-lg leading-relaxed text-slate-100 mb-10">
-               {result.text}
-             </div>
-             
-             {result.groundingChunks.length > 0 && (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 {result.groundingChunks.map((chunk, i) => {
-                   if (!chunk.maps) return null;
-                   // Handle optional fields from API metadata to ensure local state and props receive strings
-                   const restaurantName = chunk.maps.title || 'Unknown Restaurant';
-                   return (
-                     <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm flex justify-between items-center group/item hover:bg-white/10 transition-all">
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-white text-sm">{restaurantName}</h4>
-                          <button 
-                            onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName })}
-                            className="text-[9px] font-black text-orange-400 uppercase tracking-widest hover:text-white transition-colors"
-                          >
-                            Explore Local Ledger
-                          </button>
-                        </div>
-                        {/* Handle optional uri from API metadata */}
-                        <a href={chunk.maps.uri || '#'} target="_blank" className="text-white/20 group-hover/item:text-orange-400 transition-colors">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </a>
-                     </div>
-                   );
-                 })}
-               </div>
-             )}
+          <div className="bg-white text-slate-900 p-12 rounded-[3rem] shadow-xl border-4 border-orange-600 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-orange-900">
+              <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.827c.073-.441.344-.794.677-.794.404 0 .73.512.73 1.144 0 .633-.326 1.145-.73 1.145-.333 0-.604-.353-.677-.794-.037.228-.11.433-.202.595-.19.336-.45.541-.75.541-.3 0-.56-.205-.75-.541-.092-.162-.165-.367-.202-.595-.073.441-.344.794-.677.794-.404 0-.73-.512-.73-1.145 0-.632.326-1.144.73-1.144.333 0 .604.353.677.794.037-.228.11-.433.202-.595.19-.336.45-.541.75-.541.3 0 .56.205.75.541.092.162.165.367.202.595zM4.394 5.827c.073-.441.344-.794.677-.794.404 0 .73.512.73 1.144 0 .633-.326 1.145-.73 1.145-.333 0-.604-.353-.677-.794-.037.228-.11.433-.202.595-.19.336-.45.541-.75.541-.3 0-.56-.205-.75-.541-.092-.162-.165-.367-.202-.595-.073.441-.344.794-.677.794-.404 0-.73-.512-.73-1.145 0-.632.326-1.144.73-1.144.333 0 .604.353.677.794.037-.228.11-.433.202-.595.19-.336.45-.541.75-.541.3 0 .56.205.75.541.092.162.165.367.202.595z" /></svg>
+            </div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-600 mb-8 flex items-center gap-3">
+              <span className="w-12 h-px bg-orange-600/30"></span>
+              Concierge Recommendations
+            </h3>
+            <div className="whitespace-pre-wrap font-medium text-lg leading-relaxed text-slate-800 mb-10">
+              {result.text}
+            </div>
+
+            {result.groundingChunks.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {result.groundingChunks.map((chunk, i) => {
+                  if (!chunk.maps) return null;
+                  // Handle optional fields from API metadata to ensure local state and props receive strings
+                  const restaurantName = chunk.maps.title || 'Unknown Restaurant';
+                  return (
+                    <div key={i} className="bg-orange-50/50 border border-orange-100 p-6 rounded-2xl flex justify-between items-center group/item hover:bg-orange-50 transition-all">
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-slate-900 text-sm">{restaurantName}</h4>
+                        <button
+                          onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName })}
+                          className="text-[9px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-800 transition-colors"
+                        >
+                          Explore Local Ledger
+                        </button>
+                      </div>
+                      {/* Handle optional uri from API metadata */}
+                      <a href={chunk.maps.uri || '#'} target="_blank" className="text-orange-300 group-hover/item:text-orange-600 transition-colors">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {selectedRestaurant && (
-        <RestaurantModal 
+        <RestaurantModal
           restaurantId={selectedRestaurant.id}
           restaurantName={selectedRestaurant.name}
           onClose={() => setSelectedRestaurant(null)}

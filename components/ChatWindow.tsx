@@ -35,7 +35,7 @@ const ChatWindow: React.FC = () => {
   }, []);
 
   const handleRandomSelection = async (cuisine: string, foodType: string) => {
-    const query = `${cuisine} ${foodType}`;
+    const query = [cuisine, foodType].filter(Boolean).join(' ');
     setLoadingResults(true);
     setResults(null);
     try {
@@ -57,21 +57,21 @@ const ChatWindow: React.FC = () => {
       <div className="space-y-12">
         <WeeklyFoodHunt history={history} />
         <div className="space-y-6">
-            {hasRestrictions && (
-              <div className="flex items-center gap-3 bg-white p-6 rounded-[2rem] border border-orange-50 shadow-sm">
-                <input 
-                  id="assistant-dietary"
-                  type="checkbox" 
-                  checked={applyFilters} 
-                  onChange={() => setApplyFilters(!applyFilters)}
-                  className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                />
-                <label htmlFor="assistant-dietary" className="text-xs font-black text-slate-600 uppercase tracking-widest cursor-pointer select-none">
-                  Respect my dietary needs: <span className="text-orange-600">{profile.dietaryRestrictions.join(', ')}</span>
-                </label>
-              </div>
-            )}
-            <FoodRandomizer onSelection={handleRandomSelection} />
+          {hasRestrictions && (
+            <div className="flex items-center gap-3 bg-white p-6 rounded-[2rem] border border-orange-50 shadow-sm">
+              <input
+                id="assistant-dietary"
+                type="checkbox"
+                checked={applyFilters}
+                onChange={() => setApplyFilters(!applyFilters)}
+                className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+              />
+              <label htmlFor="assistant-dietary" className="text-xs font-black text-slate-600 uppercase tracking-widest cursor-pointer select-none">
+                Respect my dietary needs: <span className="text-orange-600">{profile.dietaryRestrictions.join(', ')}</span>
+              </label>
+            </div>
+          )}
+          <FoodRandomizer onSelection={handleRandomSelection} />
         </div>
       </div>
 
@@ -93,7 +93,7 @@ const ChatWindow: React.FC = () => {
               {results.text}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.groundingChunks.map((chunk, idx) => {
               if (!chunk.maps) return null;
@@ -112,8 +112,8 @@ const ChatWindow: React.FC = () => {
                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Community:</span>
                     <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">{getAverageRating(restaurantName).toFixed(1)} / 5.0</span>
                   </div>
-                  <button 
-                    onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName, searchedDish: history[history.length-1]?.foodType })}
+                  <button
+                    onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName, searchedDish: history[history.length - 1]?.foodType })}
                     className="mt-auto bg-orange-50 hover:bg-orange-600 hover:text-white transition-all text-orange-700 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest border border-orange-100"
                   >
                     View App Ledger
@@ -126,7 +126,7 @@ const ChatWindow: React.FC = () => {
       )}
 
       {selectedRestaurant && (
-        <RestaurantModal 
+        <RestaurantModal
           restaurantId={selectedRestaurant.id}
           restaurantName={selectedRestaurant.name}
           searchedDish={selectedRestaurant.searchedDish}
