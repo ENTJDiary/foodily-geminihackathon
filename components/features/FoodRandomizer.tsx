@@ -139,9 +139,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   };
 
   const handleFinalize = () => {
-    const finalCuisine = lockedCuisine ? cuisine : '';
-    const finalFood = lockedFood ? foodType : '';
-    onSelection(finalCuisine, finalFood);
+    onSelection(cuisine, foodType);
   };
 
   const handleAddCustom = (e: React.FormEvent) => {
@@ -267,7 +265,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         {(lockedCuisine || lockedFood) && (
           <button
             onClick={handleFinalize}
-            disabled={isExpanding}
+            disabled={isExpanding || isRollingCuisine || isRollingFood}
             className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-black py-5 rounded-2xl transition-all border border-orange-100 uppercase text-xs tracking-widest animate-in fade-in slide-in-from-right-4 disabled:opacity-50"
           >
             Show Recommendations

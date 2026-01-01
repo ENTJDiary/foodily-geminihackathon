@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { searchRestaurantsByMaps } from '../services/geminiService';
-import { Location, SearchResult } from '../types';
+import { Location, SearchResult, HistoryEntry } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
-import { getAverageRating, getUserProfile } from '../services/storageService';
+import WeeklyFoodHunt from '../components/features/WeeklyFoodHunt';
+import { getAverageRating, getUserProfile, saveSearchToHistory, getWeeklyHistory } from '../services/storageService';
 
 const FoodHunter: React.FC = () => {
   const [dish, setDish] = useState('');
@@ -13,6 +14,7 @@ const FoodHunter: React.FC = () => {
   const [currentCoords, setCurrentCoords] = useState<Location | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string; searchedDish?: string } | null>(null);
   const [applyFilters, setApplyFilters] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>(getWeeklyHistory());
 
   const profile = getUserProfile();
   const hasRestrictions = profile.dietaryRestrictions.length > 0;
@@ -43,6 +45,12 @@ const FoodHunter: React.FC = () => {
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions);
       setResults(response);
+
+      // Save search to history - use dish as foodType, set cuisine as empty or extract from dish
+      if (dish) {
+        saveSearchToHistory('', dish);
+        setHistory(getWeeklyHistory());
+      }
     } catch (error) {
       console.error(error);
       alert("Search failed. Please try again.");
@@ -58,6 +66,7 @@ const FoodHunter: React.FC = () => {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 max-w-4xl mx-auto">
+      <WeeklyFoodHunt history={history} onHistoryUpdate={() => setHistory(getWeeklyHistory())} />
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold text-slate-900 uppercase tracking-tight">What are we craving for today?</h2>
         <p className="text-slate-500 font-medium italic">Spicy ramen? Juicy burgers? Or maybe a fresh acai bowl? Let's find your perfect bite.</p>

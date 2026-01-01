@@ -51,11 +51,19 @@ export interface RestaurantData {
   communityDescription?: string;
 }
 
+export interface HistoryLogItem {
+  id: string;
+  foodName: string;
+  rating: number;
+}
+
 export interface HistoryEntry {
   id: string;
   date: string; // YYYY-MM-DD
   cuisine: string;
   foodType: string;
+  restaurantName?: string;
+  logs?: HistoryLogItem[];
   timestamp: number;
 }
 

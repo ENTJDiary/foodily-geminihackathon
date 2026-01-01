@@ -55,7 +55,7 @@ const FoodGatcha: React.FC = () => {
   return (
     <div className="space-y-12 animate-in fade-in duration-500 pb-12 max-w-4xl mx-auto">
       <div className="space-y-12">
-        <WeeklyFoodHunt history={history} />
+        <WeeklyFoodHunt history={history} onHistoryUpdate={() => setHistory(getWeeklyHistory())} />
         <div className="space-y-6">
           {hasRestrictions && (
             <div className="flex items-center gap-3 bg-white p-6 rounded-[2rem] border border-orange-50 shadow-sm">

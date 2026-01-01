@@ -44,7 +44,7 @@ export const saveRestaurantDescription = (restaurantId: string, restaurantName: 
 export const saveReview = (restaurantId: string, restaurantName: string, review: Omit<Review, "id" | "timestamp">) => {
   const allData = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "{}");
   const restaurant = getRestaurantData(restaurantId);
-  
+
   const newReview: Review = {
     ...review,
     id: Math.random().toString(36).substr(2, 9),
@@ -54,14 +54,14 @@ export const saveReview = (restaurantId: string, restaurantName: string, review:
   restaurant.reviews.unshift(newReview);
   restaurant.name = restaurantName;
   allData[restaurantId] = restaurant;
-  
+
   localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
 };
 
 export const addMenuItem = (restaurantId: string, restaurantName: string, item: Omit<MenuItem, "id">) => {
   const allData = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "{}");
   const restaurant = getRestaurantData(restaurantId);
-  
+
   const newItem: MenuItem = {
     ...item,
     id: Math.random().toString(36).substr(2, 9),
@@ -70,7 +70,7 @@ export const addMenuItem = (restaurantId: string, restaurantName: string, item: 
   restaurant.menuItems.unshift(newItem);
   restaurant.name = restaurantName;
   allData[restaurantId] = restaurant;
-  
+
   localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
 };
 
@@ -84,8 +84,11 @@ export const getAverageRating = (restaurantId: string): number => {
 // History Storage
 export const saveSearchToHistory = (cuisine: string, foodType: string) => {
   const history = getSearchHistory();
-  const date = new Date().toISOString().split('T')[0];
-  
+  // Use local date to match calendar
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  const date = d.toISOString().split('T')[0];
+
   const newEntry: HistoryEntry = {
     id: Math.random().toString(36).substr(2, 9),
     date,
@@ -110,4 +113,13 @@ export const getWeeklyHistory = (): HistoryEntry[] => {
 
 export const clearSearchHistory = () => {
   localStorage.removeItem(HISTORY_KEY);
+};
+
+export const updateHistoryEntry = (id: string, updates: Partial<HistoryEntry>) => {
+  const history = getSearchHistory();
+  const index = history.findIndex(h => h.id === id);
+  if (index !== -1) {
+    history[index] = { ...history[index], ...updates };
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }
 };

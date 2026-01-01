@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { analyzeWeeklyHabits } from '../../services/geminiService';
 import { HistoryEntry } from '../../types';
+import { updateHistoryEntry } from '../../services/storageService';
+import DailyLogModal from './DailyLogModal';
 
 interface WeeklyFoodHuntProps {
   history: HistoryEntry[];
+  onHistoryUpdate?: () => void;
 }
 
-const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
+const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history, onHistoryUpdate }) => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
 
   const handleAnalyze = async () => {
     if (history.length === 0) {
@@ -26,17 +30,31 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
     }
   };
 
+  const handleEditEntry = (entry: HistoryEntry) => {
+    setEditingEntry(entry);
+  };
+
+  const handleSaveEntry = (updates: Partial<HistoryEntry>) => {
+    if (editingEntry) {
+      updateHistoryEntry(editingEntry.id, updates);
+      setEditingEntry(null);
+      if (onHistoryUpdate) onHistoryUpdate();
+    }
+  };
+
   const daysLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const today = new Date();
   const dayOfWeek = today.getDay();
   const sundayOfCurrentWeek = new Date(today);
   sundayOfCurrentWeek.setDate(today.getDate() - dayOfWeek);
-  sundayOfCurrentWeek.setHours(0, 0, 0, 0);
 
   const weekDays = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(sundayOfCurrentWeek);
     d.setDate(sundayOfCurrentWeek.getDate() + i);
+    // Use local date string
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     const dateStr = d.toISOString().split('T')[0];
+
     const entriesForDay = history.filter(h => h.date === dateStr);
     const entry = entriesForDay.length > 0 ? entriesForDay[entriesForDay.length - 1] : null;
 
@@ -65,14 +83,25 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
 
       <div className="grid grid-cols-7 gap-3">
         {weekDays.map((day, i) => (
-          <div key={i} className="flex flex-col items-center">
+          <div key={i} className="flex flex-col items-center group/day">
             <span className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">{day.name}</span>
-            <div className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${day.entry
-                ? 'bg-orange-600 text-white shadow-md'
-                : 'bg-slate-50 text-slate-300'
+            <div className={`relative w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${day.entry
+              ? 'bg-orange-600 text-white shadow-md'
+              : 'bg-slate-50 text-slate-300'
               }`}>
               {day.entry ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                <>
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      day.entry && handleEditEntry(day.entry);
+                    }}
+                    className="absolute bottom-1 right-1 w-6 h-6 bg-white text-orange-600 rounded-lg flex items-center justify-center transition-all shadow-sm hover:scale-110 active:scale-95 z-20"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  </button>
+                </>
               ) : (
                 <span className="text-[10px] font-black">{day.date.split('-')[2]}</span>
               )}
@@ -103,6 +132,15 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
             Dismiss Report
           </button>
         </div>
+      )}
+
+      {editingEntry && (
+        <DailyLogModal
+          isOpen={true}
+          entry={editingEntry}
+          onClose={() => setEditingEntry(null)}
+          onSave={handleSaveEntry}
+        />
       )}
     </div>
   );
