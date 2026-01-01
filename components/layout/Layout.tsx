@@ -1,18 +1,17 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { AppTab } from '../types';
-import { getUserProfile } from '../services/storageService';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getUserProfile } from '../../services/storageService';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: AppTab;
-  setActiveTab: (tab: AppTab) => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const profile = getUserProfile();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,15 +32,17 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
   };
 
   const navigateToSettings = () => {
-    setActiveTab('profile');
+    navigate('/Profile');
     setIsDropdownOpen(false);
   };
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-orange-50 z-50 px-8 py-4 flex items-center justify-between shadow-sm">
         <button
-          onClick={() => setActiveTab('search')}
+          onClick={() => navigate('/FoodHunter')}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
         >
           <div className="w-9 h-9 bg-orange-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-md shadow-orange-200">
@@ -54,20 +55,20 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
 
         <nav className="hidden lg:flex items-center gap-10">
           <button
-            onClick={() => setActiveTab('search')}
-            className={`text-sm font-bold transition-colors ${activeTab === 'search' ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
+            onClick={() => navigate('/FoodHunter')}
+            className={`text-sm font-bold transition-colors ${isActive('/FoodHunter') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
             Find Restaurants
           </button>
           <button
-            onClick={() => setActiveTab('chat')}
-            className={`text-sm font-bold transition-colors ${activeTab === 'chat' ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
+            onClick={() => navigate('/FoodGatcha')}
+            className={`text-sm font-bold transition-colors ${isActive('/FoodGatcha') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
             Food Assistant
           </button>
           <button
-            onClick={() => setActiveTab('concierge')}
-            className={`text-sm font-bold transition-colors ${activeTab === 'concierge' ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
+            onClick={() => navigate('/Concierge')}
+            className={`text-sm font-bold transition-colors ${isActive('/Concierge') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
             Dining Concierge
           </button>
@@ -111,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
       </main>
 
       {/* Conditional Footer - Hidden on Profile page */}
-      {activeTab !== 'profile' && (
+      {!isActive('/Profile') && (
         <footer className="bg-white border-t border-orange-50 pt-16 pb-32 lg:pb-16 px-8 animate-in fade-in slide-in-from-bottom-2 duration-700">
           <div className="max-w-5xl mx-auto flex flex-col items-center">
             <div className="flex items-center gap-2 mb-8 grayscale opacity-20">
@@ -137,22 +138,22 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
       {/* Mobile Nav */}
       <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white border-t border-orange-50 flex justify-around items-center h-16 z-50">
         <button
-          onClick={() => setActiveTab('search')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'search' ? 'text-orange-600' : 'text-gray-400'}`}
+          onClick={() => navigate('/FoodHunter')}
+          className={`flex flex-col items-center gap-1 ${isActive('/FoodHunter') ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <span className="text-[10px] font-bold uppercase tracking-widest">Search</span>
         </button>
         <button
-          onClick={() => setActiveTab('chat')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'chat' ? 'text-orange-600' : 'text-gray-400'}`}
+          onClick={() => navigate('/FoodGatcha')}
+          className={`flex flex-col items-center gap-1 ${isActive('/FoodGatcha') ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
           <span className="text-[10px] font-bold uppercase tracking-widest">Assistant</span>
         </button>
         <button
-          onClick={() => setActiveTab('concierge')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'concierge' ? 'text-orange-600' : 'text-gray-400'}`}
+          onClick={() => navigate('/Concierge')}
+          className={`flex flex-col items-center gap-1 ${isActive('/Concierge') ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
           <span className="text-[10px] font-bold uppercase tracking-widest">Concierge</span>
@@ -160,11 +161,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
         <button
           onClick={() => {
             setIsDropdownOpen(false);
-            setActiveTab('profile');
+            navigate('/Profile');
           }}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-orange-600' : 'text-gray-400'}`}
+          className={`flex flex-col items-center gap-1 ${isActive('/Profile') ? 'text-orange-600' : 'text-gray-400'}`}
         >
-          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold border-2 transition-all ${activeTab === 'profile' ? 'border-orange-600 bg-orange-600 text-white' : 'border-gray-200 bg-gray-50 text-gray-400'}`}>
+          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold border-2 transition-all ${isActive('/Profile') ? 'border-orange-600 bg-orange-600 text-white' : 'border-gray-200 bg-gray-50 text-gray-400'}`}>
             {profile.name.charAt(0).toUpperCase()}
           </div>
           <span className="text-[10px] font-bold uppercase tracking-widest">Profile</span>

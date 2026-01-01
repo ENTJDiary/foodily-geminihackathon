@@ -1,36 +1,43 @@
-
-import React, { useState } from 'react';
-import Layout from './components/Layout';
-import SearchInterface from './components/SearchInterface';
-import ChatWindow from './components/ChatWindow';
-import ConciergeInterface from './components/ConciergeInterface';
-import ProfileSettings from './components/ProfileSettings';
-import { AppTab } from './types';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import FoodHunter from './pages/FoodHunter';
+import FoodGatcha from './pages/FoodGatcha';
+import Concierge from './pages/Concierge';
+import Profile from './pages/Profile';
+import Landing from './pages/Landing';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AppTab>('search');
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'search':
-        return <SearchInterface />;
-      case 'chat':
-        return <ChatWindow />;
-      case 'concierge':
-        return <ConciergeInterface />;
-      case 'profile':
-        return <ProfileSettings />;
-      default:
-        return <SearchInterface />;
-    }
-  };
-
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      <div className="animate-in fade-in duration-700">
-        {renderContent()}
-      </div>
-    </Layout>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+
+        <Route path="/FoodHunter" element={
+          <Layout>
+            <FoodHunter />
+          </Layout>
+        } />
+
+        <Route path="/FoodGatcha" element={
+          <Layout>
+            <FoodGatcha />
+          </Layout>
+        } />
+
+        <Route path="/Concierge" element={
+          <Layout>
+            <Concierge />
+          </Layout>
+        } />
+
+        <Route path="/Profile" element={
+          <Layout>
+            <Profile />
+          </Layout>
+        } />
+      </Routes>
+    </Router>
   );
 };
 

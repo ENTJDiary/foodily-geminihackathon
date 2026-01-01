@@ -6,7 +6,7 @@ import { UserProfile } from '../types';
 const CUISINE_OPTIONS = ['Italian', 'Japanese', 'Mexican', 'Indian', 'Chinese', 'Thai', 'Greek', 'French', 'Korean', 'Vietnamese'];
 const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Halal', 'Kosher', 'Nut-Free'];
 
-const ProfileSettings: React.FC = () => {
+const Profile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile>(getUserProfile());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
@@ -54,8 +54,8 @@ const ProfileSettings: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-3">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Name</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={profile.name}
               onChange={(e) => handleUpdate({ name: e.target.value })}
               className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-bold outline-none"
@@ -63,8 +63,8 @@ const ProfileSettings: React.FC = () => {
           </div>
           <div className="space-y-3">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               value={profile.email}
               onChange={(e) => handleUpdate({ email: e.target.value })}
               className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-bold outline-none"
@@ -79,11 +79,10 @@ const ProfileSettings: React.FC = () => {
               <button
                 key={cuisine}
                 onClick={() => toggleCuisine(cuisine)}
-                className={`px-6 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${
-                  profile.favoriteCuisines.includes(cuisine)
-                    ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-100'
-                    : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
-                }`}
+                className={`px-6 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${profile.favoriteCuisines.includes(cuisine)
+                  ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-100'
+                  : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
+                  }`}
               >
                 {cuisine}
               </button>
@@ -98,11 +97,10 @@ const ProfileSettings: React.FC = () => {
               <button
                 key={diet}
                 onClick={() => toggleDietary(diet)}
-                className={`px-6 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${
-                  profile.dietaryRestrictions.includes(diet)
-                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-100'
-                    : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
-                }`}
+                className={`px-6 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${profile.dietaryRestrictions.includes(diet)
+                  ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-100'
+                  : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
+                  }`}
               >
                 {diet}
               </button>
@@ -117,8 +115,8 @@ const ProfileSettings: React.FC = () => {
               <p className="font-black text-slate-900 text-sm uppercase tracking-tight">Clear History</p>
               <p className="text-xs text-slate-400 font-bold mt-1">Reset your weekly hunting progress</p>
             </div>
-            <button 
-              onClick={() => { if(confirm('Wipe your data?')) { clearSearchHistory(); window.location.reload(); } }}
+            <button
+              onClick={() => { if (confirm('Wipe your data?')) { clearSearchHistory(); window.location.reload(); } }}
               className="px-6 py-3 bg-white border border-slate-200 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all uppercase tracking-widest"
             >
               Clear
@@ -136,4 +134,4 @@ const ProfileSettings: React.FC = () => {
   );
 };
 
-export default ProfileSettings;
+export default Profile;

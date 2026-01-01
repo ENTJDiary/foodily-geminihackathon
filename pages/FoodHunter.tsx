@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { searchRestaurantsByMaps } from '../services/geminiService';
 import { Location, SearchResult } from '../types';
-import RestaurantModal from './RestaurantModal';
+import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, getUserProfile } from '../services/storageService';
 
-const SearchInterface: React.FC = () => {
+const FoodHunter: React.FC = () => {
   const [dish, setDish] = useState('');
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,7 +68,7 @@ const SearchInterface: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Craving</label>
-              <input 
+              <input
                 type="text"
                 placeholder="e.g. Spicy Ramen"
                 value={dish}
@@ -78,7 +78,7 @@ const SearchInterface: React.FC = () => {
             </div>
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Location</label>
-              <input 
+              <input
                 type="text"
                 placeholder="e.g. New York, NY"
                 value={locationName}
@@ -90,10 +90,10 @@ const SearchInterface: React.FC = () => {
 
           {hasRestrictions && (
             <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-orange-50">
-              <input 
+              <input
                 id="apply-dietary"
-                type="checkbox" 
-                checked={applyFilters} 
+                type="checkbox"
+                checked={applyFilters}
                 onChange={() => setApplyFilters(!applyFilters)}
                 className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
               />
@@ -103,7 +103,7 @@ const SearchInterface: React.FC = () => {
             </div>
           )}
 
-          <button 
+          <button
             disabled={loading}
             type="submit"
             className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white font-bold py-5 rounded-xl transition-all shadow-md flex items-center justify-center gap-3 text-lg active:scale-[0.99]"
@@ -155,7 +155,7 @@ const SearchInterface: React.FC = () => {
                     </div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{appRating > 0 ? `${appRating.toFixed(1)} Rating` : 'New'}</span>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName, searchedDish: dish })}
                     className="w-full bg-orange-50 hover:bg-orange-600 hover:text-white text-orange-700 font-bold py-4 rounded-xl text-xs transition-all uppercase tracking-widest border border-orange-100"
                   >
@@ -169,7 +169,7 @@ const SearchInterface: React.FC = () => {
       )}
 
       {selectedRestaurant && (
-        <RestaurantModal 
+        <RestaurantModal
           restaurantId={selectedRestaurant.id}
           restaurantName={selectedRestaurant.name}
           searchedDish={selectedRestaurant.searchedDish}
@@ -180,4 +180,4 @@ const SearchInterface: React.FC = () => {
   );
 };
 
-export default SearchInterface;
+export default FoodHunter;

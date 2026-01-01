@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { analyzeWeeklyHabits } from '../services/geminiService';
-import { HistoryEntry } from '../types';
+import { analyzeWeeklyHabits } from '../../services/geminiService';
+import { HistoryEntry } from '../../types';
 
 interface WeeklyFoodHuntProps {
   history: HistoryEntry[];
@@ -39,7 +39,7 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
     const dateStr = d.toISOString().split('T')[0];
     const entriesForDay = history.filter(h => h.date === dateStr);
     const entry = entriesForDay.length > 0 ? entriesForDay[entriesForDay.length - 1] : null;
-    
+
     return {
       name: daysLabels[i],
       date: dateStr,
@@ -54,7 +54,7 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
           <div className="w-1 h-6 bg-orange-600 rounded-full"></div>
           Weekly Food Hunt
         </h3>
-        <button 
+        <button
           onClick={handleAnalyze}
           disabled={loading}
           className="text-[10px] font-black text-orange-600 hover:bg-orange-50 uppercase tracking-[0.2em] px-5 py-2.5 bg-white border border-orange-200 rounded-full transition-all disabled:opacity-50"
@@ -67,11 +67,10 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
         {weekDays.map((day, i) => (
           <div key={i} className="flex flex-col items-center">
             <span className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">{day.name}</span>
-            <div className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${
-              day.entry 
-                ? 'bg-orange-600 text-white shadow-md' 
+            <div className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${day.entry
+                ? 'bg-orange-600 text-white shadow-md'
                 : 'bg-slate-50 text-slate-300'
-            }`}>
+              }`}>
               {day.entry ? (
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
               ) : (
@@ -96,8 +95,8 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history }) => {
           <div className="whitespace-pre-wrap text-sm text-orange-950 font-medium leading-relaxed space-y-1">
             {analysis}
           </div>
-          <button 
-            onClick={() => setAnalysis(null)} 
+          <button
+            onClick={() => setAnalysis(null)}
             className="mt-6 text-[10px] font-black text-orange-400 uppercase tracking-widest hover:text-orange-600 transition-colors flex items-center gap-1"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>

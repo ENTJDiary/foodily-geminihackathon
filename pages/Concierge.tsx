@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { conciergeChat } from '../services/geminiService';
 import { SearchResult } from '../types';
-import RestaurantModal from './RestaurantModal';
+import RestaurantModal from '../components/common/RestaurantModal';
 
-const ConciergeInterface: React.FC = () => {
+const Concierge: React.FC = () => {
   const [occasion, setOccasion] = useState('');
   const [people, setPeople] = useState('');
   const [request, setRequest] = useState('');
@@ -152,4 +152,4 @@ const ConciergeInterface: React.FC = () => {
   );
 };
 
-export default ConciergeInterface;
+export default Concierge;

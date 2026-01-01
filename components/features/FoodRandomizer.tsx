@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { expandSlotOptions } from '../services/geminiService';
+import { expandSlotOptions } from '../../services/geminiService';
 
 interface FoodCombination {
   id: string;

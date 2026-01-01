@@ -1,11 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-interface LandingPageProps {
-  onStart: () => void;
-}
+const Landing: React.FC = () => {
+  const navigate = useNavigate();
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-inter">
       {/* Top Fold: Hero Section */}
@@ -14,7 +13,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-400 rounded-full blur-[120px]"></div>
         </div>
-        
+
         <div className="z-10 text-center max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-orange-100">
@@ -22,19 +21,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             </div>
             <h1 className="text-3xl font-black tracking-tighter text-orange-600">Food.ily</h1>
           </div>
-          
+
           <h2 className="text-6xl md:text-8xl font-extrabold tracking-tight text-slate-900 leading-[0.95]">
             Eat what you <span className="text-orange-600">crave</span>, <br />
             not just what's near.
           </h2>
-          
+
           <p className="text-xl md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
             The premium discovery engine for your next favorite dish. Powered by Gemini AI for hyper-personal recommendations.
           </p>
-          
+
           <div className="pt-8">
-            <button 
-              onClick={onStart}
+            <button
+              onClick={() => navigate('/FoodHunter')}
               className="group relative bg-slate-900 hover:bg-orange-600 text-white px-12 py-6 rounded-2xl font-black text-lg uppercase tracking-widest transition-all duration-300 shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-4 mx-auto"
             >
               Start Exploring
@@ -93,7 +92,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-black text-sm">F</div>
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Food.ily</span>
           </div>
-          
+
           <div className="flex items-center gap-12">
             <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">ToS</a>
             <a href="#" className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-600 transition-colors">Privacy</a>
@@ -109,4 +108,4 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   );
 };
 
-export default LandingPage;
+export default Landing;

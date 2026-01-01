@@ -1,13 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { searchRestaurantsByMaps } from '../services/geminiService';
-import WeeklyFoodHunt from './WeeklyFoodHunt';
-import FoodRandomizer from './FoodRandomizer';
+import WeeklyFoodHunt from '../components/features/WeeklyFoodHunt';
+import FoodRandomizer from '../components/features/FoodRandomizer';
 import { Location, SearchResult, HistoryEntry } from '../types';
-import RestaurantModal from './RestaurantModal';
+import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, saveSearchToHistory, getWeeklyHistory, getUserProfile } from '../services/storageService';
 
-const ChatWindow: React.FC = () => {
+const FoodGatcha: React.FC = () => {
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string; searchedDish?: string } | null>(null);
@@ -137,4 +137,4 @@ const ChatWindow: React.FC = () => {
   );
 };
 
-export default ChatWindow;
+export default FoodGatcha;
