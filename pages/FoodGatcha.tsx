@@ -34,8 +34,22 @@ const FoodGatcha: React.FC = () => {
     }
   }, []);
 
-  const handleRandomSelection = async (cuisine: string, foodType: string) => {
-    const query = [cuisine, foodType].filter(Boolean).join(' ');
+  const handleRandomSelection = async (cuisine: string, foodType: string, lockedCuisine: boolean, lockedFood: boolean) => {
+    // Smart search based on lock state
+    let searchTerms: string[] = [];
+
+    if (lockedCuisine && !lockedFood) {
+      // Only cuisine is locked → search by cuisine only
+      searchTerms = [cuisine];
+    } else if (!lockedCuisine && lockedFood) {
+      // Only food is locked → search by food only
+      searchTerms = [foodType];
+    } else {
+      // Both unlocked OR both locked → search by both
+      searchTerms = [cuisine, foodType];
+    }
+
+    const query = searchTerms.filter(Boolean).join(' ');
     setLoadingResults(true);
     setResults(null);
     try {

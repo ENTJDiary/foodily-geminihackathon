@@ -59,16 +59,29 @@ export const getRestaurantDetails = async (name: string): Promise<SearchResult> 
   };
 };
 
+// In-memory cache for expanded slot options
+const slotOptionsCache = new Map<string, string[]>();
+
 export const expandSlotOptions = async (
   targetType: 'cuisine' | 'food',
   constraintValue: string,
   constraintType: 'cuisine' | 'food'
 ): Promise<string[]> => {
+  // Create cache key
+  const cacheKey = `${targetType}:${constraintValue.toLowerCase()}`;
+
+  // Return cached result if available
+  if (slotOptionsCache.has(cacheKey)) {
+    console.log(`Cache hit for ${cacheKey}`);
+    return slotOptionsCache.get(cacheKey)!;
+  }
+
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+  // Reduced from 25 to 12 for faster response
   const prompt = targetType === 'food'
-    ? `List 25 diverse, trending, and mouth-watering food items or dishes that belong to the "${constraintValue}" cuisine. Include both street food and gourmet options. Return ONLY a JSON array of strings.`
-    : `List 25 diverse global cuisines or regional cooking styles that are famous for serving "${constraintValue}". Be creative and include niche regional cuisines. Return ONLY a JSON array of strings.`;
+    ? `List 12 diverse, trending, and mouth-watering food items or dishes that belong to the "${constraintValue}" cuisine. Include both street food and gourmet options. Return ONLY a JSON array of strings.`
+    : `List 12 diverse global cuisines or regional cooking styles that are famous for serving "${constraintValue}". Be creative and include niche regional cuisines. Return ONLY a JSON array of strings.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
@@ -83,7 +96,10 @@ export const expandSlotOptions = async (
   });
 
   try {
-    return JSON.parse(response.text || "[]");
+    const result = JSON.parse(response.text || "[]");
+    // Cache the result
+    slotOptionsCache.set(cacheKey, result);
+    return result;
   } catch (e) {
     console.error("Failed to parse AI options", e);
     return [];

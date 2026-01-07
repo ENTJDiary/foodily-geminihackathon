@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { expandSlotOptions } from '../../services/geminiService';
 
 interface FoodCombination {
@@ -34,7 +34,7 @@ const DEFAULT_COMBINATIONS: FoodCombination[] = [
 ];
 
 interface FoodRandomizerProps {
-  onSelection: (cuisine: string, foodType: string) => void;
+  onSelection: (cuisine: string, foodType: string, lockedCuisine: boolean, lockedFood: boolean) => void;
 }
 
 const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
@@ -45,11 +45,16 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   const [dynamicCuisines, setDynamicCuisines] = useState<string[]>([]);
   const [dynamicFoods, setDynamicFoods] = useState<string[]>([]);
   const [isExpanding, setIsExpanding] = useState(false);
+  const [isLoadingEnhanced, setIsLoadingEnhanced] = useState(false);
 
   const [isRollingCuisine, setIsRollingCuisine] = useState(false);
   const [isRollingFood, setIsRollingFood] = useState(false);
   const [lockedCuisine, setLockedCuisine] = useState(false);
   const [lockedFood, setLockedFood] = useState(false);
+
+  // Debounce timer refs
+  const cuisineDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const foodDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCuisine, setNewCuisine] = useState('');
@@ -59,26 +64,44 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   const uniqueFoods = useMemo(() => Array.from(new Set(combinations.map(c => c.food))).sort(), [combinations]);
   const userAddedItems = useMemo(() => combinations.filter(c => c.isCustom), [combinations]);
 
-  // Handle Dynamic Expansion when one is locked
+  // Optimistic UI + Background Enhancement when one is locked
   useEffect(() => {
     const expand = async () => {
       if (lockedCuisine && !lockedFood) {
-        setIsExpanding(true);
+        // Optimistic: Show default related foods immediately
+        const defaultRelated = combinations.filter(c => c.cuisine === cuisine).map(c => c.food);
+        if (defaultRelated.length > 0) {
+          setDynamicFoods(defaultRelated);
+        }
+
+        // Background: Fetch enhanced AI options
+        setIsLoadingEnhanced(true);
         const options = await expandSlotOptions('food', cuisine, 'cuisine');
-        if (options.length > 0) setDynamicFoods(options);
-        setIsExpanding(false);
+        if (options.length > 0) {
+          setDynamicFoods(options);
+        }
+        setIsLoadingEnhanced(false);
       } else if (!lockedCuisine && lockedFood) {
-        setIsExpanding(true);
+        // Optimistic: Show default related cuisines immediately
+        const defaultRelated = combinations.filter(c => c.food === foodType).map(c => c.cuisine);
+        if (defaultRelated.length > 0) {
+          setDynamicCuisines(defaultRelated);
+        }
+
+        // Background: Fetch enhanced AI options
+        setIsLoadingEnhanced(true);
         const options = await expandSlotOptions('cuisine', foodType, 'food');
-        if (options.length > 0) setDynamicCuisines(options);
-        setIsExpanding(false);
+        if (options.length > 0) {
+          setDynamicCuisines(options);
+        }
+        setIsLoadingEnhanced(false);
       } else if (!lockedCuisine && !lockedFood) {
         setDynamicCuisines([]);
         setDynamicFoods([]);
       }
     };
     expand();
-  }, [lockedCuisine, lockedFood]); // Only refetch when lock status changes
+  }, [lockedCuisine, lockedFood, cuisine, foodType, combinations]); // Dependencies include values needed for optimistic UI
 
   // Set initial values
   useEffect(() => {
@@ -128,6 +151,27 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
     return () => clearInterval(timer);
   }, [isRollingFood, availableFoods]);
 
+  // Debounced lock toggle handlers (300ms debounce)
+  const handleToggleCuisine = useCallback(() => {
+    if (cuisineDebounceTimer.current) {
+      clearTimeout(cuisineDebounceTimer.current);
+    }
+
+    cuisineDebounceTimer.current = setTimeout(() => {
+      setLockedCuisine(prev => !prev);
+    }, 300);
+  }, []);
+
+  const handleToggleFood = useCallback(() => {
+    if (foodDebounceTimer.current) {
+      clearTimeout(foodDebounceTimer.current);
+    }
+
+    foodDebounceTimer.current = setTimeout(() => {
+      setLockedFood(prev => !prev);
+    }, 300);
+  }, []);
+
   const handleRoll = () => {
     if (!lockedCuisine) setIsRollingCuisine(true);
     if (!lockedFood) setIsRollingFood(true);
@@ -139,7 +183,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
   };
 
   const handleFinalize = () => {
-    onSelection(cuisine, foodType);
+    onSelection(cuisine, foodType, lockedCuisine, lockedFood);
   };
 
   const handleAddCustom = (e: React.FormEvent) => {
@@ -162,8 +206,11 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         <div className="space-y-2">
           <h4 className="text-[11px] font-black text-orange-600 uppercase tracking-[0.3em] flex items-center gap-2">
             The Gourmet Slot
-            {(dynamicCuisines.length > 0 || dynamicFoods.length > 0) && (
-              <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-[8px] animate-pulse">AI Enhanced</span>
+            {isLoadingEnhanced && (
+              <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[8px] animate-pulse">Enhancing...</span>
+            )}
+            {!isLoadingEnhanced && (dynamicCuisines.length > 0 || dynamicFoods.length > 0) && (
+              <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-[8px]">AI Enhanced</span>
             )}
           </h4>
           <p className="text-slate-400 font-medium text-sm">Indecisive? Let the wheel choose your next meal.</p>
@@ -208,20 +255,19 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         {/* Cuisine Bracket */}
         <div className="space-y-4">
           <div className={`relative h-32 bg-slate-50 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 ${lockedCuisine ? 'border-orange-500 bg-white shadow-md scale-[1.02]' : 'border-transparent'}`}>
-            {isExpanding && !lockedCuisine ? (
-              <div className="flex flex-col items-center gap-2 animate-pulse">
-                <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
-                <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Expanding Pool...</span>
-              </div>
+            {isRollingCuisine ? (
+              <span className="text-xl font-black transition-all text-center px-4 uppercase tracking-tight blur-sm opacity-50 text-slate-900">
+                {cuisine}
+              </span>
             ) : (
-              <span className={`text-xl font-black transition-all text-center px-4 uppercase tracking-tight ${isRollingCuisine ? 'blur-sm opacity-50' : 'text-slate-900'}`}>
+              <span className="text-xl font-black transition-all text-center px-4 uppercase tracking-tight text-slate-900">
                 {cuisine}
               </span>
             )}
             {lockedCuisine && <div className="absolute top-3 right-3"><div className="w-2 h-2 bg-orange-500 rounded-full"></div></div>}
           </div>
           <button
-            onClick={() => setLockedCuisine(!lockedCuisine)}
+            onClick={handleToggleCuisine}
             className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lockedCuisine ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-orange-50 hover:text-orange-600'}`}
           >
             {lockedCuisine ? 'Unlock' : 'Lock'}
@@ -231,20 +277,19 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         {/* Food Type Bracket */}
         <div className="space-y-4">
           <div className={`relative h-32 bg-slate-50 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 ${lockedFood ? 'border-orange-500 bg-white shadow-md scale-[1.02]' : 'border-transparent'}`}>
-            {isExpanding && !lockedFood ? (
-              <div className="flex flex-col items-center gap-2 animate-pulse">
-                <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
-                <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Finding Varietals...</span>
-              </div>
+            {isRollingFood ? (
+              <span className="text-xl font-black transition-all text-center px-4 uppercase tracking-tight blur-sm opacity-50 text-slate-900">
+                {foodType}
+              </span>
             ) : (
-              <span className={`text-xl font-black transition-all text-center px-4 uppercase tracking-tight ${isRollingFood ? 'blur-sm opacity-50' : 'text-slate-900'}`}>
+              <span className="text-xl font-black transition-all text-center px-4 uppercase tracking-tight text-slate-900">
                 {foodType}
               </span>
             )}
             {lockedFood && <div className="absolute top-3 right-3"><div className="w-2 h-2 bg-orange-500 rounded-full"></div></div>}
           </div>
           <button
-            onClick={() => setLockedFood(!lockedFood)}
+            onClick={handleToggleFood}
             className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lockedFood ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-orange-50 hover:text-orange-600'}`}
           >
             {lockedFood ? 'Unlock' : 'Lock'}
@@ -255,7 +300,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={handleRoll}
-          disabled={isRollingCuisine || isRollingFood || (lockedCuisine && lockedFood) || isExpanding}
+          disabled={isRollingCuisine || isRollingFood || (lockedCuisine && lockedFood)}
           className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-black py-5 rounded-2xl transition-all shadow-md disabled:opacity-20 flex items-center justify-center gap-3 uppercase text-xs tracking-widest"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -265,7 +310,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
         {(lockedCuisine || lockedFood) && (
           <button
             onClick={handleFinalize}
-            disabled={isExpanding || isRollingCuisine || isRollingFood}
+            disabled={isRollingCuisine || isRollingFood}
             className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-black py-5 rounded-2xl transition-all border border-orange-100 uppercase text-xs tracking-widest animate-in fade-in slide-in-from-right-4 disabled:opacity-50"
           >
             Show Recommendations
