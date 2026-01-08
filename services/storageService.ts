@@ -65,13 +65,20 @@ export const addMenuItem = (restaurantId: string, restaurantName: string, item: 
   const newItem: MenuItem = {
     ...item,
     id: Math.random().toString(36).substr(2, 9),
+    timestamp: Date.now(),
   };
 
   restaurant.menuItems.unshift(newItem);
   restaurant.name = restaurantName;
   allData[restaurantId] = restaurant;
 
-  localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
+  try {
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
+    console.log('✅ Successfully saved to localStorage');
+  } catch (error) {
+    console.error('❌ localStorage.setItem failed:', error);
+    throw error; // Re-throw to be caught by caller
+  }
 };
 
 export const getAverageRating = (restaurantId: string): number => {

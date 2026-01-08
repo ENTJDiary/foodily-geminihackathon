@@ -127,7 +127,7 @@ const FoodGatcha: React.FC = () => {
                     onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName, searchedDish: history[history.length - 1]?.foodType })}
                     className="mt-auto bg-orange-50 hover:bg-orange-600 hover:text-white transition-all text-orange-700 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest border border-orange-100"
                   >
-                    View App Ledger
+                    View Restaurant
                   </button>
                 </div>
               );

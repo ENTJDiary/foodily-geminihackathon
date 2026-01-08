@@ -36,11 +36,28 @@ export interface Review {
   timestamp: number;
 }
 
+export interface DishDetail {
+  name: string;
+  price?: string;
+  description: string;
+}
+
 export interface MenuItem {
   id: string;
+  title?: string; // Social post title
+
+  // Legacy fields (kept for compatibility, but moving towards 'dishes' array)
   name: string;
   description: string;
-  image?: string; // base64 string
+  price?: string;
+
+  image?: string; // Leading image
+  images?: string[]; // New: up to 12 images
+
+  dishes?: DishDetail[]; // New: multiple dishes in one post
+
+  userName: string;
+  timestamp: number;
 }
 
 export interface RestaurantData {

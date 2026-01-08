@@ -46,7 +46,7 @@ export const getRestaurantDetails = async (name: string): Promise<SearchResult> 
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Provide a very brief summary, current opening hours, and the top 3 popular dishes for the restaurant "${name}". Format the response clearly with headings.`,
+    contents: `Provide a very brief summary, current opening hours, the top 3 popular dishes, and an estimated Price Rating (1-4, where 1 is cheap and 4 is expensive) for the restaurant "${name}". Format the response clearly with headings. PROMINENTLY STATE "Price Rating: X/4" on its own line.`,
     config: {
       tools: [{ googleSearch: {} }],
     },
