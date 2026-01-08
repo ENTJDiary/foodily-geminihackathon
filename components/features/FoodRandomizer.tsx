@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { expandSlotOptions } from '../../services/geminiService';
+import { getUserProfile } from '../../services/storageService';
 
 interface FoodCombination {
   id: string;
@@ -34,10 +34,12 @@ const DEFAULT_COMBINATIONS: FoodCombination[] = [
 ];
 
 interface FoodRandomizerProps {
+  applyFilters: boolean;
+  onToggleFilters: () => void;
   onSelection: (cuisine: string, foodType: string, lockedCuisine: boolean, lockedFood: boolean) => void;
 }
 
-const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
+const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleFilters, onSelection }) => {
   const [combinations, setCombinations] = useState<FoodCombination[]>(DEFAULT_COMBINATIONS);
   const [cuisine, setCuisine] = useState('');
   const [foodType, setFoodType] = useState('');
@@ -317,6 +319,21 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ onSelection }) => {
           </button>
         )}
       </div>
+
+      {getUserProfile().dietaryRestrictions.length > 0 && (
+        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-orange-50">
+          <input
+            id="apply-dietary-randomizer"
+            type="checkbox"
+            checked={applyFilters}
+            onChange={onToggleFilters}
+            className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+          />
+          <label htmlFor="apply-dietary-randomizer" className="text-xs font-black text-slate-600 uppercase tracking-widest cursor-pointer select-none">
+            Filter by my dietary needs: <span className="text-orange-600">{getUserProfile().dietaryRestrictions.join(', ')}</span>
+          </label>
+        </div>
+      )}
     </div>
   );
 };

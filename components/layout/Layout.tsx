@@ -59,19 +59,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             onClick={() => navigate('/FoodHunter')}
             className={`text-sm font-bold transition-colors ${isActive('/FoodHunter') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
-            Find Restaurants
+            Foodiscovery
           </button>
           <button
             onClick={() => navigate('/FoodGatcha')}
             className={`text-sm font-bold transition-colors ${isActive('/FoodGatcha') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
-            Food Assistant
+            Food Gacha
           </button>
           <button
             onClick={() => navigate('/Concierge')}
             className={`text-sm font-bold transition-colors ${isActive('/Concierge') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
           >
-            Dining Concierge
+            Food Planner
           </button>
 
           <div className="relative" ref={dropdownRef}>
@@ -122,21 +122,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           className={`flex flex-col items-center gap-1 ${isActive('/FoodHunter') ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <span className="text-[10px] font-bold uppercase tracking-widest">Search</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Discovery</span>
         </button>
         <button
           onClick={() => navigate('/FoodGatcha')}
           className={`flex flex-col items-center gap-1 ${isActive('/FoodGatcha') ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-          <span className="text-[10px] font-bold uppercase tracking-widest">Assistant</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Gacha</span>
         </button>
         <button
           onClick={() => navigate('/Concierge')}
           className={`flex flex-col items-center gap-1 ${isActive('/Concierge') ? 'text-orange-600' : 'text-gray-400'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-          <span className="text-[10px] font-bold uppercase tracking-widest">Concierge</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Planner</span>
         </button>
         <button
           onClick={() => {

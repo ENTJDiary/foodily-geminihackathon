@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { getRestaurantData, saveReview, getAverageRating, addMenuItem, saveRestaurantDescription } from '../../services/storageService';
+import { getRestaurantData, saveReview, getAverageRating, addMenuItem } from '../../services/storageService';
 import { getRestaurantDetails } from '../../services/geminiService';
 import { Review, SearchResult, MenuItem } from '../../types';
 
@@ -14,7 +14,6 @@ interface RestaurantModalProps {
 const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaurantName, searchedDish, onClose }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [commDesc, setCommDesc] = useState('');
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -26,7 +25,12 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
 
   // Add Dish State
   const [showAddDish, setShowAddDish] = useState(false);
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
+
+  // Insights State
+  const [visibleReviews, setVisibleReviews] = useState<Review[]>([]);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+
   const [newDishName, setNewDishName] = useState(searchedDish || '');
   const [newDishDesc, setNewDishDesc] = useState('');
   const [newDishImg, setNewDishImg] = useState<string | null>(null);
@@ -36,7 +40,10 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     const data = getRestaurantData(restaurantId);
     setReviews(data.reviews);
     setMenuItems(data.menuItems || []);
-    setCommDesc(data.communityDescription || '');
+    // Initialize visible reviews if empty
+    if (data.reviews.length > 0) {
+      setVisibleReviews(data.reviews.slice(0, 20)); // Increased limit to fill line
+    }
     setAvgRating(getAverageRating(restaurantId));
 
     const fetchGourmetDetails = async () => {
@@ -54,6 +61,30 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     fetchGourmetDetails();
   }, [restaurantId, restaurantName]);
 
+  // Cycle reviews effect
+  useEffect(() => {
+    // Only stop cycling if we have 1 or 0 reviews
+    if (reviews.length <= 1) {
+      setVisibleReviews(reviews);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentReviewIndex(prev => {
+        const nextIndex = (prev + 1) % reviews.length;
+        // Get 20 reviews starting from nextIndex, wrapping around to create infinite line feeling
+        const nextReviews = [];
+        for (let i = 0; i < 20; i++) {
+          nextReviews.push(reviews[(nextIndex + i) % reviews.length]);
+        }
+        setVisibleReviews(nextReviews);
+        return nextIndex;
+      });
+    }, 4000); // Rotate every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [reviews]);
+
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!comment || !userName) return;
@@ -66,10 +97,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     setRating(5);
   };
 
-  const handleSaveDescription = () => {
-    saveRestaurantDescription(restaurantId, restaurantName, commDesc);
-    setIsEditingDesc(false);
-  };
+
 
   const handleAddDish = (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,32 +191,33 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
             </div>
           </section>
 
-          {/* COMMUNITY DESCRIPTION */}
+          {/* COMMUNITY INSIGHTS (Floating Bubbles) */}
           <section className="space-y-4 px-2">
-            <div className="flex justify-between items-center">
-              <h3 className="font-black text-slate-900 uppercase tracking-widest text-[11px]">COMMUNITY BIO</h3>
-              {!isEditingDesc && (
-                <button onClick={() => setIsEditingDesc(true)} className="text-[9px] font-black text-orange-600 uppercase tracking-widest hover:underline">Edit Bio</button>
+            <h3 className="font-black text-slate-900 uppercase tracking-widest text-[11px] mb-4">COMMUNITY INSIGHT</h3>
+
+            <div className="flex flex-nowrap items-center gap-4 min-h-[60px] overflow-hidden w-full mask-linear-fade">
+              {reviews.length === 0 ? (
+                <p className="text-sm font-medium text-slate-400 italic leading-relaxed w-full text-center py-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                  No insights yet. Be the first to share!
+                </p>
+              ) : (
+                visibleReviews.map((rev, idx) => (
+                  <div
+                    key={`${rev.id}-${idx}`}
+                    className="flex-shrink-0 animate-in fade-in zoom-in slide-in-from-right-4 duration-700 fill-mode-both"
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    <button
+                      onClick={() => setSelectedReview(rev)}
+                      className="relative inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-blue-200 rounded-full shadow-sm text-slate-700 font-medium text-xs italic hover:scale-105 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer max-w-[220px] active:scale-95 group text-left"
+                    >
+                      <span className="truncate whitespace-nowrap group-hover:text-blue-600 transition-colors">"{rev.comment}"</span>
+                      <div className="absolute -bottom-1 left-6 w-2 h-2 bg-blue-200 rotate-45 transform translate-y-1/2 rounded-sm group-hover:bg-blue-400 transition-colors"></div>
+                    </button>
+                  </div>
+                ))
               )}
             </div>
-            {isEditingDesc ? (
-              <div className="space-y-3">
-                <textarea
-                  value={commDesc}
-                  onChange={(e) => setCommDesc(e.target.value)}
-                  className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-orange-100 font-medium text-sm outline-none h-32 resize-none"
-                  placeholder="Share a general description of this restaurant's vibe and specialty..."
-                />
-                <div className="flex gap-2">
-                  <button onClick={handleSaveDescription} className="px-4 py-2 bg-orange-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Save Bio</button>
-                  <button onClick={() => setIsEditingDesc(false)} className="px-4 py-2 bg-slate-100 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest">Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm font-medium text-slate-600 italic leading-relaxed">
-                {commDesc || "No community description yet. Be the first to tell others what this place is like!"}
-              </p>
-            )}
           </section>
 
           {/* COMMUNITY MENU SECTION */}
@@ -342,38 +371,35 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
               <button type="submit" className="w-full bg-orange-600 text-white font-black py-5 rounded-xl hover:bg-orange-700 transition-all uppercase tracking-[0.2em] text-xs shadow-lg">Post Insight</button>
             </form>
           </section>
-
-          {/* LEDGER */}
-          <section className="space-y-6">
-            <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs flex items-center gap-3">
-              Community Ledger
-              <span className="w-6 h-6 bg-orange-50 rounded-full flex items-center justify-center text-[10px] text-orange-600 font-black">{reviews.length}</span>
-            </h3>
-            <div className="space-y-4">
-              {reviews.length === 0 ? (
-                <div className="text-center py-10 text-slate-300 font-bold uppercase text-[10px] tracking-widest">No records yet.</div>
-              ) : (
-                reviews.map((rev) => (
-                  <div key={rev.id} className="p-6 bg-white border border-orange-50 rounded-2xl shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <span className="font-black text-slate-900 uppercase text-sm">{rev.userName}</span>
-                        <div className="flex text-orange-500 text-xs mt-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <svg key={i} className={`w-3 h-3 ${rev.rating > i ? 'fill-current' : 'text-slate-100'}`} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                          ))}
-                        </div>
-                      </div>
-                      <span className="text-[10px] text-slate-300 font-black uppercase">{new Date(rev.timestamp).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-slate-800 font-medium text-sm leading-relaxed italic">"{rev.comment}"</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
         </div>
       </div>
+
+      {/* REVIEW DETAIL MODAL - Moved outside to escape transforms/overflow */}
+      {selectedReview && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedReview(null)}>
+          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200 border border-blue-100 relative" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedReview(null)} className="absolute top-4 right-4 p-2 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-900 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+
+            <div className="flex flex-col gap-4 mt-6">
+              <div className="flex items-center justify-between">
+                <h4 className="font-black text-slate-900 uppercase tracking-widest text-sm">{selectedReview.userName}</h4>
+                <div className="flex text-orange-500">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg key={i} className={`w-4 h-4 ${selectedReview.rating > i ? 'fill-current' : 'text-slate-200'}`} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                  ))}
+                </div>
+              </div>
+              <div className="w-full h-px bg-slate-100"></div>
+              <p className="text-slate-600 font-medium text-sm leading-relaxed italic">
+                "{selectedReview.comment}"
+              </p>
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">{new Date(selectedReview.timestamp).toLocaleDateString()}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
