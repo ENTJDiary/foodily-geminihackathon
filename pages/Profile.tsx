@@ -196,7 +196,7 @@ const Profile: React.FC = () => {
           {/* First Frame: Navigation Items */}
           <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
             {/* Back to Home */}
-            <div className="flex pl-4 pt-4">
+            <div className="flex pl-5 pt-4">
               <Link
                   to="/FoodHunter"
                   className="inline-flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-wider"
