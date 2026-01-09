@@ -1,20 +1,67 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../src/contexts/AuthContext';
 import Footer from '../components/layout/Footer';
 
 const Signup: React.FC = () => {
     const navigate = useNavigate();
+    const { signInWithGoogle, signInWithEmailOTP, error: authError } = useAuth();
     const [email, setEmail] = useState('');
+    const [otpCode, setOtpCode] = useState('');
+    const [verificationId, setVerificationId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
-    const handleEmailSignup = (e: React.FormEvent) => {
+    const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Email signup:', email);
-        navigate('/FoodHunter');
+        setError(null);
+        setSuccess(null);
+        setLoading(true);
+
+        try {
+            const verifyId = await signInWithEmailOTP(email);
+            setVerificationId(verifyId);
+            setSuccess('Code sent! Please check your email.');
+        } catch (err: any) {
+            setError(err.userMessage || 'Failed to send code. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleGoogleSignup = () => {
-        console.log('Google signup clicked');
-        navigate('/FoodHunter');
+    const handleVerifyOTP = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!verificationId) return;
+
+        setError(null);
+        setLoading(true);
+
+        try {
+            // Note: This will throw an error until Cloud Function is implemented
+            // For now, use Google Sign-In
+            setError('Email OTP verification requires Cloud Function implementation. Please use Google Sign-In for now.');
+        } catch (err: any) {
+            setError(err.userMessage || 'Invalid code. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignup = async () => {
+        setError(null);
+        setLoading(true);
+
+        try {
+            await signInWithGoogle();
+            // Redirect to initializing page which will wait for user profile
+            // and then redirect to /FoodHunter/:userid
+            navigate('/initializing');
+        } catch (err: any) {
+            setError(err.userMessage || 'Failed to sign in with Google. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -80,10 +127,25 @@ const Signup: React.FC = () => {
                         <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Sign Up</h2>
                         <p className="text-slate-500 font-medium mb-8">Begin your culinary adventure</p>
 
+                        {/* Error Message */}
+                        {(error || authError) && (
+                            <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                                <p className="text-red-600 text-sm font-medium">{error || authError}</p>
+                            </div>
+                        )}
+
+                        {/* Success Message */}
+                        {success && (
+                            <div className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                                <p className="text-green-600 text-sm font-medium">{success}</p>
+                            </div>
+                        )}
+
                         {/* Google Button */}
                         <button
                             onClick={handleGoogleSignup}
-                            className="w-full bg-white hover:bg-slate-50 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 mb-6 border-2 border-slate-200 hover:border-orange-600 hover:shadow-lg hover:shadow-orange-100 group"
+                            disabled={loading}
+                            className="w-full bg-white hover:bg-slate-50 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 mb-6 border-2 border-slate-200 hover:border-orange-600 hover:shadow-lg hover:shadow-orange-100 group disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <div className="w-6 h-6 flex items-center justify-center">
                                 <svg viewBox="0 0 24 24" className="w-full h-full">
@@ -105,7 +167,9 @@ const Signup: React.FC = () => {
                                     />
                                 </svg>
                             </div>
-                            <span className="text-sm uppercase tracking-wider">Continue with Google</span>
+                            <span className="text-sm uppercase tracking-wider">
+                                {loading ? 'Signing up...' : 'Continue with Google'}
+                            </span>
                         </button>
 
                         {/* Divider */}
@@ -118,29 +182,71 @@ const Signup: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Email Input */}
-                        <form onSubmit={handleEmailSignup} className="space-y-6">
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">
-                                    Email Address
-                                </label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
-                                    className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent transition-all font-medium hover:border-orange-300"
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-xl transition-all duration-300 text-sm uppercase tracking-widest shadow-xl shadow-orange-200 hover:shadow-2xl hover:shadow-orange-300 hover:scale-[1.02] active:scale-95"
-                            >
-                                Get Started Free
-                            </button>
-                        </form>
+                        {/* Email OTP Form */}
+                        {!verificationId ? (
+                            <form onSubmit={handleEmailSignup} className="space-y-6">
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="you@example.com"
+                                        className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent transition-all font-medium hover:border-orange-300"
+                                        required
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-xl transition-all duration-300 text-sm uppercase tracking-widest shadow-xl shadow-orange-200 hover:shadow-2xl hover:shadow-orange-300 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Sending...' : 'Send Code'}
+                                </button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleVerifyOTP} className="space-y-6">
+                                <div>
+                                    <label htmlFor="code" className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">
+                                        Enter 6-Digit Code
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="code"
+                                        value={otpCode}
+                                        onChange={(e) => setOtpCode(e.target.value)}
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent transition-all font-medium hover:border-orange-300 text-center text-2xl tracking-widest"
+                                        required
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-xl transition-all duration-300 text-sm uppercase tracking-widest shadow-xl shadow-orange-200 hover:shadow-2xl hover:shadow-orange-300 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Verifying...' : 'Verify Code'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setVerificationId(null);
+                                        setOtpCode('');
+                                        setError(null);
+                                        setSuccess(null);
+                                    }}
+                                    className="w-full text-slate-600 hover:text-orange-600 font-medium text-sm transition-colors"
+                                >
+                                    Use different email
+                                </button>
+                            </form>
+                        )}
 
                         {/* Footer Links */}
                         <div className="mt-8 space-y-4">
