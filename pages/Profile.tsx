@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { getUserProfile, saveUserProfile, clearSearchHistory } from '../services/storageService';
 import { UserProfile } from '../types';
 
@@ -187,23 +187,38 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Back to Home CTA */}
-      <button
-        onClick={() => navigate('/FoodHunter')}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white transition-all font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        <span>Back to Home</span>
-      </button>
+      <div className="min-h-screen bg-slate-50 flex justify-center">
+        <div className="bg-white w-full max-w-[2560px] px-6 py-6 space-y-6 animate-in fade-in duration-500">
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar */}
         <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
           {/* First Frame: Navigation Items */}
           <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+            {/* Back to Home */}
+            <div className="flex pl-4 pt-4">
+              <Link
+                  to="/FoodHunter"
+                  className="inline-flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-wider"
+              >
+                <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                  <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+
+                <span className="text-[10px]">Back to Home</span>
+              </Link>
+            </div>
+
             <nav className="p-4 space-y-2">
               {sidebarItems.map(item => (
                 <button
@@ -274,6 +289,8 @@ const Profile: React.FC = () => {
         )}
       </div>
     </div>
+        </div>
+
   );
 };
 
