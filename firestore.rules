@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User data - users can only read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // User's restaurants
+      match /restaurants/{restaurantId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // User's food logs
+      match /foodLogs/{logId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // User's reviews
+      match /reviews/{reviewId} {
+        allow read: if true; // Reviews are publicly readable
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Public restaurant data (read-only for all users)
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Only authenticated users can contribute
+    }
+    
+    // Community insights (publicly readable, authenticated write)
+    match /insights/{insightId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
