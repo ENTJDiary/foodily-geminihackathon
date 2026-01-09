@@ -36,6 +36,33 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     }
   }, [selectedMenuItem]);
 
+  // Load initial data on mount
+  useEffect(() => {
+    const data = getRestaurantData(restaurantId);
+    setReviews(data.reviews);
+    setMenuItems(data.menuItems);
+    setAvgRating(getAverageRating(restaurantId));
+
+    // Load restaurant details
+    const loadDetails = async () => {
+      setLoadingDetails(true);
+      try {
+        const result = await getRestaurantDetails(restaurantName);
+        setDetails(result);
+      } catch (error) {
+        console.error('Failed to load restaurant details:', error);
+      } finally {
+        setLoadingDetails(false);
+      }
+    };
+    loadDetails();
+  }, [restaurantId, restaurantName, searchedDish]);
+
+  // Sync visibleReviews with reviews whenever reviews changes
+  useEffect(() => {
+    setVisibleReviews(reviews);
+  }, [reviews]);
+
   // Insights State
   const [visibleReviews, setVisibleReviews] = useState<Review[]>([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
@@ -56,6 +83,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     saveReview(restaurantId, restaurantName, { rating, comment, userName });
     const data = getRestaurantData(restaurantId);
     setReviews(data.reviews);
+    setVisibleReviews(data.reviews); // Update visibleReviews immediately
     setAvgRating(getAverageRating(restaurantId));
     setComment('');
     setUserName('');
