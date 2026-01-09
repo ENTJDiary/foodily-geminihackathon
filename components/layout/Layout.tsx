@@ -41,74 +41,77 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-orange-50 z-50 px-8 py-4 flex items-center justify-between shadow-sm">
-        <button
-          onClick={() => navigate('/FoodHunter')}
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
-        >
-          <div className="w-9 h-9 bg-orange-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-md shadow-orange-200">
-            F
-          </div>
-          <h1 className="text-xl font-extrabold tracking-tight text-orange-600">
-            Food.ily
-          </h1>
-        </button>
-
-        <nav className="hidden lg:flex items-center gap-10">
+      {/* Hide header on Profile page */}
+      {!isActive('/Profile') && (
+        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-orange-50 z-50 px-8 py-4 flex items-center justify-between shadow-sm">
           <button
             onClick={() => navigate('/FoodHunter')}
-            className={`text-sm font-bold transition-colors ${isActive('/FoodHunter') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
           >
-            Foodiscovery
-          </button>
-          <button
-            onClick={() => navigate('/FoodGatcha')}
-            className={`text-sm font-bold transition-colors ${isActive('/FoodGatcha') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
-          >
-            Food Gacha
-          </button>
-          <button
-            onClick={() => navigate('/Concierge')}
-            className={`text-sm font-bold transition-colors ${isActive('/Concierge') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
-          >
-            Food Planner
+            <div className="w-9 h-9 bg-orange-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-md shadow-orange-200">
+              F
+            </div>
+            <h1 className="text-xl font-extrabold tracking-tight text-orange-600">
+              Food.ily
+            </h1>
           </button>
 
-          <div className="relative" ref={dropdownRef}>
+          <nav className="hidden lg:flex items-center gap-10">
             <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`flex items-center justify-center w-8 h-8 rounded-full transition-all text-white font-bold text-xs bg-orange-500 hover:scale-105 active:scale-95 shadow-md shadow-orange-100`}
+              onClick={() => navigate('/FoodHunter')}
+              className={`text-sm font-bold transition-colors ${isActive('/FoodHunter') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
             >
-              {profile.name.charAt(0).toUpperCase()}
+              Foodiscovery
+            </button>
+            <button
+              onClick={() => navigate('/FoodGatcha')}
+              className={`text-sm font-bold transition-colors ${isActive('/FoodGatcha') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
+            >
+              Food Gacha
+            </button>
+            <button
+              onClick={() => navigate('/Concierge')}
+              className={`text-sm font-bold transition-colors ${isActive('/Concierge') ? 'text-orange-600' : 'text-gray-400 hover:text-orange-600'}`}
+            >
+              Food Planner
             </button>
 
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-4 w-52 bg-[#121212] rounded-xl shadow-2xl border border-white/5 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60]">
-                <button
-                  onClick={navigateToSettings}
-                  className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-orange-600/20 transition-colors"
-                >
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                  <span className="font-semibold text-sm">Settings</span>
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-orange-600/20 transition-colors"
-                >
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span className="font-semibold text-sm">Log Out</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </nav>
-      </header>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`flex items-center justify-center w-8 h-8 rounded-full transition-all text-white font-bold text-xs bg-orange-500 hover:scale-105 active:scale-95 shadow-md shadow-orange-100`}
+              >
+                {profile.name.charAt(0).toUpperCase()}
+              </button>
 
-      <main className="flex-1 max-w-5xl mx-auto px-6 pt-32 pb-12 w-full">
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-4 w-52 bg-[#121212] rounded-xl shadow-2xl border border-white/5 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60]">
+                  <button
+                    onClick={navigateToSettings}
+                    className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-orange-600/20 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                    <span className="font-semibold text-sm">Settings</span>
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-orange-600/20 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span className="font-semibold text-sm">Log Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </nav>
+        </header>
+      )}
+
+      <main className={`flex-1 mx-auto px-6 pb-12 w-full ${isActive('/Profile') ? 'pt-16 max-w-7xl' : 'pt-32 max-w-5xl'}`}>
         {children}
       </main>
 
