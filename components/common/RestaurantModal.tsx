@@ -67,14 +67,18 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
   const [visibleReviews, setVisibleReviews] = useState<Review[]>([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [showInsightForm, setShowInsightForm] = useState(false);
 
   // New Post State
   const [newDishTitle, setNewDishTitle] = useState('');
   const [newDishImages, setNewDishImages] = useState<string[]>([]);
+  const [newPostRating, setNewPostRating] = useState(5);
+  const [hoverPostRating, setHoverPostRating] = useState(0);
+  const [newPostExperience, setNewPostExperience] = useState('');
 
   // Dynamic Dishes State
-  const [dishItems, setDishItems] = useState<{ name: string, price: string, desc: string }[]>([
-    { name: '', price: '', desc: '' } // Start with 1 empty dish
+  const [dishItems, setDishItems] = useState<{ name: string, price: string, desc: string, rating: number }[]>([
+    { name: '', price: '', desc: '', rating: 0 } // Start with 1 empty dish
   ]);
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -172,20 +176,39 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     setNewDishImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleDishChange = (index: number, field: 'name' | 'price' | 'desc', value: string) => {
+  const handleDishChange = (index: number, field: 'name' | 'price' | 'desc' | 'rating', value: string | number) => {
     const newItems = [...dishItems];
-    newItems[index][field] = value;
+    if (field === 'rating') {
+      newItems[index][field] = value as number;
+    } else {
+      newItems[index][field] = value as string;
+    }
     setDishItems(newItems);
   };
 
   const handleAddDishItem = () => {
-    setDishItems(prev => [...prev, { name: '', price: '', desc: '' }]);
+    setDishItems(prev => [...prev, { name: '', price: '', desc: '', rating: 0 }]);
   };
 
   const handleRemoveDishItem = (index: number) => {
     if (dishItems.length > 1) {
       setDishItems(prev => prev.filter((_, i) => i !== index));
     }
+  };
+
+  const toggleLike = (itemId: string) => {
+    setMenuItems(prev => prev.map(item => {
+      if (item.id === itemId) {
+        const isLiked = !item.isLiked;
+        const currentLikes = item.likes ?? Math.floor(Math.random() * 50) + 1;
+        return {
+          ...item,
+          isLiked,
+          likes: isLiked ? currentLikes + 1 : currentLikes - 1
+        };
+      }
+      return item;
+    }));
   };
 
   const sourceLinks = details?.groundingChunks
@@ -290,7 +313,15 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
 
           {/* COMMUNITY INSIGHTS (Floating Bubbles) */}
           <section className="space-y-4 px-2">
-            <h3 className="font-black text-slate-900 uppercase tracking-widest text-[11px] mb-4">COMMUNITY INSIGHT</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-black text-slate-900 uppercase tracking-widest text-[11px]">COMMUNITY INSIGHT</h3>
+              <button
+                onClick={() => setShowInsightForm(true)}
+                className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 active:scale-95 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+            </div>
 
             <div className="flex flex-nowrap items-center gap-4 min-h-[60px] overflow-hidden w-full mask-linear-fade">
               {reviews.length === 0 ? (
@@ -306,9 +337,15 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                   >
                     <button
                       onClick={() => setSelectedReview(rev)}
-                      className="relative inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-blue-200 rounded-full shadow-sm text-slate-700 font-medium text-xs italic hover:scale-105 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer max-w-[220px] active:scale-95 group text-left"
+                      className="relative inline-flex flex-col items-center justify-center gap-1 px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-blue-200 rounded-full shadow-sm text-slate-700 font-medium text-xs italic hover:scale-105 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer max-w-[220px] active:scale-95 group text-center"
                     >
-                      <span className="truncate whitespace-nowrap group-hover:text-blue-600 transition-colors">"{rev.comment}"</span>
+                      {/* Stars centered in bubble */}
+                      <div className="flex items-center gap-0.5 mb-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg key={star} className={`w-3 h-3 ${rev.rating >= star ? 'text-orange-400 fill-current' : 'text-slate-200 fill-current'}`} viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                        ))}
+                      </div>
+                      <span className="truncate whitespace-nowrap group-hover:text-blue-600 transition-colors max-w-full">"{rev.comment}"</span>
                       <div className="absolute -bottom-1 left-6 w-2 h-2 bg-blue-200 rotate-45 transform translate-y-1/2 rounded-sm group-hover:bg-blue-400 transition-colors"></div>
                     </button>
                   </div>
@@ -357,8 +394,8 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                     const colorIndex = item.userName ? item.userName.length % colors.length : 0;
                     const avatarColor = colors[colorIndex];
                     const textColor = avatarColor.replace('100', '600');
-                    // Random like count for vibe
-                    const randomLikes = Math.floor(Math.random() * 50) + 1;
+                    // Likes count (use item.likes if exists, otherwise random for new items or legacy)
+                    const displayLikes = item.likes ?? Math.floor(Math.random() * 50) + 1;
 
                     return (
                       <div key={item.id} onClick={() => setSelectedMenuItem(item)} className="flex flex-col gap-3 group cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-all">
@@ -403,10 +440,16 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                               </div>
                               <span className="text-[9px] font-medium text-slate-400 truncate">{item.userName || 'Explorer'}</span>
                             </div>
-                            <div className="flex items-center gap-0.5 text-slate-300">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                              <span className="text-[9px] font-medium">{randomLikes}</span>
-                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLike(item.id);
+                              }}
+                              className={`flex items-center gap-1 transition-colors ${item.isLiked ? 'text-red-500' : 'text-slate-300 hover:text-red-400'}`}
+                            >
+                              <svg className={`w-4 h-4 transition-transform active:scale-125 ${item.isLiked ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} /></svg>
+                              <span className="text-[9px] font-medium">{displayLikes}</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -453,9 +496,25 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                 {/* Right Column: Form */}
                 <div className="w-full md:w-7/12 p-8 flex flex-col overflow-y-auto bg-white">
                   <div className="flex justify-between items-start mb-6">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-black text-slate-900 uppercase tracking-widest text-lg">Create Post</h3>
-                      <p className="text-xs font-bold text-slate-400 mt-1">Share your foodie adventure</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <p className="text-xs font-bold text-slate-400">Share your foodie adventure</p>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onMouseEnter={() => setHoverPostRating(star)}
+                              onMouseLeave={() => setHoverPostRating(0)}
+                              onClick={() => setNewPostRating(star)}
+                              className="focus:outline-none transition-transform active:scale-90"
+                            >
+                              <svg className={`w-5 h-5 transition-all duration-200 ${(hoverPostRating || newPostRating) >= star ? 'text-orange-500 fill-current' : 'text-slate-200 fill-transparent stroke-slate-200'}`} viewBox="0 0 24 24" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     <button onClick={() => setShowAddDish(false)} className="text-slate-400 hover:text-slate-900 transition-colors bg-slate-50 p-2 rounded-full">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M6 18L18 6M6 6l12 12" /></svg>
@@ -491,8 +550,11 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                         dishes: dishItems.map(d => ({
                           name: d.name,
                           price: d.price,
-                          description: d.desc
+                          description: d.desc,
+                          rating: d.rating
                         })),
+                        rating: newPostRating,
+                        experience: newPostExperience,
 
                         userName: "Local Explorer",
                         timestamp: Date.now()
@@ -505,6 +567,8 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                       setNewDishTitle('');
                       setNewDishImages([]);
                       setDishItems([{ name: '', price: '', desc: '' }]);
+                      setNewPostRating(5);
+                      setNewPostExperience('');
                       setShowAddDish(false);
                     } catch (error) {
                       console.error("❌ ERROR:", error);
@@ -535,6 +599,17 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                       />
                     </div>
 
+                    {/* Experience/Diary Field */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Captions</label>
+                      <textarea
+                        value={newPostExperience}
+                        onChange={(e) => setNewPostExperience(e.target.value)}
+                        placeholder="Describe your experience at this restaurant..."
+                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 transition-all font-medium outline-none text-sm text-slate-700 placeholder:text-slate-300 resize-none h-24"
+                      />
+                    </div>
+
                     <div className="w-full h-px bg-slate-100 my-2"></div>
 
                     {/* Dynamic Dish Fields */}
@@ -549,16 +624,58 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                           <span className="absolute -top-3 left-4 bg-orange-100 text-orange-600 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest border border-white">Dish {idx + 1}</span>
 
                           <div className="space-y-4 mt-2">
-                            <div className="space-y-2">
-                              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Dish Name</label>
-                              <input
-                                type="text"
-                                value={dish.name}
-                                onChange={(e) => handleDishChange(idx, 'name', e.target.value)}
-                                placeholder="e.g. Bibimbap"
-                                className="w-full px-4 py-3 rounded-xl bg-white border border-transparent focus:border-orange-500 transition-all font-bold outline-none text-sm"
-                                required
-                              />
+                            {/* Dish Name and Rating Row */}
+                            <div className="flex gap-4 items-start">
+                              <div className="flex-1 space-y-2">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Dish Name</label>
+                                <input
+                                  type="text"
+                                  value={dish.name}
+                                  onChange={(e) => handleDishChange(idx, 'name', e.target.value)}
+                                  placeholder="e.g. Bibimbap"
+                                  className="w-full px-4 py-3 rounded-xl bg-white border border-transparent focus:border-orange-500 transition-all font-bold outline-none text-sm"
+                                  required
+                                />
+                              </div>
+                              {/* Star Rating for Dish */}
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Rate</label>
+                                <div className="flex items-center gap-1 bg-white px-3 py-2 rounded-xl">
+                                  {[1, 2, 3, 4, 5].map((starIndex) => {
+                                    const rating = dish.rating || 0;
+                                    const isFull = rating >= starIndex;
+                                    const isHalf = rating >= starIndex - 0.5 && rating < starIndex;
+
+                                    return (
+                                      <div key={starIndex} className="relative cursor-pointer" style={{ width: '24px', height: '24px' }}>
+                                        {/* Left half clickable area */}
+                                        <div
+                                          className="absolute left-0 top-0 w-1/2 h-full z-10"
+                                          onClick={() => handleDishChange(idx, 'rating', starIndex - 0.5)}
+                                        />
+                                        {/* Right half clickable area */}
+                                        <div
+                                          className="absolute right-0 top-0 w-1/2 h-full z-10"
+                                          onClick={() => handleDishChange(idx, 'rating', starIndex)}
+                                        />
+                                        {/* Star visual */}
+                                        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 24 24">
+                                          {/* Background (empty) star */}
+                                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#e2e8f0" />
+                                          {/* Filled portion */}
+                                          <defs>
+                                            <clipPath id={`clip-${idx}-${starIndex}`}>
+                                              <rect x="0" y="0" width={isFull ? '24' : isHalf ? '12' : '0'} height="24" />
+                                            </clipPath>
+                                          </defs>
+                                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#f97316" clipPath={`url(#clip-${idx}-${starIndex})`} />
+                                        </svg>
+                                      </div>
+                                    );
+                                  })}
+                                  <span className="ml-1 text-[10px] font-bold text-slate-600">{dish.rating?.toFixed(1) || '0.0'}</span>
+                                </div>
+                              </div>
                             </div>
                             <div className="flex gap-4">
                               <div className="w-1/3 space-y-2">
@@ -582,6 +699,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                                 />
                               </div>
                             </div>
+
                           </div>
                         </div>
                       ))}
@@ -603,31 +721,40 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
             </div>
           )}
 
-          {/* INSIGHTS FORM */}
-          <section className="bg-slate-50 p-8 rounded-3xl border border-orange-50 shadow-inner">
-            <h3 className="font-black text-orange-600 uppercase tracking-widest text-xs mb-6">Leave an Insight</h3>
-            <form onSubmit={handleSubmitReview} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Your Alias</label>
-                  <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="e.g. Foodie123" className="w-full px-5 py-4 rounded-xl bg-white border border-transparent focus:border-orange-500 transition-all font-bold outline-none shadow-sm" required />
+          {/* INSIGHTS FORM POPUP */}
+          {showInsightForm && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowInsightForm(false)}>
+              <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-orange-100 p-10" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-start mb-8">
+                  <h3 className="font-black text-orange-600 uppercase tracking-widest text-sm">Leave an Insight</h3>
+                  <button onClick={() => setShowInsightForm(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
                 </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Score</label>
-                  <div className="flex items-center gap-1 bg-white p-3.5 rounded-xl shadow-sm border border-transparent">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button key={star} type="button" onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setRating(star)} className="focus:outline-none group transition-transform active:scale-90">
-                        <svg className={`w-7 h-7 transition-all duration-200 ${(hoverRating || rating) >= star ? 'text-orange-500 fill-current' : 'text-slate-200 fill-transparent stroke-slate-200'}`} viewBox="0 0 24 24" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-                      </button>
-                    ))}
-                    <span className="ml-auto text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{rating} / 5</span>
+                <form onSubmit={(e) => { handleSubmitReview(e); setShowInsightForm(false); }} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Your Alias</label>
+                      <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="e.g. Foodie123" className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 transition-all font-bold outline-none text-slate-700" required />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Score</label>
+                      <div className="flex items-center gap-2 bg-slate-50 p-3.5 rounded-xl border border-transparent">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button key={star} type="button" onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setRating(star)} className="focus:outline-none group transition-transform active:scale-90">
+                            <svg className={`w-8 h-8 transition-all duration-200 ${(hoverRating || rating) >= star ? 'text-orange-500 fill-current' : 'text-slate-200 fill-current'}`} viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                          </button>
+                        ))}
+                        <span className="ml-auto text-xs font-black text-slate-400">{rating} / 5</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                  <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Tell us about the atmosphere..." className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 transition-all font-medium outline-none h-32 resize-none text-slate-700 placeholder:text-slate-400" required />
+                  <button type="submit" className="w-full bg-orange-600 text-white font-black py-5 rounded-xl hover:bg-orange-700 transition-all uppercase tracking-[0.2em] text-sm shadow-lg">Post Insight</button>
+                </form>
               </div>
-              <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Tell us about the atmosphere..." className="w-full px-5 py-4 rounded-xl bg-white border border-transparent focus:border-orange-500 transition-all font-bold outline-none h-28 resize-none shadow-sm" required />
-              <button type="submit" className="w-full bg-orange-600 text-white font-black py-5 rounded-xl hover:bg-orange-700 transition-all uppercase tracking-[0.2em] text-xs shadow-lg">Post Insight</button>
-            </form>
-          </section>
+            </div>
+          )}
         </div>
       </div>
 
@@ -678,9 +805,15 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                 <div className="p-8 md:p-10 flex-1 overflow-y-auto space-y-6">
                   {/* Post Title - Moved to Top */}
                   <div className="space-y-2 pt-2">
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-                      {selectedMenuItem.title || selectedMenuItem.name}
-                    </h2>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                        {selectedMenuItem.title || selectedMenuItem.name}
+                      </h2>
+                      {/* Share Button - Small Icon */}
+                      <button className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-all">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                      </button>
+                    </div>
                   </div>
 
                   {/* User Profile Header - Smaller & More Aesthetic */}
@@ -694,6 +827,26 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                       <span className="text-[8px] font-medium text-slate-400 uppercase tracking-wide">Just Now</span>
                     </div>
                   </div>
+
+                  {/* Star Rating Display */}
+                  {selectedMenuItem.rating && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg key={star} className={`w-4 h-4 ${selectedMenuItem.rating! >= star ? 'text-orange-500 fill-current' : 'text-slate-200 fill-current'}`} viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold text-slate-600">{selectedMenuItem.rating}/5</span>
+                    </div>
+                  )}
+
+                  {/* Experience/Captions Section */}
+                  {selectedMenuItem.experience && (
+                    <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                      <h3 className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-2">Experience</h3>
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">{selectedMenuItem.experience}</p>
+                    </div>
+                  )}
 
                   <div className="w-full h-px bg-slate-100"></div>
 
@@ -743,12 +896,13 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
                   </div>
 
                   <div className="flex gap-3 pt-4 mt-auto">
-                    <button className="flex-1 bg-slate-900 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group">
-                      <svg className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                      Save Post
+                    <button className="flex-1 bg-white border-2 border-red-200 text-red-500 font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-red-50 hover:border-red-300 transition-all flex items-center justify-center gap-2 group">
+                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                      Like
                     </button>
-                    <button className="flex-1 bg-white border border-slate-200 text-slate-900 font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">
-                      Share
+                    <button className="flex-1 bg-orange-600 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-orange-700 transition-all flex items-center justify-center gap-2 group">
+                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" /></svg>
+                      Save
                     </button>
                   </div>
 

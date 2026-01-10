@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getUserProfile, saveUserProfile, clearSearchHistory } from '../services/storageService';
 import { UserProfile } from '../types';
 
@@ -11,7 +11,6 @@ type TabType = 'account' | 'activity' | 'saved' | 'stats';
 
 // Dummy user data for account details
 const DUMMY_USER = {
-  name: 'John Doe',
   dateOfBirth: '1 January 1980',
   email: 'johndoe@email.com',
   avatarUrl: null as string | null,
@@ -23,12 +22,51 @@ const Profile: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [activeTab, setActiveTab] = useState<TabType>('account');
 
+  // Username editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState(profile.name);
+
+  // Custom addition states
+  const [isAddingCuisine, setIsAddingCuisine] = useState(false);
+  const [customCuisine, setCustomCuisine] = useState('');
+  const [isAddingDietary, setIsAddingDietary] = useState(false);
+  const [customDietary, setCustomDietary] = useState('');
+
   const handleUpdate = (updates: Partial<UserProfile>) => {
     const newProfile = { ...profile, ...updates };
     setProfile(newProfile);
     saveUserProfile(newProfile);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus('idle'), 2000);
+  };
+
+  const handleSaveName = () => {
+    if (tempName.trim()) {
+      handleUpdate({ name: tempName.trim() });
+      setIsEditingName(false);
+    }
+  };
+
+  const handleAddCustomCuisine = () => {
+    if (customCuisine.trim()) {
+      const newCuisine = customCuisine.trim();
+      if (!profile.favoriteCuisines.includes(newCuisine)) {
+        handleUpdate({ favoriteCuisines: [...profile.favoriteCuisines, newCuisine] });
+      }
+      setCustomCuisine('');
+      setIsAddingCuisine(false);
+    }
+  };
+
+  const handleAddCustomDietary = () => {
+    if (customDietary.trim()) {
+      const newDiet = customDietary.trim();
+      if (!profile.dietaryRestrictions.includes(newDiet)) {
+        handleUpdate({ dietaryRestrictions: [...profile.dietaryRestrictions, newDiet] });
+      }
+      setCustomDietary('');
+      setIsAddingDietary(false);
+    }
   };
 
   const toggleCuisine = (cuisine: string) => {
@@ -99,14 +137,43 @@ const Profile: React.FC = () => {
             {DUMMY_USER.avatarUrl ? (
               <img src={DUMMY_USER.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-2xl" />
             ) : (
-              DUMMY_USER.name.charAt(0).toUpperCase()
+              profile.name.charAt(0).toUpperCase()
             )}
           </div>
 
           {/* User Info */}
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-3">
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">{DUMMY_USER.name}</h3>
+              {isEditingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    className="text-2xl font-black text-slate-900 tracking-tight bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-500"
+                    autoFocus
+                  />
+                  <button onClick={handleSaveName} className="p-1 text-green-500 hover:bg-green-50 rounded-full">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                  <button onClick={() => { setIsEditingName(false); setTempName(profile.name); }} className="p-1 text-red-500 hover:bg-red-50 rounded-full">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 group">
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">{profile.name}</h3>
+                  <button onClick={() => setIsEditingName(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-orange-500">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               <span className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-200"></span>
             </div>
             <p className="text-sm text-slate-400 font-medium">{DUMMY_USER.dateOfBirth}</p>
@@ -121,7 +188,7 @@ const Profile: React.FC = () => {
       <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Favourite Cuisine</h3>
         <div className="flex flex-wrap gap-2">
-          {CUISINE_OPTIONS.map(cuisine => (
+          {Array.from(new Set([...CUISINE_OPTIONS, ...profile.favoriteCuisines])).map(cuisine => (
             <button
               key={cuisine}
               onClick={() => toggleCuisine(cuisine)}
@@ -133,6 +200,36 @@ const Profile: React.FC = () => {
               {cuisine}
             </button>
           ))}
+
+          {isAddingCuisine ? (
+            <div className="flex items-center gap-2 px-2 py-1 rounded-full border border-orange-200 bg-orange-50 pl-4">
+              <input
+                type="text"
+                value={customCuisine}
+                onChange={(e) => setCustomCuisine(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCustomCuisine()}
+                placeholder="Add custom..."
+                className="bg-transparent border-none focus:outline-none text-[10px] font-black uppercase text-orange-800 w-24"
+                autoFocus
+              />
+              <button onClick={handleAddCustomCuisine} className="p-1 rounded-full hover:bg-orange-200 text-orange-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              </button>
+              <button onClick={() => { setIsAddingCuisine(false); setCustomCuisine(''); }} className="p-1 rounded-full hover:bg-orange-200 text-orange-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAddingCuisine(true)}
+              className="px-5 py-2.5 rounded-full text-[10px] font-black transition-all border border-dashed border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-500 uppercase tracking-widest flex items-center gap-2 group"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Custom
+            </button>
+          )}
         </div>
       </div>
 
@@ -140,7 +237,7 @@ const Profile: React.FC = () => {
       <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Dietary</h3>
         <div className="flex flex-wrap gap-2">
-          {DIETARY_OPTIONS.map(diet => (
+          {Array.from(new Set([...DIETARY_OPTIONS, ...profile.dietaryRestrictions])).map(diet => (
             <button
               key={diet}
               onClick={() => toggleDietary(diet)}
@@ -152,6 +249,36 @@ const Profile: React.FC = () => {
               {diet}
             </button>
           ))}
+
+          {isAddingDietary ? (
+            <div className="flex items-center gap-2 px-2 py-1 rounded-full border border-orange-200 bg-orange-50 pl-4">
+              <input
+                type="text"
+                value={customDietary}
+                onChange={(e) => setCustomDietary(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCustomDietary()}
+                placeholder="Add custom..."
+                className="bg-transparent border-none focus:outline-none text-[10px] font-black uppercase text-orange-800 w-24"
+                autoFocus
+              />
+              <button onClick={handleAddCustomDietary} className="p-1 rounded-full hover:bg-orange-200 text-orange-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              </button>
+              <button onClick={() => { setIsAddingDietary(false); setCustomDietary(''); }} className="p-1 rounded-full hover:bg-orange-200 text-orange-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAddingDietary(true)}
+              className="px-5 py-2.5 rounded-full text-[10px] font-black transition-all border border-dashed border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-500 uppercase tracking-widest flex items-center gap-2 group"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Custom
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -187,109 +314,109 @@ const Profile: React.FC = () => {
   };
 
   return (
-      <div className="min-h-screen bg-slate-50 flex justify-center">
-        <div className="bg-white w-full max-w-[2560px] px-6 py-6 space-y-6 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-slate-50 flex justify-center">
+      <div className="bg-white w-full max-w-[2560px] px-6 py-6 space-y-6 animate-in fade-in duration-500">
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar */}
-        <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
-          {/* First Frame: Navigation Items */}
-          <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-            {/* Back to Home */}
-            <div className="flex pl-5 pt-4">
-              <Link
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Sidebar */}
+          <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
+            {/* First Frame: Navigation Items */}
+            <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+              {/* Back to Home */}
+              <div className="flex pl-5 pt-4">
+                <Link
                   to="/FoodHunter"
                   className="inline-flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-wider"
-              >
-                <svg
+                >
+                  <svg
                     className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
-                >
-                  <path
+                  >
+                    <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
+                    />
+                  </svg>
 
-                <span className="text-[10px]">Back to Home</span>
-              </Link>
+                  <span className="text-[10px]">Back to Home</span>
+                </Link>
+              </div>
+
+              <nav className="p-4 space-y-2">
+                {sidebarItems.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${activeTab === item.id
+                      ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                      : 'text-slate-500 hover:bg-slate-50 border border-transparent'
+                      }`}
+                  >
+                    <span className={`flex-shrink-0 self-center ${activeTab === item.id ? 'text-orange-600' : 'text-slate-400'}`}>{item.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-xs font-black uppercase tracking-wider">{item.label}</div>
+                      <div className="text-[10px] font-medium text-slate-400 mt-0.5">{item.description}</div>
+                    </div>
+                  </button>
+                ))}
+              </nav>
             </div>
 
-            <nav className="p-4 space-y-2">
-              {sidebarItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${activeTab === item.id
-                    ? 'bg-orange-50 text-orange-600 border border-orange-200'
-                    : 'text-slate-500 hover:bg-slate-50 border border-transparent'
-                    }`}
-                >
-                  <span className={`flex-shrink-0 self-center ${activeTab === item.id ? 'text-orange-600' : 'text-slate-400'}`}>{item.icon}</span>
-                  <div className="flex-1">
-                    <div className="text-xs font-black uppercase tracking-wider">{item.label}</div>
-                    <div className="text-[10px] font-medium text-slate-400 mt-0.5">{item.description}</div>
-                  </div>
-                </button>
-              ))}
-            </nav>
-          </div>
+            {/* Second Frame: Feedback & Help */}
+            <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+              <div className="p-4 space-y-3">
+                <p className="text-[10px] font-medium text-slate-500 leading-relaxed">
+                  Have a feature request, bug report, or a new idea?
+                </p>
 
-          {/* Second Frame: Feedback & Help */}
-          <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-            <div className="p-4 space-y-3">
-              <p className="text-[10px] font-medium text-slate-500 leading-relaxed">
-                Have a feature request, bug report, or a new idea?
-              </p>
+                <div className="space-y-2">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-500 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-300">
+                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    <span className="text-xs font-black uppercase tracking-wider">Send Feedback</span>
+                  </button>
 
-              <div className="space-y-2">
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-500 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-300">
-                  <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                  </svg>
-                  <span className="text-xs font-black uppercase tracking-wider">Send Feedback</span>
-                </button>
-
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-500 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-300">
-                  <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-xs font-black uppercase tracking-wider">Help</span>
-                </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-500 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-300">
+                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-xs font-black uppercase tracking-wider">Help</span>
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Standalone Logout CTA */}
+            <button
+              onClick={() => { if (confirm('Are you sure you want to logout?')) { clearSearchHistory(); navigate('/'); } }}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-md font-black text-sm uppercase tracking-wider"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Logout</span>
+            </button>
           </div>
 
-          {/* Standalone Logout CTA */}
-          <button
-            onClick={() => { if (confirm('Are you sure you want to logout?')) { clearSearchHistory(); navigate('/'); } }}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-md font-black text-sm uppercase tracking-wider"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span>Logout</span>
-          </button>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1">
-          {renderContent()}
-        </div>
-
-        {/* Save Status Notification */}
-        {saveStatus === 'saved' && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest shadow-2xl animate-in fade-in slide-in-from-bottom-4 z-[100]">
-            Profile Updated
+          {/* Main Content */}
+          <div className="flex-1">
+            {renderContent()}
           </div>
-        )}
+
+          {/* Save Status Notification */}
+          {saveStatus === 'saved' && (
+            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest shadow-2xl animate-in fade-in slide-in-from-bottom-4 z-[100]">
+              Profile Updated
+            </div>
+          )}
+        </div>
       </div>
     </div>
-        </div>
 
   );
 };

@@ -40,6 +40,7 @@ export interface DishDetail {
   name: string;
   price?: string;
   description: string;
+  rating?: number;
 }
 
 export interface MenuItem {
@@ -58,6 +59,11 @@ export interface MenuItem {
 
   userName: string;
   timestamp: number;
+
+  likes?: number;
+  isLiked?: boolean;
+  rating?: number;
+  experience?: string;
 }
 
 export interface RestaurantData {
