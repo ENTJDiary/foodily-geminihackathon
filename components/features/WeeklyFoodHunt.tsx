@@ -3,6 +3,7 @@ import { analyzeWeeklyHabits } from '../../services/geminiService';
 import { HistoryEntry } from '../../types';
 import { updateHistoryEntry } from '../../services/storageService';
 import DailyLogModal from './DailyLogModal';
+import HabitReportSection from './HabitReportSection';
 
 interface WeeklyFoodHuntProps {
   history: HistoryEntry[];
@@ -116,21 +117,8 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history, onHistoryUpdat
       </div>
 
       {analysis && (
-        <div className="p-8 bg-[#fffaf5] rounded-[2rem] animate-in fade-in slide-in-from-top-4 duration-500 border border-orange-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <h4 className="text-[11px] font-black text-orange-600 uppercase tracking-widest">Habit Report</h4>
-          </div>
-          <div className="whitespace-pre-wrap text-sm text-orange-950 font-medium leading-relaxed space-y-1">
-            {analysis}
-          </div>
-          <button
-            onClick={() => setAnalysis(null)}
-            className="mt-6 text-[10px] font-black text-orange-400 uppercase tracking-widest hover:text-orange-600 transition-colors flex items-center gap-1"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
-            Dismiss Report
-          </button>
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <HabitReportSection analysis={analysis} onDismiss={() => setAnalysis(null)} />
         </div>
       )}
 
