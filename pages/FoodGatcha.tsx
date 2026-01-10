@@ -6,6 +6,7 @@ import FoodRandomizer from '../components/features/FoodRandomizer';
 import { Location, SearchResult, HistoryEntry } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, saveSearchToHistory, getWeeklyHistory, getUserProfile } from '../services/storageService';
+import ExpertPicksSection from '../components/common/ExpertPicksSection';
 
 const FoodGatcha: React.FC = () => {
   const [results, setResults] = useState<SearchResult | null>(null);
@@ -89,15 +90,7 @@ const FoodGatcha: React.FC = () => {
 
       {results && (
         <div ref={resultsRef} className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          <div className="bg-orange-600 p-10 rounded-[2.5rem] shadow-xl text-white">
-            <h3 className="text-sm font-black mb-6 uppercase tracking-[0.3em] flex items-center gap-3">
-              <div className="w-2 h-2 bg-white rounded-full"></div>
-              Expert Picks
-            </h3>
-            <div className="whitespace-pre-wrap text-white font-medium text-lg leading-relaxed">
-              {results.text}
-            </div>
-          </div>
+          <ExpertPicksSection text={results.text} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.groundingChunks.map((chunk, idx) => {

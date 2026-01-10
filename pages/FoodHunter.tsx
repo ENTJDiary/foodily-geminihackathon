@@ -4,6 +4,7 @@ import { searchRestaurantsByMaps } from '../services/geminiService';
 import { Location, SearchResult, HistoryEntry } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, getUserProfile, saveSearchToHistory } from '../services/storageService';
+import ExpertPicksSection from '../components/common/ExpertPicksSection';
 
 const FoodHunter: React.FC = () => {
   const [dish, setDish] = useState('');
@@ -129,12 +130,7 @@ const FoodHunter: React.FC = () => {
 
       {results && (
         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          <div className="bg-white p-8 rounded-3xl border border-orange-50 shadow-sm">
-            <h3 className="text-sm font-black mb-6 uppercase tracking-widest text-slate-400">Results</h3>
-            <div className="whitespace-pre-wrap text-slate-800 font-medium leading-relaxed">
-              {results.text}
-            </div>
-          </div>
+          <ExpertPicksSection text={results.text} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.groundingChunks.map((chunk, idx) => {
