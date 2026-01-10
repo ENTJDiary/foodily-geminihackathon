@@ -130,7 +130,14 @@ const FoodHunter: React.FC = () => {
 
       {results && (
         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          <ExpertPicksSection text={results.text} />
+          <ExpertPicksSection
+            text={results.text}
+            onRestaurantClick={(name) => setSelectedRestaurant({
+              id: name,
+              name: name,
+              searchedDish: dish
+            })}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.groundingChunks.map((chunk, idx) => {

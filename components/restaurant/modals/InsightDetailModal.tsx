@@ -4,9 +4,10 @@ import { Review } from '../../../types';
 interface InsightDetailModalProps {
     review: Review | null;
     onClose: () => void;
+    onToggleLike: (reviewId: string) => void;
 }
 
-const InsightDetailModal: React.FC<InsightDetailModalProps> = ({ review, onClose }) => {
+const InsightDetailModal: React.FC<InsightDetailModalProps> = ({ review, onClose, onToggleLike }) => {
     if (!review) return null;
 
     return (
@@ -15,7 +16,7 @@ const InsightDetailModal: React.FC<InsightDetailModalProps> = ({ review, onClose
             onClick={onClose}
         >
             <div
-                className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200 border border-blue-100 relative"
+                className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200 border border-blue-100 relative group"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
@@ -43,12 +44,36 @@ const InsightDetailModal: React.FC<InsightDetailModalProps> = ({ review, onClose
                         </div>
                     </div>
                     <div className="w-full h-px bg-slate-100"></div>
-                    <p className="text-slate-600 font-medium text-sm leading-relaxed italic">
+                    <p className="text-slate-600 font-medium text-sm leading-relaxed italic mb-2">
                         "{review.comment}"
                     </p>
-                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
-                        {new Date(review.timestamp).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
+                            {new Date(review.timestamp).toLocaleDateString()}
+                        </p>
+
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleLike(review.id);
+                            }}
+                            className={`flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-95 group/btn ${review.isLiked
+                                    ? 'bg-orange-500 text-white shadow-md shadow-orange-200'
+                                    : 'bg-orange-50 text-orange-600 hover:bg-orange-100 hover:shadow-sm'
+                                }`}
+                        >
+                            <span className="text-lg leading-none font-black italic tracking-tighter" style={{ fontFamily: 'ui-serif, Georgia, serif' }}>+1</span>
+
+                            {(review.likes || 0) > 0 && (
+                                <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold shadow-sm ${review.isLiked
+                                        ? 'bg-white text-orange-600'
+                                        : 'bg-white text-orange-400'
+                                    }`}>
+                                    {review.likes}
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

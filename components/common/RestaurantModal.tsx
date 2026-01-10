@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRestaurantData, saveReview, getAverageRating, addMenuItem } from '../../services/storageService';
+import { getRestaurantData, saveReview, getAverageRating, addMenuItem, toggleReviewLike } from '../../services/storageService';
 import { getRestaurantDetails } from '../../services/geminiService';
 import { Review, SearchResult, MenuItem } from '../../types';
 import PriceRating from './PriceRating';
@@ -54,6 +54,16 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     const updatedData = getRestaurantData(restaurantId);
     setReviews(updatedData.reviews);
     setAvgRating(getAverageRating(restaurantId));
+  };
+
+  const handleToggleReviewLike = (reviewId: string) => {
+    const updatedReviews = toggleReviewLike(restaurantId, reviewId);
+    setReviews(updatedReviews);
+    // Also update selectedReview if it matches
+    if (selectedReview && selectedReview.id === reviewId) {
+      const updatedReview = updatedReviews.find(r => r.id === reviewId);
+      if (updatedReview) setSelectedReview(updatedReview);
+    }
   };
 
   // Handlers for Community Menu
@@ -186,6 +196,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
             onCloseReviewDetail={() => setSelectedReview(null)}
             onCloseInsightForm={() => setShowInsightForm(false)}
             onSubmitInsight={handleSubmitInsight}
+            onToggleLike={handleToggleReviewLike}
           />
 
           {/* Community Menu Section */}

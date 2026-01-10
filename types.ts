@@ -34,6 +34,8 @@ export interface Review {
   comment: string;
   userName: string;
   timestamp: number;
+  likes?: number;
+  isLiked?: boolean;
 }
 
 export interface DishDetail {

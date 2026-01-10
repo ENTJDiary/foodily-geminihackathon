@@ -58,6 +58,31 @@ export const saveReview = (restaurantId: string, restaurantName: string, review:
   localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
 };
 
+export const toggleReviewLike = (restaurantId: string, reviewId: string): Review[] => {
+  const allData = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "{}");
+  const restaurant = allData[restaurantId];
+  if (!restaurant || !restaurant.reviews) return [];
+
+  const updatedReviews = restaurant.reviews.map((review: Review) => {
+    if (review.id === reviewId) {
+      const isLiked = !review.isLiked;
+      const currentLikes = review.likes ?? Math.floor(Math.random() * 10) + 1;
+      return {
+        ...review,
+        isLiked,
+        likes: isLiked ? currentLikes + 1 : currentLikes - 1
+      };
+    }
+    return review;
+  });
+
+  restaurant.reviews = updatedReviews;
+  allData[restaurantId] = restaurant;
+  localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
+
+  return updatedReviews;
+};
+
 export const addMenuItem = (restaurantId: string, restaurantName: string, item: Omit<MenuItem, "id">) => {
   const allData = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "{}");
   const restaurant = getRestaurantData(restaurantId);

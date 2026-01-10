@@ -12,6 +12,7 @@ interface CommunityInsightsPageProps {
     onCloseReviewDetail: () => void;
     onCloseInsightForm: () => void;
     onSubmitInsight: (data: { userName: string; rating: number; comment: string }) => void;
+    onToggleLike: (reviewId: string) => void;
 }
 
 const CommunityInsightsPage: React.FC<CommunityInsightsPageProps> = ({
@@ -23,6 +24,7 @@ const CommunityInsightsPage: React.FC<CommunityInsightsPageProps> = ({
     onCloseReviewDetail,
     onCloseInsightForm,
     onSubmitInsight,
+    onToggleLike,
 }) => {
     const [visibleReviews, setVisibleReviews] = useState<Review[]>([]);
 
@@ -106,6 +108,7 @@ const CommunityInsightsPage: React.FC<CommunityInsightsPageProps> = ({
             <InsightDetailModal
                 review={selectedReview}
                 onClose={onCloseReviewDetail}
+                onToggleLike={onToggleLike}
             />
         </>
     );

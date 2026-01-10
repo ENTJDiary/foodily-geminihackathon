@@ -15,7 +15,7 @@ interface ParsedExpertPicks {
     picks: ParsedRestaurant[];
 }
 
-const ExpertPicksSection: React.FC<ExpertPicksSectionProps> = ({ text }) => {
+const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick?: (name: string) => void }> = ({ text, onRestaurantClick }) => {
     const parsedContent = useMemo((): ParsedExpertPicks => {
         if (!text) return { intro: '', picks: [] };
 
@@ -104,7 +104,11 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps> = ({ text }) => {
             {parsedContent.picks.length > 0 && (
                 <div className="grid grid-cols-1 gap-4">
                     {parsedContent.picks.map((pick, i) => (
-                        <div key={i} className="bg-white p-6 rounded-[1.5rem] border border-orange-50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <button
+                            key={i}
+                            onClick={() => onRestaurantClick?.(pick.name)}
+                            className="w-full text-left bg-white p-6 rounded-[1.5rem] border border-orange-50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden cursor-pointer active:scale-[0.99]"
+                        >
                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                             <div className="flex gap-4 items-start relative z-10">
@@ -136,7 +140,7 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps> = ({ text }) => {
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </button>
                     ))}
                 </div>
             )}
