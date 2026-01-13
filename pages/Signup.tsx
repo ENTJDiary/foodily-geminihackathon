@@ -136,7 +136,7 @@ const Signup: React.FC = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-xl transition-all duration-300 text-sm uppercase tracking-widest shadow-xl shadow-orange-200 hover:shadow-2xl hover:shadow-orange-300 hover:scale-[1.02] active:scale-95"
+                                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-xl transition-all duration-300 text-sm uppercase tracking-widest"
                             >
                                 Get Started Free
                             </button>
