@@ -5,6 +5,7 @@ import { Location, SearchResult, HistoryEntry } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, getUserProfile, saveSearchToHistory } from '../services/storageService';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
+import TrendingSlideshow from "@/components/common/TrendingSlideshow.tsx";
 
 const FoodHunter: React.FC = () => {
   const [dish, setDish] = useState('');
@@ -127,6 +128,15 @@ const FoodHunter: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {/* add a slideshow for trending or weekly pics */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+          Trending & Weekly Picks
+        </h3>
+        <TrendingSlideshow />
+      </div>
+
 
       {results && (
         <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
