@@ -15,6 +15,7 @@ const FoodHunter: React.FC = () => {
   const [currentCoords, setCurrentCoords] = useState<Location | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string; searchedDish?: string } | null>(null);
   const [applyFilters, setApplyFilters] = useState(false);
+  const resultsRef = React.useRef<HTMLDivElement | null>(null);
 
   const profile = getUserProfile();
   const hasRestrictions = profile.dietaryRestrictions.length > 0;
@@ -32,6 +33,15 @@ const FoodHunter: React.FC = () => {
     if (!dish && !locationName) return;
 
     setLoading(true);
+
+    // ⬇️ Scroll immediately after clicking search
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 100);
+
     try {
       let prompt = "";
       if (dish && locationName) {
@@ -43,10 +53,14 @@ const FoodHunter: React.FC = () => {
       }
 
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
-      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions);
+      const response = await searchRestaurantsByMaps(
+          prompt,
+          currentCoords || undefined,
+          restrictions
+      );
+
       setResults(response);
 
-      // Save search to history - use dish as foodType, set cuisine as empty or extract from dish
       if (dish) {
         saveSearchToHistory('', dish);
       }
@@ -129,7 +143,6 @@ const FoodHunter: React.FC = () => {
         </form>
       </div>
 
-      {/* add a slideshow for trending or weekly pics */}
       <div className="space-y-4">
         <h3 className="text-xl font-black text-slate-900 tracking-tight">
           Trending & Weekly Picks
@@ -137,54 +150,72 @@ const FoodHunter: React.FC = () => {
         <TrendingSlideshow />
       </div>
 
+      <div ref={resultsRef} className="scroll-mt-24">
+        {loading && (
+            <div className="animate-in fade-in duration-300">
+              <div className="p-10 bg-white border border-orange-50 rounded-3xl shadow-sm flex flex-col items-center justify-center gap-6">
+                <div className="w-10 h-10 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin" />
 
-      {results && (
-        <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          <ExpertPicksSection
-            text={results.text}
-            onRestaurantClick={(name) => setSelectedRestaurant({
-              id: name,
-              name: name,
-              searchedDish: dish
-            })}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {results.groundingChunks.map((chunk, idx) => {
-              if (!chunk.maps) return null;
-              // Handle optional title field from API metadata
-              const restaurantName = chunk.maps.title || 'Unknown Restaurant';
-              const appRating = getAverageRating(restaurantName);
-
-              return (
-                <div key={idx} className="p-8 bg-white border border-orange-50 rounded-3xl shadow-sm hover:shadow-md transition-all group">
-                  <div className="flex justify-between items-start mb-4">
-                    <h5 className="font-bold text-slate-900 text-xl truncate pr-4 tracking-tight group-hover:text-orange-600 transition-colors">{restaurantName}</h5>
-                    {/* Handle optional uri field from API metadata */}
-                    <a href={chunk.maps.uri || '#'} target="_blank" rel="noopener" className="text-slate-300 hover:text-orange-600 transition-colors">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-2 mb-8">
-                    <div className="flex text-orange-500">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <svg key={s} className={`w-4 h-4 ${appRating >= s ? 'fill-current' : 'text-slate-100'}`} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                      ))}
-                    </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{appRating > 0 ? `${appRating.toFixed(1)} Rating` : 'New'}</span>
-                  </div>
-                  <button
-                    onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName, searchedDish: dish })}
-                    className="w-full bg-orange-50 hover:bg-orange-600 hover:text-white text-orange-700 font-bold py-4 rounded-xl text-xs transition-all uppercase tracking-widest border border-orange-100"
-                  >
-                    Community Insights
-                  </button>
+                <div className="text-center space-y-1">
+                  <p className="font-bold text-slate-800 tracking-tight">
+                    Finding the best spots for you 🍽️
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    Scanning menus, reviews, and hidden gems…
+                  </p>
                 </div>
-              );
-            })}
+              </div>
+            </div>
+        )}
+
+        {results && (
+          <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
+            <ExpertPicksSection
+              text={results.text}
+              onRestaurantClick={(name) => setSelectedRestaurant({
+                id: name,
+                name: name,
+                searchedDish: dish
+              })}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {results.groundingChunks.map((chunk, idx) => {
+                if (!chunk.maps) return null;
+                // Handle optional title field from API metadata
+                const restaurantName = chunk.maps.title || 'Unknown Restaurant';
+                const appRating = getAverageRating(restaurantName);
+
+                return (
+                  <div key={idx} className="p-8 bg-white border border-orange-50 rounded-3xl shadow-sm hover:shadow-md transition-all group">
+                    <div className="flex justify-between items-start mb-4">
+                      <h5 className="font-bold text-slate-900 text-xl truncate pr-4 tracking-tight group-hover:text-orange-600 transition-colors">{restaurantName}</h5>
+                      {/* Handle optional uri field from API metadata */}
+                      <a href={chunk.maps.uri || '#'} target="_blank" rel="noopener" className="text-slate-300 hover:text-orange-600 transition-colors">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-2 mb-8">
+                      <div className="flex text-orange-500">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <svg key={s} className={`w-4 h-4 ${appRating >= s ? 'fill-current' : 'text-slate-100'}`} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{appRating > 0 ? `${appRating.toFixed(1)} Rating` : 'New'}</span>
+                    </div>
+                    <button
+                      onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName, searchedDish: dish })}
+                      className="w-full bg-orange-50 hover:bg-orange-600 hover:text-white text-orange-700 font-bold py-4 rounded-xl text-xs transition-all uppercase tracking-widest border border-orange-100"
+                    >
+                      Community Insights
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {selectedRestaurant && (
         <RestaurantModal
