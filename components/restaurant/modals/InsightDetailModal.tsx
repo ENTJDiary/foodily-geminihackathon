@@ -57,22 +57,34 @@ const InsightDetailModal: React.FC<InsightDetailModalProps> = ({ review, onClose
                                 e.stopPropagation();
                                 onToggleLike(review.id);
                             }}
-                            className={`flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-95 group/btn ${review.isLiked
-                                    ? 'bg-orange-500 text-white shadow-md shadow-orange-200'
-                                    : 'bg-orange-50 text-orange-600 hover:bg-orange-100 hover:shadow-sm'
-                                }`}
+                            className="relative group active:scale-95 transition-transform"
                         >
-                            <span className="text-lg leading-none font-black italic tracking-tighter" style={{ fontFamily: 'ui-serif, Georgia, serif' }}>+1</span>
+                            {/* Main upvote button */}
+                            <div
+                                className={`w-[53px] h-10 rounded-2xl flex items-center justify-center font-black text-base tracking-tight shadow-sm transition-all
+      ${review.isLiked
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+                                }`}
+                                style={{ fontFamily: 'ui-serif, Georgia, serif' }}
+                            >
+                                +1
+                            </div>
 
-                            {(review.likes || 0) > 0 && (
-                                <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold shadow-sm ${review.isLiked
-                                        ? 'bg-white text-orange-600'
-                                        : 'bg-white text-orange-400'
-                                    }`}>
-                                    {review.likes}
-                                </span>
-                            )}
+                            {/* Soft pill badge (bottom-right) */}
+                            <div
+                                className={`absolute -bottom-1 -right-1 min-w-[18px] h-[18px] rounded-xl flex items-center justify-center text-[9px] font-bold border shadow-sm transition-all
+      ${review.isLiked
+                                    ? 'bg-white text-orange-600 border-orange-300'
+                                    : 'bg-white text-orange-400 border-orange-200'
+                                }
+      ${(review.likes || 0) > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}
+    `}
+                            >
+                                {review.likes || 0}
+                            </div>
                         </button>
+
                     </div>
                 </div>
             </div>
