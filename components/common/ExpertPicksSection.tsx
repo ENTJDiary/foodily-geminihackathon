@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 
 interface ExpertPicksSectionProps {
     text: string;
+    maxInitialPicks?: number;
+    onPicksExtracted?: (restaurantNames: string[]) => void;
 }
 
 interface ParsedRestaurant {
@@ -15,7 +17,7 @@ interface ParsedExpertPicks {
     picks: ParsedRestaurant[];
 }
 
-const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick?: (name: string) => void }> = ({ text, onRestaurantClick }) => {
+const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick?: (name: string) => void }> = ({ text, maxInitialPicks = 5, onRestaurantClick, onPicksExtracted }) => {
     const parsedContent = useMemo((): ParsedExpertPicks => {
         if (!text) return { intro: '', picks: [] };
 
@@ -69,6 +71,15 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick
         };
     }, [text]);
 
+    // Notify parent component of the restaurant names in the picks
+    React.useEffect(() => {
+        if (onPicksExtracted && parsedContent.picks.length > 0) {
+            const displayedPicks = parsedContent.picks.slice(0, maxInitialPicks);
+            const restaurantNames = displayedPicks.map(pick => pick.name);
+            onPicksExtracted(restaurantNames);
+        }
+    }, [parsedContent, maxInitialPicks, onPicksExtracted]);
+
     if (!parsedContent.intro && parsedContent.picks.length === 0) {
         return (
             <div className="bg-white p-8 rounded-[2rem] border border-orange-50 shadow-sm">
@@ -103,7 +114,7 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick
             {/* Picks / Target List */}
             {parsedContent.picks.length > 0 && (
                 <div className="grid grid-cols-1 gap-4">
-                    {parsedContent.picks.map((pick, i) => (
+                    {parsedContent.picks.slice(0, maxInitialPicks).map((pick, i) => (
                         <button
                             key={i}
                             onClick={() => onRestaurantClick?.(pick.name)}

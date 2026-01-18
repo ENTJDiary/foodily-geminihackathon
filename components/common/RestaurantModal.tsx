@@ -20,6 +20,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
   const [avgRating, setAvgRating] = useState(0);
   const [details, setDetails] = useState<SearchResult | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
 
   // Modal states
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
@@ -36,11 +37,16 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
 
     const loadDetails = async () => {
       setLoadingDetails(true);
+      setDetailsError(null); // Reset error state
       try {
+        console.log('🔍 Fetching restaurant details for:', restaurantName);
         const result = await getRestaurantDetails(restaurantName);
+        console.log('✅ Restaurant details loaded:', result);
         setDetails(result);
       } catch (error) {
-        console.error('Failed to load restaurant details:', error);
+        console.error('❌ Failed to load restaurant details:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        setDetailsError(errorMessage);
       } finally {
         setLoadingDetails(false);
       }
@@ -184,7 +190,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
         {/* Single Page Content - All Sections */}
         <div className="flex-1 overflow-y-auto p-10 space-y-12">
           {/* Gourmet Brief Section */}
-          <GourmetBriefPage details={details} loadingDetails={loadingDetails} />
+          <GourmetBriefPage details={details} loadingDetails={loadingDetails} error={detailsError} />
 
           {/* Community Insights Section */}
           <CommunityInsightsPage

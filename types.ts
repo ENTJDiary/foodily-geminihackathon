@@ -99,3 +99,10 @@ export interface UserProfile {
   dietaryRestrictions: string[];
   darkMode: boolean;
 }
+
+export interface WheelOption {
+  id: string;
+  name: string;
+  color: string;
+  timestamp: number;
+}

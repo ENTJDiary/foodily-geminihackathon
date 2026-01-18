@@ -42,21 +42,29 @@ export const searchRestaurantsByMaps = async (
 };
 
 export const getRestaurantDetails = async (name: string): Promise<SearchResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  try {
+    console.log('📡 API Call: getRestaurantDetails for', name);
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Provide a very brief summary, current opening hours, the top 3 popular dishes, and an estimated Price Rating (1-4, where 1 is cheap and 4 is expensive) for the restaurant "${name}". Format the response clearly with headings. PROMINENTLY STATE "Price Rating: X/4" on its own line.`,
-    config: {
-      tools: [{ googleSearch: {} }],
-    },
-  });
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Provide a very brief summary, current opening hours, the top 3 popular dishes, and an estimated Price Rating (1-4, where 1 is cheap and 4 is expensive) for the restaurant "${name}". Format the response clearly with headings. PROMINENTLY STATE "Price Rating: X/4" on its own line.`,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
 
-  // Cast groundingChunks to compatible internal GroundingChunk[] type
-  return {
-    text: response.text || "No detailed information found.",
-    groundingChunks: (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [],
-  };
+    console.log('✅ API Response received');
+
+    // Cast groundingChunks to compatible internal GroundingChunk[] type
+    return {
+      text: response.text || "No detailed information found.",
+      groundingChunks: (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [],
+    };
+  } catch (error) {
+    console.error('❌ API Error in getRestaurantDetails:', error);
+    throw error; // Re-throw to be caught by RestaurantModal
+  }
 };
 
 // In-memory cache for expanded slot options

@@ -4,6 +4,7 @@ import { SearchResult } from '../../../types';
 interface GourmetBriefPageProps {
     details: SearchResult | null;
     loadingDetails: boolean;
+    error?: string | null;
 }
 
 interface ParsedBrief {
@@ -13,7 +14,7 @@ interface ParsedBrief {
     priceRating: number;
 }
 
-const GourmetBriefPage: React.FC<GourmetBriefPageProps> = ({ details, loadingDetails }) => {
+const GourmetBriefPage: React.FC<GourmetBriefPageProps> = ({ details, loadingDetails, error }) => {
     // Helper to clean Markdown-like syntax for display
     const cleanText = (text: string) => {
         return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\+\+(.*?)\+\+/g, '$1');
@@ -85,6 +86,21 @@ const GourmetBriefPage: React.FC<GourmetBriefPageProps> = ({ details, loadingDet
                     <div className="h-20 bg-slate-800 rounded"></div>
                     <div className="h-20 bg-slate-800 rounded"></div>
                 </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 text-center bg-red-900/20 rounded-3xl border border-red-500/30 space-y-3">
+                <div className="flex items-center justify-center gap-2 text-red-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="font-bold">Failed to load Gourmet Brief</p>
+                </div>
+                <p className="text-sm text-red-300">{error}</p>
+                <p className="text-xs text-red-400/70 italic">Please try refreshing or check your connection</p>
             </div>
         );
     }

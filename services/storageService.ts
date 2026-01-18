@@ -155,3 +155,62 @@ export const updateHistoryEntry = (id: string, updates: Partial<HistoryEntry>) =
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   }
 };
+
+// Wheel Storage
+const WHEEL_KEY = "foodily_wheel_options";
+const WHEEL_COLORS = ['#FF6B35', '#FF8C42', '#FFA74F', '#FFB85C', '#FF9A56', '#FFA060'];
+
+export const getWheelOptions = () => {
+  const saved = localStorage.getItem(WHEEL_KEY);
+  if (!saved) return [];
+  try {
+    return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load wheel options', e);
+    return [];
+  }
+};
+
+export const addToWheel = (name: string): boolean => {
+  if (!name.trim()) return false;
+
+  const options = getWheelOptions();
+
+  // Check for duplicates (case-insensitive)
+  const isDuplicate = options.some((opt: any) =>
+    opt.name.toLowerCase() === name.trim().toLowerCase()
+  );
+
+  if (isDuplicate) {
+    return false; // Already exists
+  }
+
+  const newOption = {
+    id: Math.random().toString(36).substr(2, 9),
+    name: name.trim(),
+    color: WHEEL_COLORS[options.length % WHEEL_COLORS.length],
+    timestamp: Date.now(),
+  };
+
+  const updatedOptions = [...options, newOption];
+  localStorage.setItem(WHEEL_KEY, JSON.stringify(updatedOptions));
+
+  // Dispatch custom event to notify SpinTheWheel component
+  window.dispatchEvent(new CustomEvent('wheelOptionsUpdated'));
+
+  return true; // Successfully added
+};
+
+export const removeFromWheel = (optionId: string) => {
+  const options = getWheelOptions();
+  const updatedOptions = options.filter((opt: any) => opt.id !== optionId);
+
+  if (updatedOptions.length === 0) {
+    localStorage.removeItem(WHEEL_KEY);
+  } else {
+    localStorage.setItem(WHEEL_KEY, JSON.stringify(updatedOptions));
+  }
+
+  // Dispatch custom event to notify SpinTheWheel component
+  window.dispatchEvent(new CustomEvent('wheelOptionsUpdated'));
+};
