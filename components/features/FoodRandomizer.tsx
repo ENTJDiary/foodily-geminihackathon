@@ -363,10 +363,12 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
         <button
           onClick={handleRoll}
           disabled={isRollingCuisine || isRollingFood || (lockedCuisine && lockedFood)}
-          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-black py-5 rounded-2xl transition-all shadow-md disabled:opacity-20 flex items-center justify-center gap-3 uppercase text-xs tracking-widest"
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-5 rounded-2xl transition-all shadow-md disabled:opacity-20 flex items-center justify-center gap-3 uppercase text-xs tracking-widest"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-          Spin Wheel
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Gachapon !!
         </button>
 
         {(lockedCuisine || lockedFood) && (

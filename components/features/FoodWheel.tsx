@@ -20,13 +20,14 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
 
     // Load options from localStorage on mount and listen for external updates
     useEffect(() => {
+        // Clear any persisted options on mount (fresh start each page load)
+        localStorage.removeItem('foodily_wheel_options');
+
         const loadOptions = () => {
             setOptions(getWheelOptions());
         };
 
-        loadOptions();
-
-        // Listen for updates from FoodRandomizer
+        // Listen for updates from FoodRandomizer during this session
         window.addEventListener('wheelOptionsUpdated', loadOptions);
 
         return () => {
