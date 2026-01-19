@@ -6,7 +6,8 @@ import { Location, SearchResult, HistoryEntry, GroundingChunk } from "../types";
 export const searchRestaurantsByMaps = async (
   query: string,
   location?: Location,
-  dietaryRestrictions: string[] = []
+  dietaryRestrictions: string[] = [],
+  excludeNames: string[] = []
 ): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -25,10 +26,14 @@ export const searchRestaurantsByMaps = async (
     enhancedQuery += ` Ensure results strictly follow these dietary restrictions: ${dietaryRestrictions.join(', ')}.`;
   }
 
+  if (excludeNames.length > 0) {
+    enhancedQuery += ` Do NOT include these restaurants: ${excludeNames.join(', ')}.`;
+  }
+
   // Format prompt to match conciergeChat style for consistent UI display
   const formattedPrompt = `${enhancedQuery}
 
-Provide a brief introduction paragraph explaining the search results, then list 8-10 restaurant recommendations.
+Provide a brief introduction paragraph explaining the search results, then list 5 restaurant recommendations.
 
 Format each restaurant as a SINGLE bullet point with this structure:
 * **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).
@@ -153,7 +158,7 @@ export const chatWithGemini = async (message: string) => {
   return result.text;
 };
 
-export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number): Promise<SearchResult> => {
+export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = []): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   let detailedPrompt = `I am planning a dinner for "${occasion}" with "${people}". Specifically: "${request}".`;
@@ -166,10 +171,14 @@ export const conciergeChat = async (occasion: string, people: string, request: s
     detailedPrompt += ` The budget is around $${budget} per person.`;
   }
 
+  if (excludeNames.length > 0) {
+    detailedPrompt += ` Do NOT include these restaurants: ${excludeNames.join(', ')}.`;
+  }
+
   const prompt = `${detailedPrompt} 
   Use Google Maps and Google Search to find real, highly-rated restaurants that fit this specific vibe and requirement perfectly. 
   
-  Provide a brief introduction paragraph, then list 8-10 restaurant recommendations.
+  Provide a brief introduction paragraph, then list 5 restaurant recommendations.
   
   Format each restaurant as a SINGLE bullet point with this structure:
   * **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).

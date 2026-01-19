@@ -62,7 +62,8 @@ const FoodHunter: React.FC = () => {
       const response = await searchRestaurantsByMaps(
         prompt,
         currentCoords || undefined,
-        restrictions
+        restrictions,
+        [] // Initial search has no exclusions
       );
 
       setResults(response);
@@ -75,6 +76,42 @@ const FoodHunter: React.FC = () => {
       alert("Search failed. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const handleLoadMore = async () => {
+    if (!results) return;
+
+    setLoadingMore(true);
+    try {
+      let prompt = "";
+      if (dish && locationName) {
+        prompt = `Find the best restaurants serving "${dish}" in ${locationName}. List them with details.`;
+      } else if (locationName) {
+        prompt = `List top-rated restaurants in ${locationName} with diverse cuisines.`;
+      } else if (dish) {
+        prompt = `Find restaurants serving "${dish}" near my current location.`;
+      }
+
+      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const response = await searchRestaurantsByMaps(
+        prompt,
+        currentCoords || undefined,
+        restrictions,
+        pickedRestaurants
+      );
+
+      setResults(prev => prev ? {
+        text: prev.text + '\n' + response.text,
+        groundingChunks: [...prev.groundingChunks, ...response.groundingChunks]
+      } : response);
+
+    } catch (error) {
+      console.error("Failed to load more:", error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -185,6 +222,9 @@ const FoodHunter: React.FC = () => {
                 name: name,
                 searchedDish: dish
               })}
+              onPicksExtracted={setPickedRestaurants}
+              onLoadMore={handleLoadMore}
+              isLoadingMore={loadingMore}
             />
           </div>
         )}

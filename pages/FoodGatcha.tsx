@@ -19,6 +19,9 @@ const FoodGatcha: React.FC = () => {
   const [currentCoords, setCurrentCoords] = useState<Location | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>(getWeeklyHistory());
   const [applyFilters, setApplyFilters] = useState(false);
+  const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
+  const [currentPrompt, setCurrentPrompt] = useState('');
+  const [loadingMore, setLoadingMore] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const profile = getUserProfile();
@@ -62,8 +65,9 @@ const FoodGatcha: React.FC = () => {
     setResults(null);
     try {
       const prompt = `Suggest top-tier restaurants for ${query} near me.`;
+      setCurrentPrompt(prompt);
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
-      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions);
+      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, []);
       setResults(response);
       saveSearchToHistory(cuisine, foodType);
       setHistory(getWeeklyHistory());
@@ -79,8 +83,9 @@ const FoodGatcha: React.FC = () => {
     setResults(null);
     try {
       const prompt = `Suggest top-tier restaurants for ${foodName} near me.`;
+      setCurrentPrompt(prompt);
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
-      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions);
+      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, []);
       setResults(response);
       // Save to history with foodName as both cuisine and foodType
       saveSearchToHistory('Wheel', foodName);
@@ -89,6 +94,25 @@ const FoodGatcha: React.FC = () => {
       console.error(error);
     } finally {
       setLoadingResults(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (!results || !currentPrompt) return;
+
+    setLoadingMore(true);
+    try {
+      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const response = await searchRestaurantsByMaps(currentPrompt, currentCoords || undefined, restrictions, pickedRestaurants);
+
+      setResults(prev => prev ? {
+        text: prev.text + '\n' + response.text,
+        groundingChunks: [...prev.groundingChunks, ...response.groundingChunks]
+      } : response);
+    } catch (error) {
+      console.error("Failed to load more:", error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -116,6 +140,9 @@ const FoodGatcha: React.FC = () => {
               name: name,
               searchedDish: history[history.length - 1]?.foodType
             })}
+            onPicksExtracted={setPickedRestaurants}
+            onLoadMore={handleLoadMore}
+            isLoadingMore={loadingMore}
           />
         </div>
       )}

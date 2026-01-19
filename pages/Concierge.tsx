@@ -16,6 +16,15 @@ const Concierge: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
+  const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentSearch, setCurrentSearch] = useState<{
+    occasion: string;
+    people: string;
+    request: string;
+    location?: string;
+    budget?: number;
+  } | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,13 +38,46 @@ const Concierge: React.FC = () => {
       const effectiveLocation = showAdvanced ? location : undefined;
       const effectiveBudget = showAdvanced ? budget : undefined;
 
-      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget);
+      setCurrentSearch({
+        occasion,
+        people,
+        request,
+        location: effectiveLocation,
+        budget: effectiveBudget
+      });
+
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, []);
       setResult(response);
     } catch (error) {
       console.error(error);
       alert("Concierge is currently busy. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (!result || !currentSearch) return;
+
+    setLoadingMore(true);
+    try {
+      const response = await conciergeChat(
+        currentSearch.occasion,
+        currentSearch.people,
+        currentSearch.request,
+        currentSearch.location,
+        currentSearch.budget,
+        pickedRestaurants
+      );
+
+      setResult(prev => prev ? {
+        text: prev.text + '\n' + response.text,
+        groundingChunks: [...prev.groundingChunks, ...response.groundingChunks]
+      } : response);
+    } catch (error) {
+      console.error("Failed to load more:", error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -206,6 +248,9 @@ const Concierge: React.FC = () => {
               id: name,
               name: name
             })}
+            onPicksExtracted={setPickedRestaurants}
+            onLoadMore={handleLoadMore}
+            isLoadingMore={loadingMore}
           />
         </div>
       )}

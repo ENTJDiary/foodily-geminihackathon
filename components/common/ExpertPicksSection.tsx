@@ -17,9 +17,16 @@ interface ParsedExpertPicks {
     picks: ParsedRestaurant[];
 }
 
-const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick?: (name: string) => void }> = ({ text, maxInitialPicks = 5, onRestaurantClick, onPicksExtracted }) => {
+const ExpertPicksSection: React.FC<ExpertPicksSectionProps & {
+    onRestaurantClick?: (name: string) => void;
+    onLoadMore?: () => void;
+    isLoadingMore?: boolean;
+}> = ({ text, maxInitialPicks = 5, onRestaurantClick, onPicksExtracted, onLoadMore, isLoadingMore }) => {
     const [visibleCount, setVisibleCount] = useState(maxInitialPicks);
+    const prevPicksLengthRef = React.useRef(0);
+
     const parsedContent = useMemo((): ParsedExpertPicks => {
+
         if (!text) return { intro: '', picks: [] };
 
         const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
@@ -80,6 +87,14 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick
             onPicksExtracted(restaurantNames);
         }
     }, [parsedContent, visibleCount, onPicksExtracted]);
+
+    // Auto-expand when new picks are added
+    React.useEffect(() => {
+        if (parsedContent.picks.length > prevPicksLengthRef.current) {
+            setVisibleCount(parsedContent.picks.length);
+        }
+        prevPicksLengthRef.current = parsedContent.picks.length;
+    }, [parsedContent.picks.length]);
 
     if (!parsedContent.intro && parsedContent.picks.length === 0) {
         return (
@@ -158,19 +173,37 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick
                     </div>
 
                     {/* Show More Button */}
-                    {visibleCount < parsedContent.picks.length && (
+                    {(visibleCount < parsedContent.picks.length || onLoadMore) && (
                         <div className="flex justify-center pt-2">
                             <button
-                                onClick={() => setVisibleCount(prev => Math.min(prev + 5, parsedContent.picks.length))}
-                                className="bg-white hover:bg-orange-600 text-orange-700 hover:text-white font-bold px-8 py-4 rounded-xl transition-all uppercase tracking-widest border-2 border-orange-600 shadow-sm hover:shadow-md active:scale-[0.99] flex items-center gap-2 text-xs"
+                                onClick={() => {
+                                    if (visibleCount < parsedContent.picks.length) {
+                                        setVisibleCount(prev => Math.min(prev + 5, parsedContent.picks.length));
+                                    } else if (onLoadMore) {
+                                        onLoadMore();
+                                    }
+                                }}
+                                disabled={isLoadingMore}
+                                className="bg-white hover:bg-orange-600 text-orange-700 hover:text-white font-bold px-8 py-4 rounded-xl transition-all uppercase tracking-widest border-2 border-orange-600 shadow-sm hover:shadow-md active:scale-[0.99] flex items-center gap-2 text-xs disabled:opacity-50 disabled:cursor-wait"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                                Show More
-                                <span className="text-xs font-black bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">
-                                    +{Math.min(5, parsedContent.picks.length - visibleCount)}
-                                </span>
+                                {isLoadingMore ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-orange-600/30 border-t-orange-600 rounded-full animate-spin" />
+                                        Thinking...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                        Show More
+                                        {visibleCount < parsedContent.picks.length && (
+                                            <span className="text-xs font-black bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">
+                                                +{Math.min(5, parsedContent.picks.length - visibleCount)}
+                                            </span>
+                                        )}
+                                    </>
+                                )}
                             </button>
                         </div>
                     )}
