@@ -134,8 +134,8 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
         setTimeout(() => {
             const finalRotation = totalRotation % 360;
             const anglePerSegment = 360 / options.length;
-            // Adjust for pointer at top (0 degrees)
-            const adjustedAngle = (360 - finalRotation + 90) % 360;
+            // Adjust for pointer at right (0 degrees)
+            const adjustedAngle = (360 - finalRotation) % 360;
             const selectedIndex = Math.floor(adjustedAngle / anglePerSegment) % options.length;
 
             setSelectedOption(options[selectedIndex]);
@@ -143,6 +143,20 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
             setIsSpinning(false);
         }, 3000);
     };
+
+    // Idle spin animation
+    useEffect(() => {
+        if (isSpinning || options.length === 0) return;
+
+        let frameId: number;
+        const animate = () => {
+            setRotation(prev => prev + 0.15); // Adjust for desired speed (approx 10s per full rotation)
+            frameId = requestAnimationFrame(animate);
+        };
+
+        frameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(frameId);
+    }, [isSpinning, options.length]);
 
     const handleConfirm = () => {
         setShowResultModal(false);
@@ -259,21 +273,23 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
 
             {/* Wheel Display */}
             <div className="relative flex flex-col items-center gap-6">
-                {/* Pointer */}
-                <div className="w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[30px] border-t-orange-600 drop-shadow-lg z-10" />
+                <div className="relative flex items-center justify-center">
+                    {/* Canvas Wheel */}
+                    <div className="relative">
+                        <canvas
+                            ref={canvasRef}
+                            width={500}
+                            height={500}
+                            className="drop-shadow-xl"
+                            style={{
+                                transition: isSpinning ? 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                                transform: `rotate(${rotation}deg)`,
+                            }}
+                        />
+                    </div>
 
-                {/* Canvas Wheel */}
-                <div className="relative -mt-3">
-                    <canvas
-                        ref={canvasRef}
-                        width={500}
-                        height={500}
-                        className="drop-shadow-xl"
-                        style={{
-                            transition: isSpinning ? 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
-                            transform: `rotate(${rotation}deg)`,
-                        }}
-                    />
+                    {/* Pointer - Right Side, pointing inward using ml-1 (4px) */}
+                    <div className="w-0 h-0 border-t-[20px] border-t-transparent border-b-[20px] border-b-transparent border-r-[30px] border-r-orange-600 drop-shadow-lg z-10 ml-1" />
                 </div>
 
                 {/* Spin Button */}
