@@ -10,6 +10,9 @@ const Concierge: React.FC = () => {
   const [occasion, setOccasion] = useState('');
   const [people, setPeople] = useState('');
   const [request, setRequest] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [location, setLocation] = useState('');
+  const [budget, setBudget] = useState(50);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
@@ -25,7 +28,7 @@ const Concierge: React.FC = () => {
     setResult(null);
     setShowAllRestaurants(false); // Reset to show limited results on new search
     try {
-      const response = await conciergeChat(occasion, people, request);
+      const response = await conciergeChat(occasion, people, request, location, budget);
       setResult(response);
     } catch (error) {
       console.error(error);
@@ -70,6 +73,97 @@ const Concierge: React.FC = () => {
                 onChange={(e) => setPeople(e.target.value)}
                 className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-semibold outline-none"
               />
+            </div>
+          </div>
+
+          {/* Advanced Options Toggle */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-[11px] font-black text-orange-600 uppercase tracking-[0.2em] ml-1 hover:text-orange-700 transition-colors"
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+              Advanced
+            </button>
+          </div>
+
+          {/* Advanced Options - Expandable */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${showAdvanced ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+              {/* Location Input */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Downtown Manhattan"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-semibold outline-none"
+                />
+              </div>
+
+              {/* Budget Slider */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Budget per Person</label>
+                <div className="space-y-6">
+                  <div className="relative pt-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={budget}
+                      onChange={(e) => setBudget(parseInt(e.target.value))}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer relative z-10"
+                      style={{
+                        background: `linear-gradient(to right, #ea580c 0%, #ea580c ${(budget / 100) * 100}%, #e2e8f0 ${(budget / 100) * 100}%, #e2e8f0 100%)`
+                      }}
+                    />
+
+                    {/* Visual Ticks */}
+                    <div className="absolute top-2 left-0 w-full h-2 pointer-events-none z-0">
+                      <div className="absolute left-[0%] w-0.5 h-3 -top-0.5 bg-slate-300"></div>
+                      <div className="absolute left-[50%] w-0.5 h-3 -top-0.5 bg-slate-300"></div>
+                      <div className="absolute left-[100%] w-0.5 h-3 -top-0.5 bg-slate-300" style={{ transform: 'translateX(-100%)' }}></div>
+                    </div>
+
+                    <div className="flex justify-between text-xs font-bold text-slate-400 mt-2 relative">
+                      <span className="absolute left-0 -translate-x-1/4">$0</span>
+                      <span className="absolute left-[50%] -translate-x-1/2">$50</span>
+                      <span className="absolute right-0">Premium ($100+)</span>
+                    </div>
+                  </div>
+
+                  {/* Editable Budget Input */}
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={budget}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val)) setBudget(val);
+                        }}
+                        className="w-32 py-2 pl-8 pr-4 bg-orange-50 text-orange-700 font-black rounded-lg text-center outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-orange-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

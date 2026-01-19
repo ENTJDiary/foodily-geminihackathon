@@ -139,9 +139,20 @@ export const chatWithGemini = async (message: string) => {
   return result.text;
 };
 
-export const conciergeChat = async (occasion: string, people: string, request: string): Promise<SearchResult> => {
+export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = `I am planning a dinner for "${occasion}" with "${people}". Specifically: "${request}". 
+
+  let detailedPrompt = `I am planning a dinner for "${occasion}" with "${people}". Specifically: "${request}".`;
+
+  if (locationInput) {
+    detailedPrompt += ` The preferred location is "${locationInput}".`;
+  }
+
+  if (budget) {
+    detailedPrompt += ` The budget is around $${budget} per person.`;
+  }
+
+  const prompt = `${detailedPrompt} 
   Use Google Maps and Google Search to find real, highly-rated restaurants that fit this specific vibe and requirement perfectly. 
   
   Provide a SIMPLIFIED, CONCISE summary in POINT FORM (bullet points). 
