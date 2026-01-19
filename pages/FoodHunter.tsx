@@ -6,6 +6,8 @@ import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, getUserProfile, saveSearchToHistory } from '../services/storageService';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import TrendingSlideshow from "@/components/common/TrendingSlideshow.tsx";
+import Clueless from '../components/features/Clueless';
+
 
 const FoodHunter: React.FC = () => {
   const [dish, setDish] = useState('');
@@ -17,6 +19,7 @@ const FoodHunter: React.FC = () => {
   const [applyFilters, setApplyFilters] = useState(false);
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
   const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
+  const [isCluelesOpen, setIsCluelesOpen] = useState(false);
   const resultsRef = React.useRef<HTMLDivElement | null>(null);
 
   const profile = getUserProfile();
@@ -127,22 +130,34 @@ const FoodHunter: React.FC = () => {
             </div>
           )}
 
-          <button
-            disabled={loading}
-            type="submit"
-            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white font-bold py-5 rounded-xl transition-all shadow-md flex items-center justify-center gap-3 text-lg active:scale-[0.99]"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Find Restaurants
-              </>
-            )}
-          </button>
+          <div className="space-y-4">
+            <button
+              disabled={loading}
+              type="submit"
+              className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white font-bold py-5 rounded-xl transition-all shadow-md flex items-center justify-center gap-3 text-lg active:scale-[0.99]"
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Find Restaurants
+                </>
+              )}
+            </button>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsCluelesOpen(true)}
+                className="px-8 py-3 bg-white hover:bg-purple-600 text-purple-600 hover:text-white font-bold rounded-xl transition-all shadow-md border-2 border-purple-600 active:scale-[0.99] text-sm"
+              >
+                Clueless
+              </button>
+            </div>
+          </div>
         </form>
       </div>
 
@@ -257,6 +272,15 @@ const FoodHunter: React.FC = () => {
           onClose={() => setSelectedRestaurant(null)}
         />
       )}
+
+      <Clueless
+        isOpen={isCluelesOpen}
+        onClose={() => setIsCluelesOpen(false)}
+        onComplete={(cravingText) => {
+          setDish(cravingText);
+          setIsCluelesOpen(false);
+        }}
+      />
     </div>
   );
 };
