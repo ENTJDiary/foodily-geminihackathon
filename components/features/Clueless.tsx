@@ -132,7 +132,9 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
                 // Fallback to generic options
                 setDishOptions([
                     { name: "Chef's Special", emoji: "👨‍🍳" },
-                    { name: "House Favorite", emoji: "⭐" }
+                    { name: "House Favorite", emoji: "⭐" },
+                    { name: "Local Delight", emoji: "🏠" },
+                    { name: "Trending Now", emoji: "🔥" }
                 ]);
                 setShowDishSelection(true);
             } finally {
@@ -245,7 +247,7 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
         const { GoogleGenAI, Type } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-        const prompt = `Based on ALL these user preferences, suggest 2 specific, moderate-level dish names (like "Margherita Pizza", not too general, not overly specific):
+        const prompt = `Based on ALL these user preferences, suggest 4 specific, moderate-level dish names (like "Margherita Pizza", not too general, not overly specific):
     
     User preferences:
     ${choices.map((c, i) => `${i + 1}. ${c}`).join('\n')}
@@ -253,7 +255,9 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
     Return ONLY a JSON array with this structure:
     [
       { "name": "Dish Name 1", "emoji": "🍕" },
-      { "name": "Dish Name 2", "emoji": "🍜" }
+      { "name": "Dish Name 2", "emoji": "🍜" },
+      { "name": "Dish Name 3", "emoji": "🥗" },
+      { "name": "Dish Name 4", "emoji": "🥘" }
     ]`;
 
         const response = await ai.models.generateContent({

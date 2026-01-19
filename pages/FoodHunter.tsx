@@ -38,6 +38,7 @@ const FoodHunter: React.FC = () => {
     if (!dish && !locationName) return;
 
     setLoading(true);
+    setResults(null);
 
     // ⬇️ Scroll immediately after clicking search
     setTimeout(() => {
