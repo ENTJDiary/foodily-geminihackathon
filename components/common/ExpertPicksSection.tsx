@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 interface ExpertPicksSectionProps {
     text: string;
@@ -18,6 +18,7 @@ interface ParsedExpertPicks {
 }
 
 const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick?: (name: string) => void }> = ({ text, maxInitialPicks = 5, onRestaurantClick, onPicksExtracted }) => {
+    const [visibleCount, setVisibleCount] = useState(maxInitialPicks);
     const parsedContent = useMemo((): ParsedExpertPicks => {
         if (!text) return { intro: '', picks: [] };
 
@@ -74,11 +75,11 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick
     // Notify parent component of the restaurant names in the picks
     React.useEffect(() => {
         if (onPicksExtracted && parsedContent.picks.length > 0) {
-            const displayedPicks = parsedContent.picks.slice(0, maxInitialPicks);
+            const displayedPicks = parsedContent.picks.slice(0, visibleCount);
             const restaurantNames = displayedPicks.map(pick => pick.name);
             onPicksExtracted(restaurantNames);
         }
-    }, [parsedContent, maxInitialPicks, onPicksExtracted]);
+    }, [parsedContent, visibleCount, onPicksExtracted]);
 
     if (!parsedContent.intro && parsedContent.picks.length === 0) {
         return (
@@ -113,46 +114,66 @@ const ExpertPicksSection: React.FC<ExpertPicksSectionProps & { onRestaurantClick
 
             {/* Picks / Target List */}
             {parsedContent.picks.length > 0 && (
-                <div className="grid grid-cols-1 gap-4">
-                    {parsedContent.picks.slice(0, maxInitialPicks).map((pick, i) => (
-                        <button
-                            key={i}
-                            onClick={() => onRestaurantClick?.(pick.name)}
-                            className="w-full text-left bg-white p-6 rounded-[1.5rem] border border-orange-50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden cursor-pointer active:scale-[0.99]"
-                        >
-                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                        {parsedContent.picks.slice(0, visibleCount).map((pick, i) => (
+                            <button
+                                key={i}
+                                onClick={() => onRestaurantClick?.(pick.name)}
+                                className="w-full text-left bg-white p-6 rounded-[1.5rem] border border-orange-50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden cursor-pointer active:scale-[0.99]"
+                            >
+                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-                            <div className="flex gap-4 items-start relative z-10">
-                                {/* Rank Badge */}
-                                <div className={`
+                                <div className="flex gap-4 items-start relative z-10">
+                                    {/* Rank Badge */}
+                                    <div className={`
                                      flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2
                                      ${i === 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-600' :
-                                        i === 1 ? 'bg-slate-100 border-slate-300 text-slate-500' :
-                                            i === 2 ? 'bg-orange-50 border-orange-200 text-orange-700' :
-                                                'bg-slate-50 border-slate-100 text-slate-400'}
+                                            i === 1 ? 'bg-slate-100 border-slate-300 text-slate-500' :
+                                                i === 2 ? 'bg-orange-50 border-orange-200 text-orange-700' :
+                                                    'bg-slate-50 border-slate-100 text-slate-400'}
                                  `}>
-                                    #{i + 1}
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-                                        <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-orange-600 transition-colors">
-                                            {pick.name}
-                                        </h4>
-                                        {pick.rating && (
-                                            <div className="flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-lg border border-green-100">
-                                                <span className="text-xs font-bold text-green-700">{pick.rating}</span>
-                                                <svg className="w-3 h-3 text-green-600 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                            </div>
-                                        )}
+                                        #{i + 1}
                                     </div>
-                                    <p className="text-slate-500 text-sm leading-relaxed">
-                                        {pick.description}
-                                    </p>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
+                                            <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-orange-600 transition-colors">
+                                                {pick.name}
+                                            </h4>
+                                            {pick.rating && (
+                                                <div className="flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-lg border border-green-100">
+                                                    <span className="text-xs font-bold text-green-700">{pick.rating}</span>
+                                                    <svg className="w-3 h-3 text-green-600 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <p className="text-slate-500 text-sm leading-relaxed">
+                                            {pick.description}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        </button>
-                    ))}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Show More Button */}
+                    {visibleCount < parsedContent.picks.length && (
+                        <div className="flex justify-center pt-2">
+                            <button
+                                onClick={() => setVisibleCount(prev => Math.min(prev + 5, parsedContent.picks.length))}
+                                className="bg-white hover:bg-orange-600 text-orange-700 hover:text-white font-bold px-8 py-4 rounded-xl transition-all uppercase tracking-widest border-2 border-orange-600 shadow-sm hover:shadow-md active:scale-[0.99] flex items-center gap-2 text-xs"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                                Show More
+                                <span className="text-xs font-black bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">
+                                    +{Math.min(5, parsedContent.picks.length - visibleCount)}
+                                </span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -25,12 +25,26 @@ export const searchRestaurantsByMaps = async (
     enhancedQuery += ` Ensure results strictly follow these dietary restrictions: ${dietaryRestrictions.join(', ')}.`;
   }
 
+  // Format prompt to match conciergeChat style for consistent UI display
+  const formattedPrompt = `${enhancedQuery}
+
+Provide a brief introduction paragraph explaining the search results, then list 8-10 restaurant recommendations.
+
+Format each restaurant as a SINGLE bullet point with this structure:
+* **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).
+
+Keep descriptions concise but informative. Focus on the unique selling points and atmosphere.`;
+
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: enhancedQuery,
+    contents: formattedPrompt,
     config: {
       tools: [{ googleMaps: {} }],
       toolConfig,
+      systemInstruction: `You are a Food.ily expert. You specialize in finding the perfect restaurants.
+Your tone is enthusiastic but efficient. You prefer brevity and clarity.
+When listing restaurants, use ONLY the format: * **Restaurant Name** - Description.
+Do NOT use sub-bullets or multi-line entries for each restaurant.`,
     },
   });
 
@@ -139,17 +153,28 @@ export const chatWithGemini = async (message: string) => {
   return result.text;
 };
 
-export const conciergeChat = async (occasion: string, people: string, request: string): Promise<SearchResult> => {
+export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = `I am planning a dinner for "${occasion}" with "${people}". Specifically: "${request}". 
+
+  let detailedPrompt = `I am planning a dinner for "${occasion}" with "${people}". Specifically: "${request}".`;
+
+  if (locationInput) {
+    detailedPrompt += ` The preferred location is "${locationInput}".`;
+  }
+
+  if (budget) {
+    detailedPrompt += ` The budget is around $${budget} per person.`;
+  }
+
+  const prompt = `${detailedPrompt} 
   Use Google Maps and Google Search to find real, highly-rated restaurants that fit this specific vibe and requirement perfectly. 
   
-  Provide a SIMPLIFIED, CONCISE summary in POINT FORM (bullet points). 
-  Do not write long paragraphs. 
-  For each suggestion, provide:
-  - Name
-  - Brief reason why it fits (1 sentence)
-  - Key vibe/atmosphere note`;
+  Provide a brief introduction paragraph, then list 8-10 restaurant recommendations.
+  
+  Format each restaurant as a SINGLE bullet point with this structure:
+  * **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).
+  
+  Keep descriptions concise but informative. Focus on the unique selling points and atmosphere.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
@@ -158,7 +183,8 @@ export const conciergeChat = async (occasion: string, people: string, request: s
       tools: [{ googleMaps: {} }, { googleSearch: {} }],
       systemInstruction: `You are the Food.ily Dining Concierge. You specialize in planning high-end, high-impact dining experiences.
       Your tone is elegant but efficient. You prefer brevity and clarity over flowery language.
-      Always provide the Google Maps URI if found.`,
+      When listing restaurants, use ONLY the format: * **Restaurant Name** - Description.
+      Do NOT use sub-bullets or multi-line entries for each restaurant.`,
     }
   });
 

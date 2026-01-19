@@ -10,11 +10,12 @@ const Concierge: React.FC = () => {
   const [occasion, setOccasion] = useState('');
   const [people, setPeople] = useState('');
   const [request, setRequest] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [location, setLocation] = useState('');
+  const [budget, setBudget] = useState(50);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
-  const [showAllRestaurants, setShowAllRestaurants] = useState(false);
-  const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,9 +24,12 @@ const Concierge: React.FC = () => {
 
     setLoading(true);
     setResult(null);
-    setShowAllRestaurants(false); // Reset to show limited results on new search
     try {
-      const response = await conciergeChat(occasion, people, request);
+      // Only pass location and budget if the advanced section is open
+      const effectiveLocation = showAdvanced ? location : undefined;
+      const effectiveBudget = showAdvanced ? budget : undefined;
+
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget);
       setResult(response);
     } catch (error) {
       console.error(error);
@@ -73,6 +77,97 @@ const Concierge: React.FC = () => {
             </div>
           </div>
 
+          {/* Advanced Options Toggle */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-[11px] font-black text-orange-600 uppercase tracking-[0.2em] ml-1 hover:text-orange-700 transition-colors"
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+              Advanced
+            </button>
+          </div>
+
+          {/* Advanced Options - Expandable */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${showAdvanced ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+              {/* Location Input */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Downtown Manhattan"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-semibold outline-none"
+                />
+              </div>
+
+              {/* Budget Slider */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Budget per Person</label>
+                <div className="space-y-6">
+                  <div className="relative pt-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={budget}
+                      onChange={(e) => setBudget(parseInt(e.target.value))}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer relative z-10"
+                      style={{
+                        background: `linear-gradient(to right, #ea580c 0%, #ea580c ${(budget / 100) * 100}%, #e2e8f0 ${(budget / 100) * 100}%, #e2e8f0 100%)`
+                      }}
+                    />
+
+                    {/* Visual Ticks */}
+                    <div className="absolute top-2 left-0 w-full h-2 pointer-events-none z-0">
+                      <div className="absolute left-[0%] w-0.5 h-3 -top-0.5 bg-slate-300"></div>
+                      <div className="absolute left-[50%] w-0.5 h-3 -top-0.5 bg-slate-300"></div>
+                      <div className="absolute left-[100%] w-0.5 h-3 -top-0.5 bg-slate-300" style={{ transform: 'translateX(-100%)' }}></div>
+                    </div>
+
+                    <div className="flex justify-between text-xs font-bold text-slate-400 mt-2 relative">
+                      <span className="absolute left-0 -translate-x-1/4">$0</span>
+                      <span className="absolute left-[50%] -translate-x-1/2">$50</span>
+                      <span className="absolute right-0">Premium ($100+)</span>
+                    </div>
+                  </div>
+
+                  {/* Editable Budget Input */}
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={budget}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val)) setBudget(val);
+                        }}
+                        className="w-32 py-2 pl-8 pr-4 bg-orange-50 text-orange-700 font-black rounded-lg text-center outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-orange-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-3">
             <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Your Vision</label>
             <textarea
@@ -107,74 +202,11 @@ const Concierge: React.FC = () => {
           <ExpertPicksSection
             text={result.text}
             maxInitialPicks={5}
-            onPicksExtracted={(names) => setPickedRestaurants(names)}
             onRestaurantClick={(name) => setSelectedRestaurant({
               id: name,
               name: name
             })}
           />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(showAllRestaurants ? result.groundingChunks : result.groundingChunks.slice(0, 10))
-              .filter(chunk => {
-                // Filter out restaurants that are already in the top picks
-                const restaurantName = chunk.maps?.title || 'Unknown Restaurant';
-                return !pickedRestaurants.some(picked =>
-                  restaurantName.toLowerCase().includes(picked.toLowerCase()) ||
-                  picked.toLowerCase().includes(restaurantName.toLowerCase())
-                );
-              })
-              .map((chunk, idx) => {
-                if (!chunk.maps) return null;
-                // Handle optional title field from API metadata
-                const restaurantName = chunk.maps.title || 'Unknown Restaurant';
-                return (
-                  <div key={idx} className="bg-white p-8 rounded-3xl border border-orange-50 shadow-sm flex flex-col hover:shadow-md transition-all group">
-                    <div className="flex justify-between items-start mb-4">
-                      <h5 className="font-black text-slate-900 text-xl tracking-tight truncate pr-4 group-hover:text-orange-600 transition-colors">{restaurantName}</h5>
-                      {/* Handle optional uri field from API metadata */}
-                      <a href={chunk.maps.uri || '#'} target="_blank" className="text-slate-300 hover:text-orange-600 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3 mb-8">
-                      <div className="flex text-orange-500">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <svg key={s} className={`w-4 h-4 ${getAverageRating(restaurantName) >= s ? 'fill-current' : 'text-slate-200'}`} viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">{getAverageRating(restaurantName).toFixed(1)} / 5.0</span>
-                    </div>
-                    <button
-                      onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName })}
-                      className="mt-auto bg-orange-50 hover:bg-orange-600 hover:text-white transition-all text-orange-700 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest border border-orange-100"
-                    >
-                      View Restaurant
-                    </button>
-                  </div>
-                );
-              })}
-          </div>
-
-          {/* Show More Button */}
-          {!showAllRestaurants && result.groundingChunks.length > 10 && (
-            <div className="flex justify-center mt-6">
-              <button
-                onClick={() => setShowAllRestaurants(true)}
-                className="bg-white hover:bg-orange-600 text-orange-700 hover:text-white font-bold px-8 py-4 rounded-xl transition-all uppercase tracking-widest border-2 border-orange-600 shadow-sm hover:shadow-md active:scale-[0.99] flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-                Show More Recommendations
-                <span className="text-xs font-black bg-orange-100 px-2 py-1 rounded-lg">
-                  +{result.groundingChunks.length - 10}
-                </span>
-              </button>
-            </div>
-          )}
         </div>
       )}
 
