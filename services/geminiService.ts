@@ -25,12 +25,26 @@ export const searchRestaurantsByMaps = async (
     enhancedQuery += ` Ensure results strictly follow these dietary restrictions: ${dietaryRestrictions.join(', ')}.`;
   }
 
+  // Format prompt to match conciergeChat style for consistent UI display
+  const formattedPrompt = `${enhancedQuery}
+
+Provide a brief introduction paragraph explaining the search results, then list 8-10 restaurant recommendations.
+
+Format each restaurant as a SINGLE bullet point with this structure:
+* **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).
+
+Keep descriptions concise but informative. Focus on the unique selling points and atmosphere.`;
+
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: enhancedQuery,
+    contents: formattedPrompt,
     config: {
       tools: [{ googleMaps: {} }],
       toolConfig,
+      systemInstruction: `You are a Food.ily expert. You specialize in finding the perfect restaurants.
+Your tone is enthusiastic but efficient. You prefer brevity and clarity.
+When listing restaurants, use ONLY the format: * **Restaurant Name** - Description.
+Do NOT use sub-bullets or multi-line entries for each restaurant.`,
     },
   });
 
