@@ -25,7 +25,11 @@ const Concierge: React.FC = () => {
     setLoading(true);
     setResult(null);
     try {
-      const response = await conciergeChat(occasion, people, request, location, budget);
+      // Only pass location and budget if the advanced section is open
+      const effectiveLocation = showAdvanced ? location : undefined;
+      const effectiveBudget = showAdvanced ? budget : undefined;
+
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget);
       setResult(response);
     } catch (error) {
       console.error(error);
