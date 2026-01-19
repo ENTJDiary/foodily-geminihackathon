@@ -155,12 +155,12 @@ export const conciergeChat = async (occasion: string, people: string, request: s
   const prompt = `${detailedPrompt} 
   Use Google Maps and Google Search to find real, highly-rated restaurants that fit this specific vibe and requirement perfectly. 
   
-  Provide a SIMPLIFIED, CONCISE summary in POINT FORM (bullet points). 
-  Do not write long paragraphs. 
-  For each suggestion, provide:
-  - Name
-  - Brief reason why it fits (1 sentence)
-  - Key vibe/atmosphere note`;
+  Provide a brief introduction paragraph, then list 8-10 restaurant recommendations.
+  
+  Format each restaurant as a SINGLE bullet point with this structure:
+  * **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).
+  
+  Keep descriptions concise but informative. Focus on the unique selling points and atmosphere.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
@@ -169,7 +169,8 @@ export const conciergeChat = async (occasion: string, people: string, request: s
       tools: [{ googleMaps: {} }, { googleSearch: {} }],
       systemInstruction: `You are the Food.ily Dining Concierge. You specialize in planning high-end, high-impact dining experiences.
       Your tone is elegant but efficient. You prefer brevity and clarity over flowery language.
-      Always provide the Google Maps URI if found.`,
+      When listing restaurants, use ONLY the format: * **Restaurant Name** - Description.
+      Do NOT use sub-bullets or multi-line entries for each restaurant.`,
     }
   });
 
