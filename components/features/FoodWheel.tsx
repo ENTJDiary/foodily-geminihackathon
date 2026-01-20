@@ -53,7 +53,7 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
 
         // Draw segments
         options.forEach((option, index) => {
-            const startAngle = index * anglePerSegment + (rotation * Math.PI) / 180;
+            const startAngle = index * anglePerSegment;
             const endAngle = startAngle + anglePerSegment;
 
             // Draw segment
@@ -123,20 +123,26 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
 
         setIsSpinning(true);
 
-        // Generate random rotation (4-6 full spins + random angle)
+        const startRotation = rotation; // ✅ capture current rotation
+
         const spins = 4 + Math.random() * 2;
         const randomAngle = Math.random() * 360;
-        const totalRotation = spins * 360 + randomAngle;
+        const spinRotation = spins * 360 + randomAngle;
 
-        setRotation(prev => prev + totalRotation);
+        const finalRotation = startRotation + spinRotation;
 
-        // Calculate which segment we land on
+        setRotation(finalRotation);
+
         setTimeout(() => {
-            const finalRotation = totalRotation % 360;
+            const normalizedRotation = finalRotation % 360;
             const anglePerSegment = 360 / options.length;
-            // Adjust for pointer at right (0 degrees)
-            const adjustedAngle = (360 - finalRotation) % 360;
-            const selectedIndex = Math.floor(adjustedAngle / anglePerSegment) % options.length;
+
+            // Pointer is on RIGHT (0°)
+            const pointerAngle = (360 - normalizedRotation) % 360;
+
+            const selectedIndex = Math.floor(
+                pointerAngle / anglePerSegment
+            );
 
             setSelectedOption(options[selectedIndex]);
             setShowResultModal(true);
@@ -150,7 +156,7 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
 
         let frameId: number;
         const animate = () => {
-            setRotation(prev => prev + 0.15); // Adjust for desired speed (approx 10s per full rotation)
+            setRotation(prev => prev + 0.15);
             frameId = requestAnimationFrame(animate);
         };
 
