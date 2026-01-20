@@ -6,6 +6,11 @@ import EmailSignup from '../components/landing/EmailSignup';
 import FAQSection from '../components/landing/FAQSection';
 import Footer from '../components/layout/Footer';
 
+// Import preview images
+import foodHunterPreview from '../components/landing/image/food-hunter-recolored.png';
+import foodGachaIcon from '../components/landing/image/food-gacha-icon.png';
+import conciergeIcon from '../components/landing/image/concierge-icon-minimal.png';
+
 const Landing: React.FC = () => {
   const navigate = useNavigate();
 
@@ -127,27 +132,32 @@ const Landing: React.FC = () => {
       <FeatureShowcase
         title="Food Hunter"
         description="Search for what you're craving, not just keywords. Our AI understands your taste preferences, mood, and specific cravings to find the perfect dish for you."
-        screenshotUrl="C:/Users/giano/.gemini/antigravity/brain/7eb46fb2-3751-4ba8-ac1a-1b602478355d/food_hunter_preview_1768867342815.png"
-        route="/FoodHunter"
+        screenshotUrl={foodHunterPreview}
+        route="/signup"
         reverse={false}
+        ctaText="Explore More"
       />
 
       {/* ================= F2: FOOD GACHA ================= */}
       <FeatureShowcase
         title="Food Gacha"
         description="Feeling adventurous? Spin the Gourmet Slot and let fate decide your next meal. Discover new cuisines and hidden gems with every spin."
-        screenshotUrl="C:/Users/giano/.gemini/antigravity/brain/7eb46fb2-3751-4ba8-ac1a-1b602478355d/food_gacha_preview_1768867364961.png"
-        route="/FoodGatcha"
+        screenshotUrl={foodGachaIcon}
+        route="/signup"
         reverse={true}
+        scale={0.85}
+        ctaText="Spin it Now"
       />
 
       {/* ================= F3: CONCIERGE ================= */}
       <FeatureShowcase
         title="Concierge"
         description="Chat with our AI food concierge for personalized recommendations. Tell us your preferences, budget, and location—we'll find the perfect spot for you."
-        screenshotUrl="C:/Users/giano/.gemini/antigravity/brain/7eb46fb2-3751-4ba8-ac1a-1b602478355d/concierge_preview_1768867386219.png"
-        route="/Concierge"
+        screenshotUrl={conciergeIcon}
+        route="/signup"
         reverse={false}
+        scale={0.85}
+        ctaText="Learn More"
       />
 
       {/* ================= JOIN NOW (Email Signup) ================= */}
