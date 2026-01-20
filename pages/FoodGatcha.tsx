@@ -8,6 +8,7 @@ import FoodWheel from '../components/features/FoodWheel';
 import { Location, SearchResult, HistoryEntry } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, saveSearchToHistory, getWeeklyHistory, getUserProfile } from '../services/storageService';
+import { getCurrentLocation } from '../services/locationService';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
 
@@ -37,12 +38,12 @@ const FoodGatcha: React.FC = () => {
   }, [results]);
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setCurrentCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        (err) => console.warn("Geolocation failed", err)
-      );
-    }
+    // Get location using the centralized service
+    getCurrentLocation().then(location => {
+      if (location) {
+        setCurrentCoords(location);
+      }
+    });
   }, []);
 
   const handleRandomSelection = async (cuisine: string, foodType: string, lockedCuisine: boolean, lockedFood: boolean) => {

@@ -4,6 +4,7 @@ import { searchRestaurantsByMaps } from '../services/geminiService';
 import { Location, SearchResult, HistoryEntry } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
 import { getAverageRating, getUserProfile, saveSearchToHistory } from '../services/storageService';
+import { requestLocationPermission } from '../services/locationService';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import TrendingSlideshow from "@/components/common/TrendingSlideshow.tsx";
 import Clueless from '../components/features/Clueless';
@@ -26,12 +27,21 @@ const FoodHunter: React.FC = () => {
   const hasRestrictions = profile.dietaryRestrictions.length > 0;
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setCurrentCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        (err) => console.warn("Geolocation failed", err)
-      );
-    }
+    console.log('🚀 [FoodHunter] Component mounted - useEffect triggered');
+    console.log('📍 [FoodHunter] About to request location permission...');
+
+    // Request fresh location permission on page load (triggers browser popup)
+    requestLocationPermission().then(location => {
+      if (location) {
+        console.log('✅ [FoodHunter] Location permission GRANTED:', location);
+        setCurrentCoords(location);
+      } else {
+        console.log('❌ [FoodHunter] Location permission DENIED or unavailable');
+        console.log('ℹ️ [FoodHunter] User can still enter locations manually');
+      }
+    }).catch(error => {
+      console.error('💥 [FoodHunter] Unexpected error in location request:', error);
+    });
   }, []);
 
   const triggerSearch = async () => {

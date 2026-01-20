@@ -28,29 +28,30 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
   const [showAddDish, setShowAddDish] = useState(false);
   const [showInsightForm, setShowInsightForm] = useState(false);
 
+  // Function to load restaurant details (can be called for retry)
+  const loadDetails = async () => {
+    setLoadingDetails(true);
+    setDetailsError(null); // Reset error state
+    try {
+      console.log('🔍 Fetching restaurant details for:', restaurantName);
+      const result = await getRestaurantDetails(restaurantName);
+      console.log('✅ Restaurant details loaded:', result);
+      setDetails(result);
+    } catch (error) {
+      console.error('❌ Failed to load restaurant details:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setDetailsError(errorMessage);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   // Load initial data
   useEffect(() => {
     const data = getRestaurantData(restaurantId);
     setReviews(data.reviews);
     setMenuItems(data.menuItems);
     setAvgRating(getAverageRating(restaurantId));
-
-    const loadDetails = async () => {
-      setLoadingDetails(true);
-      setDetailsError(null); // Reset error state
-      try {
-        console.log('🔍 Fetching restaurant details for:', restaurantName);
-        const result = await getRestaurantDetails(restaurantName);
-        console.log('✅ Restaurant details loaded:', result);
-        setDetails(result);
-      } catch (error) {
-        console.error('❌ Failed to load restaurant details:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        setDetailsError(errorMessage);
-      } finally {
-        setLoadingDetails(false);
-      }
-    };
     loadDetails();
   }, [restaurantId, restaurantName]);
 
@@ -190,7 +191,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
         {/* Single Page Content - All Sections */}
         <div className="flex-1 overflow-y-auto p-10 space-y-12">
           {/* Gourmet Brief Section */}
-          <GourmetBriefPage details={details} loadingDetails={loadingDetails} error={detailsError} />
+          <GourmetBriefPage details={details} loadingDetails={loadingDetails} error={detailsError} onRetry={loadDetails} />
 
           {/* Community Insights Section */}
           <CommunityInsightsPage

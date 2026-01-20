@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/layout/Footer';
+import { requestLocationPermission } from '../services/locationService';
 
 const Signup: React.FC = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
 
-    const handleEmailSignup = (e: React.FormEvent) => {
+    const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Email signup:', email);
         navigate('/FoodHunter');
     };
 
-    const handleGoogleSignup = () => {
+    const handleGoogleSignup = async () => {
         console.log('Google signup clicked');
         navigate('/FoodHunter');
     };

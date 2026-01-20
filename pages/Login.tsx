@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/layout/Footer';
+import { requestLocationPermission } from '../services/locationService';
+
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
 
-    const handleEmailLogin = (e: React.FormEvent) => {
+    const handleEmailLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Email login:', email);
         navigate('/FoodHunter');
     };
 
-    const handleGoogleLogin = () => {
+    const handleGoogleLogin = async () => {
         console.log('Google login clicked');
         navigate('/FoodHunter');
     };

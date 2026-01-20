@@ -153,6 +153,33 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
         // Reset will happen via useEffect when modal closes
     };
 
+    const handleGoBack = async () => {
+        // Go back to question 6 and regenerate dishes
+        setShowDishSelection(false);
+        setCurrentQuestion(5); // Question 6 (0-indexed)
+        setIsAnalyzing(true);
+        setAnalyzeStage('dishes');
+
+        try {
+            const dishes = await generateDishOptions(answers);
+            setDishOptions(dishes);
+            setShowDishSelection(true);
+        } catch (error) {
+            console.error("Error regenerating dishes:", error);
+            // Fallback to generic options
+            setDishOptions([
+                { name: "Chef's Special", emoji: "👨‍🍳" },
+                { name: "House Favorite", emoji: "⭐" },
+                { name: "Local Delight", emoji: "🏠" },
+                { name: "Trending Now", emoji: "🔥" }
+            ]);
+            setShowDishSelection(true);
+        } finally {
+            setIsAnalyzing(false);
+            setAnalyzeStage(null);
+        }
+    };
+
     const handlePrevious = () => {
         if (currentQuestion > 0) {
             setCurrentQuestion(currentQuestion - 1);
@@ -247,10 +274,16 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
         const { GoogleGenAI, Type } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-        const prompt = `Based on ALL these user preferences, suggest 4 specific, moderate-level dish names (like "Margherita Pizza", not too general, not overly specific):
+        const prompt = `Based on ALL these user preferences, suggest 4 GENERAL dish names (like "Pizza", "Spaghetti", "Tacos", "Burger" - keep it simple and broad, NOT specific variations):
     
     User preferences:
     ${choices.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+    
+    IMPORTANT: Use general dish categories, not specific recipes. For example:
+    - Use "Pizza" instead of "Italian Margherita Pizza" or "Neapolitan Pizza"
+    - Use "Spaghetti" instead of "Linguine al Dente" or "Spaghetti Carbonara"
+    - Use "Tacos" instead of "Street Tacos al Pastor"
+    - Use "Curry" instead of "Thai Green Curry"
     
     Return ONLY a JSON array with this structure:
     [
@@ -383,6 +416,22 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
                                     </div>
                                 </button>
                             ))}
+                        </div>
+
+                        {/* Go Back Button */}
+                        <div className="mt-8 flex flex-col items-center gap-3">
+                            <p className="text-sm font-semibold text-slate-600">
+                                Not satisfied?
+                            </p>
+                            <button
+                                onClick={handleGoBack}
+                                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 flex items-center gap-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Go Back
+                            </button>
                         </div>
                     </div>
                 )}

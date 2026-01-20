@@ -61,29 +61,65 @@ Do NOT use sub-bullets or multi-line entries for each restaurant.`,
 };
 
 export const getRestaurantDetails = async (name: string): Promise<SearchResult> => {
-  try {
-    console.log('📡 API Call: getRestaurantDetails for', name);
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const maxRetries = 2;
+  let lastError: Error | null = null;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Provide a very brief summary, current opening hours, the top 3 popular dishes, and an estimated Price Rating (1-4, where 1 is cheap and 4 is expensive) for the restaurant "${name}". Format the response clearly with headings. PROMINENTLY STATE "Price Rating: X/4" on its own line.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
-    });
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s exponential backoff
+        console.log(`⏳ Retry attempt ${attempt}/${maxRetries} after ${delay}ms delay...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
 
-    console.log('✅ API Response received');
+      console.log(`📡 API Call: getRestaurantDetails for "${name}" (attempt ${attempt + 1}/${maxRetries + 1})`);
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    // Cast groundingChunks to compatible internal GroundingChunk[] type
-    return {
-      text: response.text || "No detailed information found.",
-      groundingChunks: (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [],
-    };
-  } catch (error) {
-    console.error('❌ API Error in getRestaurantDetails:', error);
-    throw error; // Re-throw to be caught by RestaurantModal
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Provide a very brief summary, current opening hours, the top 3 popular dishes, and an estimated Price Rating (1-4, where 1 is cheap and 4 is expensive) for the restaurant "${name}". Format the response clearly with headings. PROMINENTLY STATE "Price Rating: X/4" on its own line.`,
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
+      });
+
+      console.log('✅ API Response received');
+
+      // Validate response
+      if (!response || !response.text) {
+        throw new Error('Empty response received from API');
+      }
+
+      const groundingChunks = (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
+
+      console.log(`📊 Response stats: ${response.text.length} chars, ${groundingChunks.length} sources`);
+
+      // Cast groundingChunks to compatible internal GroundingChunk[] type
+      return {
+        text: response.text,
+        groundingChunks,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error occurred');
+      console.error(`❌ API Error (attempt ${attempt + 1}/${maxRetries + 1}):`, lastError.message);
+
+      // Don't retry on certain errors
+      if (lastError.message.includes('API key') || lastError.message.includes('quota')) {
+        console.error('🚫 Non-retryable error detected, failing immediately');
+        break;
+      }
+
+      // If this was the last attempt, throw the error
+      if (attempt === maxRetries) {
+        break;
+      }
+    }
   }
+
+  // If we get here, all retries failed
+  const errorMessage = lastError?.message || 'Failed to fetch restaurant details';
+  console.error('💥 All retry attempts exhausted:', errorMessage);
+  throw new Error(`Unable to load restaurant details: ${errorMessage}`);
 };
 
 // In-memory cache for expanded slot options
