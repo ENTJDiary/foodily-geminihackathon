@@ -214,3 +214,112 @@ export const removeFromWheel = (optionId: string) => {
   // Dispatch custom event to notify SpinTheWheel component
   window.dispatchEvent(new CustomEvent('wheelOptionsUpdated'));
 };
+
+// Activity Tracking - Dummy Data (to be replaced with backend API)
+export interface ExploredRestaurant {
+  id: string;
+  name: string;
+  cuisine: string;
+  timestamp: number;
+}
+
+export interface UserComment {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  rating: number;
+  comment: string;
+  timestamp: number;
+}
+
+export interface LikedPost {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  postId: string;
+  image?: string;
+  userName: string;
+  timestamp: number;
+}
+
+// Dummy data generators
+const DUMMY_EXPLORED_RESTAURANTS: ExploredRestaurant[] = [
+  { id: 'r1', name: 'Saiko Ramen Bar', cuisine: 'Japanese', timestamp: Date.now() - 86400000 },
+  { id: 'r2', name: 'La Bella Italia', cuisine: 'Italian', timestamp: Date.now() - 172800000 },
+  { id: 'r3', name: 'Spice Garden', cuisine: 'Indian', timestamp: Date.now() - 259200000 },
+  { id: 'r4', name: 'The Burger Joint', cuisine: 'American', timestamp: Date.now() - 345600000 },
+  { id: 'r5', name: 'Taco Fiesta', cuisine: 'Mexican', timestamp: Date.now() - 432000000 },
+];
+
+const DUMMY_USER_COMMENTS: UserComment[] = [
+  {
+    id: 'c1',
+    restaurantId: 'r1',
+    restaurantName: "Raising Cane's Chicken Fingers",
+    rating: 5,
+    comment: 'Real Nice Recommend!',
+    timestamp: Date.now() - 86400000
+  },
+  {
+    id: 'c2',
+    restaurantId: 'r2',
+    restaurantName: 'Noodle Doodle',
+    rating: 4,
+    comment: 'Great atmosphere and authentic flavors',
+    timestamp: Date.now() - 172800000
+  },
+  {
+    id: 'c3',
+    restaurantId: 'r3',
+    restaurantName: 'Spice Garden',
+    rating: 5,
+    comment: 'Best curry in town!',
+    timestamp: Date.now() - 259200000
+  },
+];
+
+const DUMMY_LIKED_POSTS: LikedPost[] = [
+  {
+    id: 'lp1',
+    restaurantId: 'r4',
+    restaurantName: 'Noodle Doodle',
+    postId: 'p1',
+    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400',
+    userName: 'Monsoon Seed',
+    timestamp: Date.now() - 86400000
+  },
+  {
+    id: 'lp2',
+    restaurantId: 'r5',
+    restaurantName: 'Taco Fiesta',
+    postId: 'p2',
+    image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400',
+    userName: 'Food Explorer',
+    timestamp: Date.now() - 172800000
+  },
+  {
+    id: 'lp3',
+    restaurantId: 'r1',
+    restaurantName: 'Saiko Ramen Bar',
+    postId: 'p3',
+    image: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400',
+    userName: 'Ramen Lover',
+    timestamp: Date.now() - 259200000
+  },
+];
+
+// Activity retrieval functions
+export const getExploredRestaurants = (): ExploredRestaurant[] => {
+  // TODO: Replace with actual API call
+  return DUMMY_EXPLORED_RESTAURANTS;
+};
+
+export const getUserComments = (): UserComment[] => {
+  // TODO: Replace with actual API call
+  return DUMMY_USER_COMMENTS;
+};
+
+export const getLikedPosts = (): LikedPost[] => {
+  // TODO: Replace with actual API call
+  return DUMMY_LIKED_POSTS;
+};
