@@ -323,3 +323,123 @@ export const getLikedPosts = (): LikedPost[] => {
   // TODO: Replace with actual API call
   return DUMMY_LIKED_POSTS;
 };
+
+// Saved Posts - Different from Liked Posts
+export interface SavedPost {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  postId: string;
+  dishName: string;
+  image: string;
+  userName: string;
+  rating: number;
+  experience?: string;
+  timestamp: number;
+}
+
+// Dummy saved posts data
+const DUMMY_SAVED_POSTS: SavedPost[] = [
+  {
+    id: 'sp1',
+    restaurantId: 'r1',
+    restaurantName: 'Crispy',
+    postId: 'post1',
+    dishName: 'Fried Chicken',
+    image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400',
+    userName: 'LOCAL EXPLORER',
+    rating: 5,
+    experience: 'damnnnnn nice',
+    timestamp: Date.now() - 86400000,
+  },
+  {
+    id: 'sp2',
+    restaurantId: 'r2',
+    restaurantName: 'Noodle Doodle',
+    postId: 'post2',
+    dishName: 'Nasi Lemak',
+    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400',
+    userName: 'Monsoon Seed',
+    rating: 4,
+    experience: 'Authentic Malaysian flavors',
+    timestamp: Date.now() - 172800000,
+  },
+  {
+    id: 'sp3',
+    restaurantId: 'r3',
+    restaurantName: 'Pasta Paradise',
+    postId: 'post3',
+    dishName: 'Carbonara',
+    image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400',
+    userName: 'Italian Foodie',
+    rating: 5,
+    experience: 'Best carbonara outside Italy!',
+    timestamp: Date.now() - 259200000,
+  },
+  {
+    id: 'sp4',
+    restaurantId: 'r4',
+    restaurantName: 'Sushi Master',
+    postId: 'post4',
+    dishName: 'Salmon Sashimi',
+    image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
+    userName: 'Sushi Lover',
+    rating: 5,
+    experience: 'Fresh and delicious',
+    timestamp: Date.now() - 345600000,
+  },
+  {
+    id: 'sp5',
+    restaurantId: 'r5',
+    restaurantName: 'Taco Fiesta',
+    postId: 'post5',
+    dishName: 'Beef Tacos',
+    image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400',
+    userName: 'Taco Tuesday',
+    rating: 4,
+    experience: 'Spicy and flavorful!',
+    timestamp: Date.now() - 432000000,
+  },
+  {
+    id: 'sp6',
+    restaurantId: 'r6',
+    restaurantName: 'Burger Haven',
+    postId: 'post6',
+    dishName: 'Double Cheeseburger',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+    userName: 'Burger King',
+    rating: 5,
+    experience: 'Juicy and satisfying',
+    timestamp: Date.now() - 518400000,
+  },
+];
+
+// State to track saved posts (in real app, this would be in backend)
+let savedPostsState = [...DUMMY_SAVED_POSTS];
+
+export const getSavedPosts = (): SavedPost[] => {
+  // TODO: Replace with actual API call
+  return savedPostsState;
+};
+
+export const toggleSavePost = (postId: string): SavedPost[] => {
+  // TODO: Replace with actual API call
+  const index = savedPostsState.findIndex(post => post.id === postId);
+
+  if (index !== -1) {
+    // Post is saved, remove it (unsave)
+    savedPostsState = savedPostsState.filter(post => post.id !== postId);
+  } else {
+    // Post is not saved, add it (this would come from the post data in real app)
+    // For now, we just handle removal since we start with dummy saved posts
+    console.warn('Adding new saved posts not implemented in dummy data mode');
+  }
+
+  return savedPostsState;
+};
+
+export const isPostSaved = (postId: string): boolean => {
+  // TODO: Replace with actual API call
+  return savedPostsState.some(post => post.id === postId);
+};
+
