@@ -106,3 +106,16 @@ export interface WheelOption {
   color: string;
   timestamp: number;
 }
+
+export interface PlaceDetails {
+  placeId: string;
+  name: string;
+  formattedAddress?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
+  phoneNumber?: string;
+  website?: string;
+  rating?: number;
+}

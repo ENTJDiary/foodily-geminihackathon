@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getRestaurantData, saveReview, getAverageRating, addMenuItem, toggleReviewLike } from '../../services/storageService';
 import { getRestaurantDetails } from '../../services/geminiService';
-import { Review, SearchResult, MenuItem } from '../../types';
+import { searchPlaceByName, getGoogleMapsUrl } from '../../services/placesService';
+import { Review, SearchResult, MenuItem, PlaceDetails } from '../../types';
 import PriceRating from './PriceRating';
 import GourmetBriefPage from '../restaurant/pages/GourmetBriefPage';
 import CommunityInsightsPage from '../restaurant/pages/CommunityInsightsPage';
@@ -21,6 +22,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
   const [details, setDetails] = useState<SearchResult | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null);
 
   // Modal states
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
@@ -53,6 +55,16 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     setMenuItems(data.menuItems);
     setAvgRating(getAverageRating(restaurantId));
     loadDetails();
+
+    // Fetch place details from Google Places API
+    searchPlaceByName(restaurantName).then(place => {
+      if (place) {
+        console.log('📍 Place details loaded:', place);
+        setPlaceDetails(place);
+      }
+    }).catch(error => {
+      console.error('Failed to fetch place details:', error);
+    });
   }, [restaurantId, restaurantName]);
 
   // Handlers for Community Insights
@@ -157,6 +169,11 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
 
   const priceRating = calculatePriceRating();
 
+  const handleExploreClick = () => {
+    const mapsUrl = getGoogleMapsUrl(restaurantName, placeDetails);
+    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-500 border border-orange-50">
@@ -181,11 +198,22 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
               </div>
             )}
           </div>
-          <button onClick={onClose} className="p-3 hover:bg-white/10 rounded-full transition-colors text-white">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExploreClick}
+              className="px-6 py-3 bg-white text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition-all shadow-md flex items-center gap-2 active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Explore
+            </button>
+            <button onClick={onClose} className="p-3 hover:bg-white/10 rounded-full transition-colors text-white">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Single Page Content - All Sections */}
