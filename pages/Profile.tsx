@@ -5,7 +5,7 @@ import ProfileSidebar from './profile/ProfileSidebar';
 import AccountDetails from './profile/AccountDetails';
 import ActivitySection from './profile/ActivitySection';
 import SavedSection from './profile/SavedSection';
-import ComingSoon from './profile/ComingSoon';
+import StatsSection from './profile/StatsSection';
 
 type TabType = 'account' | 'activity' | 'saved' | 'stats';
 
@@ -105,7 +105,7 @@ const Profile: React.FC = () => {
       case 'saved':
         return <SavedSection />;
       case 'stats':
-        return <ComingSoon title="Your Stats" />;
+        return <StatsSection />;
       default:
         return (
           <AccountDetails

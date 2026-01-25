@@ -443,3 +443,105 @@ export const isPostSaved = (postId: string): boolean => {
   return savedPostsState.some(post => post.id === postId);
 };
 
+// User Stats - Hexagon Visualization
+export interface UserStats {
+  healthLevel: number; // 0-100: healthiness of food
+  exp: number; // 0-100: new restaurants/food tried
+  coinsSpent: number; // 0-100: priciness level
+  satisfactory: number; // 0-100: based on user ratings
+  balance: number; // 0-100: nutrient balance
+  intensity: number; // 0-100: flavor intensity
+}
+
+export const getUserStats = (): UserStats => {
+  // TODO: Replace with actual calculation from user data
+  return {
+    healthLevel: 72,
+    exp: 85,
+    coinsSpent: 58,
+    satisfactory: 91,
+    balance: 68,
+    intensity: 79,
+  };
+};
+
+// User Rankings
+export interface UserRankings {
+  topCuisine: {
+    name: string;
+    count: number;
+    trend: 'up' | 'down' | 'stable';
+    trendValue: number; // percentage change
+  };
+  topRestaurant: {
+    name: string;
+    rating: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  eatingOutStats: {
+    timesEaten: number;
+    coinsSpent: number;
+    avgPerVisit: number;
+    trend: 'up' | 'down' | 'stable';
+    trendValue: number; // percentage change
+  };
+}
+
+export const getUserRankings = (): UserRankings => {
+  // TODO: Replace with actual calculation from user data
+  return {
+    topCuisine: {
+      name: 'Japanese',
+      count: 24,
+      trend: 'up',
+      trendValue: 15,
+    },
+    topRestaurant: {
+      name: 'Saiko Ramen Bar',
+      rating: 5,
+      trend: 'stable',
+    },
+    eatingOutStats: {
+      timesEaten: 47,
+      coinsSpent: 2840,
+      avgPerVisit: 60.4,
+      trend: 'up',
+      trendValue: 8,
+    },
+  };
+};
+
+// Nutrient Analysis
+export interface NutrientAnalysis {
+  protein: {
+    grams: number;
+    percentage: number; // 0-100 for visual bar
+  };
+  fat: {
+    grams: number;
+    percentage: number;
+  };
+  sugar: {
+    grams: number;
+    percentage: number;
+  };
+}
+
+export const getNutrientAnalysis = (): NutrientAnalysis => {
+  // TODO: Replace with actual calculation from user data
+  return {
+    protein: {
+      grams: 145,
+      percentage: 72,
+    },
+    fat: {
+      grams: 98,
+      percentage: 58,
+    },
+    sugar: {
+      grams: 62,
+      percentage: 41,
+    },
+  };
+};
+
