@@ -194,13 +194,24 @@ export const chatWithGemini = async (message: string) => {
   return result.text;
 };
 
-export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = []): Promise<SearchResult> => {
+export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = [], locationCoords?: Location): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const toolConfig = locationCoords ? {
+    retrievalConfig: {
+      latLng: {
+        latitude: locationCoords.latitude,
+        longitude: locationCoords.longitude
+      }
+    }
+  } : undefined;
 
   let detailedPrompt = `I am planning a dinner for "${occasion}" with "${people}". Specifically: "${request}".`;
 
   if (locationInput) {
     detailedPrompt += ` The preferred location is "${locationInput}".`;
+  } else if (locationCoords) {
+    detailedPrompt += ` Search near my current location.`;
   }
 
   if (budget) {
@@ -226,6 +237,7 @@ export const conciergeChat = async (occasion: string, people: string, request: s
     contents: prompt,
     config: {
       tools: [{ googleMaps: {} }, { googleSearch: {} }],
+      toolConfig,
       systemInstruction: `You are the Food.ily Dining Concierge. You specialize in planning high-end, high-impact dining experiences.
       Your tone is elegant but efficient. You prefer brevity and clarity over flowery language.
       When listing restaurants, use ONLY the format: * **Restaurant Name** - Description.

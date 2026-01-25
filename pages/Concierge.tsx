@@ -5,6 +5,7 @@ import { SearchResult } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import { getAverageRating } from '../services/storageService';
+import { getCurrentLocation } from '../services/locationService';
 
 const Concierge: React.FC = () => {
   const [occasion, setOccasion] = useState('');
@@ -24,6 +25,7 @@ const Concierge: React.FC = () => {
     request: string;
     location?: string;
     budget?: number;
+    locationCoords?: { latitude: number; longitude: number };
   } | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -38,15 +40,25 @@ const Concierge: React.FC = () => {
       const effectiveLocation = showAdvanced ? location : undefined;
       const effectiveBudget = showAdvanced ? budget : undefined;
 
+      // If no location text provided, try to get current location
+      let coords;
+      if (!effectiveLocation) {
+        const currentLoc = await getCurrentLocation();
+        if (currentLoc) {
+          coords = currentLoc;
+        }
+      }
+
       setCurrentSearch({
         occasion,
         people,
         request,
         location: effectiveLocation,
-        budget: effectiveBudget
+        budget: effectiveBudget,
+        locationCoords: coords
       });
 
-      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, []);
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords);
       setResult(response);
     } catch (error) {
       console.error(error);
@@ -67,7 +79,8 @@ const Concierge: React.FC = () => {
         currentSearch.request,
         currentSearch.location,
         currentSearch.budget,
-        pickedRestaurants
+        pickedRestaurants,
+        currentSearch.locationCoords
       );
 
       setResult(prev => prev ? {

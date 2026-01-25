@@ -65,7 +65,11 @@ const FoodHunter: React.FC = () => {
       } else if (locationName) {
         prompt = `List top-rated restaurants in ${locationName} with diverse cuisines.`;
       } else if (dish) {
-        prompt = `Find restaurants serving "${dish}" near my current location.`;
+        // Explicitly mention "near me" to leverage geolocation
+        prompt = `Find restaurants serving "${dish}" near me.`;
+      } else {
+        // Fallback if both are empty (though triggerSearch guard prevents this usually)
+        prompt = "Recommend top-rated restaurants near me.";
       }
 
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
@@ -102,7 +106,9 @@ const FoodHunter: React.FC = () => {
       } else if (locationName) {
         prompt = `List top-rated restaurants in ${locationName} with diverse cuisines.`;
       } else if (dish) {
-        prompt = `Find restaurants serving "${dish}" near my current location.`;
+        prompt = `Find restaurants serving "${dish}" near me.`;
+      } else {
+        prompt = "Recommend top-rated restaurants near me.";
       }
 
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
