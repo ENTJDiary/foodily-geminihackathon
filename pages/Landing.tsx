@@ -15,37 +15,97 @@ import conciergeIcon from '../components/landing/image/concierge-icon-minimal.pn
 const Landing: React.FC = () => {
   const navigate = useNavigate();
 
-  // Dummy user posts data (Expanded to 5 to match VivaChat layout)
+  // Dummy user posts data (15 posts for Community Favourites section)
   const userPosts = [
     {
-      imageUrl: 'https://images.unsplash.com/photo-1596040033229-a0b3b1e1c7e6?auto=format&fit=crop&w=800&q=80',
-      dishName: 'Best Gilerrr',
+      imageUrl: 'https://nanobanana.com/food/fried-chicken-1.jpg',
+      dishName: 'Crispy Fried Chicken',
       userName: 'Local Explorer',
-      likes: 12
+      likes: 127
     },
     {
-      imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80',
-      dishName: 'Kebab King',
-      userName: 'Meat Lover',
-      likes: 45
+      imageUrl: 'https://nanobanana.com/food/gourmet-burger-2.jpg',
+      dishName: 'Gourmet Burger',
+      userName: 'Burger Boss',
+      likes: 89
     },
     {
-      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80',
-      dishName: 'Margherita Heaven',
-      userName: 'Pizza Lover',
-      likes: 24
+      imageUrl: 'https://nanobanana.com/food/sushi-platter-3.jpg',
+      dishName: 'Sushi Platter',
+      userName: 'Sushi Master',
+      likes: 156
     },
     {
-      imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
-      dishName: 'Truffle Paradise',
-      userName: 'Foodie Explorer',
-      likes: 18
+      imageUrl: 'https://nanobanana.com/food/pasta-carbonara-4.jpg',
+      dishName: 'Pasta Carbonara',
+      userName: 'Pasta Lover',
+      likes: 94
     },
     {
-      imageUrl: 'https://images.unsplash.com/photo-1626082927389-d31c6d30a86c?auto=format&fit=crop&w=800&q=80',
-      dishName: 'Choco Bliss',
+      imageUrl: 'https://nanobanana.com/food/margherita-pizza-5.jpg',
+      dishName: 'Margherita Pizza',
+      userName: 'Pizza Fanatic',
+      likes: 203
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/lava-cake-6.jpg',
+      dishName: 'Chocolate Lava Cake',
       userName: 'Sweet Tooth',
-      likes: 32
+      likes: 178
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/grilled-salmon-7.jpg',
+      dishName: 'Grilled Salmon',
+      userName: 'Health Guru',
+      likes: 112
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/beef-tacos-8.jpg',
+      dishName: 'Beef Tacos',
+      userName: 'Taco Tuesday',
+      likes: 145
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/ramen-bowl-9.jpg',
+      dishName: 'Tonkotsu Ramen',
+      userName: 'Ramen King',
+      likes: 198
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/caesar-salad-10.jpg',
+      dishName: 'Caesar Salad',
+      userName: 'Salad Queen',
+      likes: 76
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/pad-thai-11.jpg',
+      dishName: 'Pad Thai',
+      userName: 'Thai Food Fan',
+      likes: 134
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/bbq-ribs-12.jpg',
+      dishName: 'BBQ Ribs',
+      userName: 'Grill Master',
+      likes: 167
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/tiramisu-13.jpg',
+      dishName: 'Tiramisu',
+      userName: 'Dessert Lover',
+      likes: 143
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/poke-bowl-14.jpg',
+      dishName: 'Poke Bowl',
+      userName: 'Bowl Enthusiast',
+      likes: 121
+    },
+    {
+      imageUrl: 'https://nanobanana.com/food/dim-sum-15.jpg',
+      dishName: 'Dim Sum Platter',
+      userName: 'Dumpling Fan',
+      likes: 189
     }
   ];
 
@@ -163,22 +223,104 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* ================= USER POSTS SECTION (3 Squares) ================= */}
-      <section className="w-full py-20 px-6 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mb-4">
-              Community Favorites
-            </h2>
-            <p className="text-xl text-slate-600 font-medium">
-              Discover what food lovers are sharing
-            </p>
-          </div>
+      {/* ================= COMMUNITY FAVOURITES SECTION (Three-Layer Glassmorphism) ================= */}
+      <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-slate-50 to-orange-100">
 
-          {/* User Posts Carousel */}
-          <UserPostCarousel posts={userPosts} />
+        {/* LOWER LAYER: 15 Background Cards (5x3 Grid) - Blurred */}
+        <div className="absolute inset-0 flex items-center justify-center p-8">
+          <div className="grid grid-cols-5 gap-6 max-w-[1400px] w-full opacity-30 blur-md">
+            {userPosts.map((post, index) => (
+              <div
+                key={`bg-${index}`}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
+                style={{
+                  transform: `rotate(${(index % 3 - 1) * 2}deg) translateY(${(index % 2) * 10}px)`
+                }}
+              >
+                <div className="aspect-square bg-gradient-to-br from-orange-100 to-slate-100">
+                  {/* Placeholder for background cards */}
+                </div>
+                <div className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-orange-200"></div>
+                    <div className="h-3 bg-slate-200 rounded flex-1"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* MID LAYER: Glassmorphism Frame */}
+        <div className="relative z-10 max-w-5xl w-full mx-auto px-6">
+          <div className="bg-slate-900/30 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/20">
+
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <h2 className="text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-lg">
+                Community Favourites
+              </h2>
+              <p className="text-xl text-white/90 font-medium drop-shadow">
+                Discover what food lovers are sharing
+              </p>
+            </div>
+
+            {/* UPPER LAYER: 3 Featured Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {userPosts.slice(0, 3).map((post, index) => (
+                <div
+                  key={`featured-${index}`}
+                  className="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white transform hover:scale-105 hover:rotate-1 transition-all duration-300 cursor-pointer"
+                >
+                  {/* Food Image */}
+                  <div className="aspect-square bg-gradient-to-br from-orange-100 to-slate-100 relative overflow-hidden">
+                    <img
+                      src={post.imageUrl}
+                      alt={post.dishName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback gradient if image fails to load
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    {/* Post Number Badge */}
+                    <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                      {index + 1}
+                    </div>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-slate-900 text-lg mb-2 truncate">
+                      {post.dishName}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
+                          {post.userName.charAt(0)}
+                        </div>
+                        <span className="text-sm text-slate-600 font-medium truncate">
+                          {post.userName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <svg className="w-5 h-5 fill-orange-500" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        <span className="text-sm font-semibold">{post.likes}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+
+        {/* Decorative gradient blobs */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-300/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
       </section>
 
       {/* ================= F1: FOOD HUNTER ================= */}
