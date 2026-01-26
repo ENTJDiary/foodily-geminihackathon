@@ -29,13 +29,13 @@ const FoodGatcha: React.FC = () => {
   const hasRestrictions = profile.dietaryRestrictions.length > 0;
 
   useEffect(() => {
-    if (results && resultsRef.current) {
+    if ((results || loadingResults) && resultsRef.current) {
       // Small timeout to ensure DOM is fully updated and layout is stable
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
-  }, [results]);
+  }, [results, loadingResults]);
 
   useEffect(() => {
     // Get location using the centralized service
@@ -129,7 +129,12 @@ const FoodGatcha: React.FC = () => {
         <FoodWheel onSelectFood={handleWheelSelection} />
       </div>
 
-      {loadingResults && <LoadingRecommendations />}
+
+      {loadingResults && (
+        <div ref={resultsRef}>
+          <LoadingRecommendations />
+        </div>
+      )}
 
       {results && (
         <div ref={resultsRef} className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">

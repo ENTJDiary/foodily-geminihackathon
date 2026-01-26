@@ -6,6 +6,7 @@ import RestaurantModal from '../components/common/RestaurantModal';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import { getAverageRating } from '../services/storageService';
 import { getCurrentLocation } from '../services/locationService';
+import LoadingRecommendations from '../components/common/LoadingRecommendations';
 
 const Concierge: React.FC = () => {
   const [occasion, setOccasion] = useState('');
@@ -95,10 +96,10 @@ const Concierge: React.FC = () => {
   };
 
   useEffect(() => {
-    if (result && resultRef.current) {
+    if ((result || loading) && resultRef.current) {
       resultRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [result]);
+  }, [result, loading]);
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 max-w-4xl mx-auto">
@@ -251,6 +252,12 @@ const Concierge: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {loading && (
+        <div ref={resultRef}>
+          <LoadingRecommendations />
+        </div>
+      )}
 
       {result && (
         <div ref={resultRef} className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
