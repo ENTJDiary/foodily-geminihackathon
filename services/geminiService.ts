@@ -22,6 +22,11 @@ export const searchRestaurantsByMaps = async (
 
   // Enhance prompt with dietary restrictions if provided
   let enhancedQuery = query;
+
+  if (location) {
+    enhancedQuery += ` Search strictly near location coordinates: ${location.latitude}, ${location.longitude}.`;
+  }
+
   if (dietaryRestrictions.length > 0) {
     enhancedQuery += ` Ensure results strictly follow these dietary restrictions: ${dietaryRestrictions.join(', ')}.`;
   }
@@ -211,7 +216,7 @@ export const conciergeChat = async (occasion: string, people: string, request: s
   if (locationInput) {
     detailedPrompt += ` The preferred location is "${locationInput}".`;
   } else if (locationCoords) {
-    detailedPrompt += ` Search near my current location.`;
+    detailedPrompt += ` Search strictly near location coordinates: ${locationCoords.latitude}, ${locationCoords.longitude}.`;
   }
 
   if (budget) {

@@ -545,3 +545,53 @@ export const getNutrientAnalysis = (): NutrientAnalysis => {
   };
 };
 
+// Saved Restaurants - For bookmarking restaurants
+export interface SavedRestaurant {
+  id: string;
+  name: string;
+  rating: number;
+  priceRating: number;
+  cuisine?: string;
+  image?: string;
+  timestamp: number;
+}
+
+const SAVED_RESTAURANTS_KEY = "foodily_saved_restaurants";
+
+export const getSavedRestaurants = (): SavedRestaurant[] => {
+  const saved = localStorage.getItem(SAVED_RESTAURANTS_KEY);
+  if (!saved) return [];
+  try {
+    return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load saved restaurants', e);
+    return [];
+  }
+};
+
+export const toggleSaveRestaurant = (restaurant: Omit<SavedRestaurant, 'timestamp'>): SavedRestaurant[] => {
+  const savedRestaurants = getSavedRestaurants();
+  const index = savedRestaurants.findIndex(r => r.id === restaurant.id);
+
+  if (index !== -1) {
+    // Restaurant is saved, remove it (unsave)
+    savedRestaurants.splice(index, 1);
+  } else {
+    // Restaurant is not saved, add it
+    const newSavedRestaurant: SavedRestaurant = {
+      ...restaurant,
+      timestamp: Date.now(),
+    };
+    savedRestaurants.unshift(newSavedRestaurant);
+  }
+
+  localStorage.setItem(SAVED_RESTAURANTS_KEY, JSON.stringify(savedRestaurants));
+  return savedRestaurants;
+};
+
+export const isRestaurantSaved = (restaurantId: string): boolean => {
+  const savedRestaurants = getSavedRestaurants();
+  return savedRestaurants.some(r => r.id === restaurantId);
+};
+
+

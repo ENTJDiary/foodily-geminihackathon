@@ -75,7 +75,7 @@ const FoodHunter: React.FC = () => {
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(
         prompt,
-        currentCoords || undefined,
+        locationName ? undefined : (currentCoords || undefined),
         restrictions,
         [] // Initial search has no exclusions
       );
@@ -114,7 +114,7 @@ const FoodHunter: React.FC = () => {
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(
         prompt,
-        currentCoords || undefined,
+        locationName ? undefined : (currentCoords || undefined),
         restrictions,
         pickedRestaurants
       );
