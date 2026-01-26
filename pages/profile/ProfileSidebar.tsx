@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clearSearchHistory } from '../../services/storageService';
 
 type TabType = 'account' | 'activity' | 'saved' | 'stats';
 
+
 interface ProfileSidebarProps {
     activeTab: TabType;
     setActiveTab: (tab: TabType) => void;
+    onTabChange?: (tab: TabType, buttonRect: DOMRect) => void;
 }
 
-const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab }) => {
+const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab, onTabChange }) => {
     const navigate = useNavigate();
+    const buttonRefs = useRef<{ [key in TabType]?: HTMLButtonElement }>({});
 
     const sidebarItems: { id: TabType; label: string; description: string; icon: React.ReactNode }[] = [
         {
@@ -88,7 +91,17 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab
                     {sidebarItems.map(item => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveTab(item.id)}
+                            ref={(el) => {
+                                if (el) buttonRefs.current[item.id] = el;
+                            }}
+                            onClick={() => {
+                                const buttonEl = buttonRefs.current[item.id];
+                                if (buttonEl && onTabChange) {
+                                    const rect = buttonEl.getBoundingClientRect();
+                                    onTabChange(item.id, rect);
+                                }
+                                setActiveTab(item.id);
+                            }}
                             className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${activeTab === item.id
                                 ? 'bg-orange-50 text-orange-600 border border-orange-200'
                                 : 'text-slate-500 hover:bg-slate-50 border border-transparent'

@@ -13,6 +13,8 @@ const Profile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile>(getUserProfile());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [activeTab, setActiveTab] = useState<TabType>('account');
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationOrigin, setAnimationOrigin] = useState({ x: 0, y: 0 });
 
   // Username editing state
   const [isEditingName, setIsEditingName] = useState(false);
@@ -73,6 +75,20 @@ const Profile: React.FC = () => {
       ? profile.dietaryRestrictions.filter(d => d !== diet)
       : [...profile.dietaryRestrictions, diet];
     handleUpdate({ dietaryRestrictions: newDietary });
+  };
+
+  const handleTabChange = (tab: TabType, buttonRect: DOMRect) => {
+    // Calculate the center of the button as animation origin
+    const originX = buttonRect.left + buttonRect.width / 2;
+    const originY = buttonRect.top + buttonRect.height / 2;
+
+    setAnimationOrigin({ x: originX, y: originY });
+    setIsAnimating(true);
+
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 650);
   };
 
   const renderContent = () => {
@@ -137,11 +153,23 @@ const Profile: React.FC = () => {
       <div className="bg-white w-full max-w-[2560px] px-6 py-6 space-y-6 animate-in fade-in duration-500">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
-          <ProfileSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <ProfileSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onTabChange={handleTabChange}
+          />
 
           {/* Main Content */}
           <div className="flex-1">
-            {renderContent()}
+            <div
+              key={activeTab}
+              className={isAnimating ? 'animate-macos-spring-out' : ''}
+              style={{
+                transformOrigin: `${animationOrigin.x}px ${animationOrigin.y}px`,
+              }}
+            >
+              {renderContent()}
+            </div>
           </div>
 
           {/* Save Status Notification */}
