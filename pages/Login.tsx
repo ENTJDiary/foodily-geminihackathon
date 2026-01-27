@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../src/contexts/AuthContext';
 import Footer from '../components/layout/Footer';
+import { requestLocationPermission } from '../services/locationService';
+
 
 const Login: React.FC = () => {
     const navigate = useNavigate();

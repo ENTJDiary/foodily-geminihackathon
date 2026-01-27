@@ -83,13 +83,27 @@ const PriceRating: React.FC<PriceRatingProps> = ({ rating }) => {
         }
     };
 
+    const [hoveredTier, setHoveredTier] = React.useState<number | null>(null);
+
     return (
-        <div className="flex items-center gap-2" title={`Price Range: ${getPriceRangeLabel(displayRating)}`}>
+        <div className="flex items-center gap-2 cursor-help">
             {/* Show all 4 bills with spacing */}
             <div className="flex items-center gap-1">
                 {[1, 2, 3, 4].map((tier) => (
-                    <div key={tier} className="relative transition-transform duration-300 hover:scale-105">
+                    <div
+                        key={tier}
+                        className="relative transition-transform duration-300 hover:scale-105"
+                        onMouseEnter={() => setHoveredTier(tier)}
+                        onMouseLeave={() => setHoveredTier(null)}
+                    >
                         <MoneyBill isActive={tier <= displayRating} />
+
+                        {/* Individual Tooltip for each tier */}
+                        <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg whitespace-nowrap shadow-xl transition-all duration-200 z-50 pointer-events-none ${hoveredTier === tier ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+                            }`}>
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
+                            <span className="relative z-10">{getPriceRangeLabel(tier)}</span>
+                        </div>
                     </div>
                 ))}
             </div>

@@ -30,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleLogout = () => {
     if (confirm("Are you sure you want to log out?")) {
       localStorage.clear();
-      window.location.reload();
+      navigate('/');
     }
   };
 

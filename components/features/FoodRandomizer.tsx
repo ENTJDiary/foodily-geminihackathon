@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { expandSlotOptions } from '../../services/geminiService';
-import { getUserProfile } from '../../services/storageService';
+import { getUserProfile, addToWheel } from '../../services/storageService';
 
 interface FoodCombination {
   id: string;
@@ -61,6 +61,11 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCuisine, setNewCuisine] = useState('');
   const [newFood, setNewFood] = useState('');
+
+  // Add to Wheel feedback
+  const [addedCuisineFeedback, setAddedCuisineFeedback] = useState(false);
+  const [addedFoodFeedback, setAddedFoodFeedback] = useState(false);
+  const [hasSpun, setHasSpun] = useState(false);
 
   const uniqueCuisines = useMemo(() => Array.from(new Set(combinations.map(c => c.cuisine))).sort(), [combinations]);
   const uniqueFoods = useMemo(() => Array.from(new Set(combinations.map(c => c.food))).sort(), [combinations]);
@@ -177,6 +182,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
   const handleRoll = () => {
     if (!lockedCuisine) setIsRollingCuisine(true);
     if (!lockedFood) setIsRollingFood(true);
+    setHasSpun(true);
 
     setTimeout(() => {
       if (!lockedCuisine) setIsRollingCuisine(false);
@@ -186,6 +192,22 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
 
   const handleFinalize = () => {
     onSelection(cuisine, foodType, lockedCuisine, lockedFood);
+  };
+
+  const handleAddCuisineToWheel = () => {
+    const success = addToWheel(cuisine);
+    if (success) {
+      setAddedCuisineFeedback(true);
+      setTimeout(() => setAddedCuisineFeedback(false), 2000);
+    }
+  };
+
+  const handleAddFoodToWheel = () => {
+    const success = addToWheel(foodType);
+    if (success) {
+      setAddedFoodFeedback(true);
+      setTimeout(() => setAddedFoodFeedback(false), 2000);
+    }
   };
 
   const handleAddCustom = (e: React.FormEvent) => {
@@ -268,12 +290,31 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
             )}
             {lockedCuisine && <div className="absolute top-3 right-3"><div className="w-2 h-2 bg-orange-500 rounded-full"></div></div>}
           </div>
-          <button
-            onClick={handleToggleCuisine}
-            className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lockedCuisine ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-orange-50 hover:text-orange-600'}`}
-          >
-            {lockedCuisine ? 'Unlock' : 'Lock'}
-          </button>
+          <div className={`flex gap-3 ${hasSpun ? '' : 'justify-center'}`}>
+            <button
+              onClick={handleToggleCuisine}
+              className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${hasSpun ? 'flex-1' : 'w-full'} ${lockedCuisine ? 'bg-red-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600'}`}
+            >
+              {lockedCuisine ? 'Unlock' : 'Lock'}
+            </button>
+            {hasSpun && (
+              <button
+                onClick={handleAddCuisineToWheel}
+                className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-blue-500 text-white hover:bg-blue-600 shadow-md relative overflow-hidden animate-in fade-in slide-in-from-right-2 duration-300"
+              >
+                {addedCuisineFeedback ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Added!
+                  </span>
+                ) : (
+                  'Add'
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Food Type Bracket */}
@@ -290,12 +331,31 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
             )}
             {lockedFood && <div className="absolute top-3 right-3"><div className="w-2 h-2 bg-orange-500 rounded-full"></div></div>}
           </div>
-          <button
-            onClick={handleToggleFood}
-            className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${lockedFood ? 'bg-orange-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-orange-50 hover:text-orange-600'}`}
-          >
-            {lockedFood ? 'Unlock' : 'Lock'}
-          </button>
+          <div className={`flex gap-3 ${hasSpun ? '' : 'justify-center'}`}>
+            <button
+              onClick={handleToggleFood}
+              className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${hasSpun ? 'flex-1' : 'w-full'} ${lockedFood ? 'bg-red-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600'}`}
+            >
+              {lockedFood ? 'Unlock' : 'Lock'}
+            </button>
+            {hasSpun && (
+              <button
+                onClick={handleAddFoodToWheel}
+                className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-blue-500 text-white hover:bg-blue-600 shadow-md relative overflow-hidden animate-in fade-in slide-in-from-right-2 duration-300"
+              >
+                {addedFoodFeedback ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Added!
+                  </span>
+                ) : (
+                  'Add'
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -305,8 +365,10 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
           disabled={isRollingCuisine || isRollingFood || (lockedCuisine && lockedFood)}
           className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-black py-5 rounded-2xl transition-all shadow-md disabled:opacity-20 flex items-center justify-center gap-3 uppercase text-xs tracking-widest"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-          Spin Wheel
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Gachapon
         </button>
 
         {(lockedCuisine || lockedFood) && (

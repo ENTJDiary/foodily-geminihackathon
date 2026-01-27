@@ -34,12 +34,15 @@ export interface Review {
   comment: string;
   userName: string;
   timestamp: number;
+  likes?: number;
+  isLiked?: boolean;
 }
 
 export interface DishDetail {
   name: string;
   price?: string;
   description: string;
+  rating?: number;
 }
 
 export interface MenuItem {
@@ -58,6 +61,11 @@ export interface MenuItem {
 
   userName: string;
   timestamp: number;
+
+  likes?: number;
+  isLiked?: boolean;
+  rating?: number;
+  experience?: string;
 }
 
 export interface RestaurantData {
@@ -90,4 +98,24 @@ export interface UserProfile {
   favoriteCuisines: string[];
   dietaryRestrictions: string[];
   darkMode: boolean;
+}
+
+export interface WheelOption {
+  id: string;
+  name: string;
+  color: string;
+  timestamp: number;
+}
+
+export interface PlaceDetails {
+  placeId: string;
+  name: string;
+  formattedAddress?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
+  phoneNumber?: string;
+  website?: string;
+  rating?: number;
 }

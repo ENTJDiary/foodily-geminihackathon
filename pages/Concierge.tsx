@@ -3,14 +3,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { conciergeChat } from '../services/geminiService';
 import { SearchResult } from '../types';
 import RestaurantModal from '../components/common/RestaurantModal';
+import ExpertPicksSection from '../components/common/ExpertPicksSection';
+import { getAverageRating } from '../services/storageService';
+import { getCurrentLocation } from '../services/locationService';
+import LoadingRecommendations from '../components/common/LoadingRecommendations';
 
 const Concierge: React.FC = () => {
   const [occasion, setOccasion] = useState('');
   const [people, setPeople] = useState('');
   const [request, setRequest] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [location, setLocation] = useState('');
+  const [budget, setBudget] = useState(50);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
+  const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentSearch, setCurrentSearch] = useState<{
+    occasion: string;
+    people: string;
+    request: string;
+    location?: string;
+    budget?: number;
+    locationCoords?: { latitude: number; longitude: number };
+  } | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,7 +37,29 @@ const Concierge: React.FC = () => {
     setLoading(true);
     setResult(null);
     try {
-      const response = await conciergeChat(occasion, people, request);
+      // Only pass location and budget if the advanced section is open
+      const effectiveLocation = showAdvanced ? location : undefined;
+      const effectiveBudget = showAdvanced ? budget : undefined;
+
+      // If no location text provided, try to get current location
+      let coords;
+      if (!effectiveLocation) {
+        const currentLoc = await getCurrentLocation();
+        if (currentLoc) {
+          coords = currentLoc;
+        }
+      }
+
+      setCurrentSearch({
+        occasion,
+        people,
+        request,
+        location: effectiveLocation,
+        budget: effectiveBudget,
+        locationCoords: coords
+      });
+
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords);
       setResult(response);
     } catch (error) {
       console.error(error);
@@ -30,11 +69,37 @@ const Concierge: React.FC = () => {
     }
   };
 
+  const handleLoadMore = async () => {
+    if (!result || !currentSearch) return;
+
+    setLoadingMore(true);
+    try {
+      const response = await conciergeChat(
+        currentSearch.occasion,
+        currentSearch.people,
+        currentSearch.request,
+        currentSearch.location,
+        currentSearch.budget,
+        pickedRestaurants,
+        currentSearch.locationCoords
+      );
+
+      setResult(prev => prev ? {
+        text: prev.text + '\n' + response.text,
+        groundingChunks: [...prev.groundingChunks, ...response.groundingChunks]
+      } : response);
+    } catch (error) {
+      console.error("Failed to load more:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   useEffect(() => {
-    if (result && resultRef.current) {
+    if ((result || loading) && resultRef.current) {
       resultRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [result]);
+  }, [result, loading]);
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 max-w-4xl mx-auto">
@@ -68,6 +133,97 @@ const Concierge: React.FC = () => {
             </div>
           </div>
 
+          {/* Advanced Options Toggle */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-[11px] font-black text-orange-600 uppercase tracking-[0.2em] ml-1 hover:text-orange-700 transition-colors"
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+              Advanced
+            </button>
+          </div>
+
+          {/* Advanced Options - Expandable */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${showAdvanced ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+              {/* Location Input */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Downtown Manhattan"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-semibold outline-none"
+                />
+              </div>
+
+              {/* Budget Slider */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Budget per Person</label>
+                <div className="space-y-6">
+                  <div className="relative pt-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={budget}
+                      onChange={(e) => setBudget(parseInt(e.target.value))}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer relative z-10"
+                      style={{
+                        background: `linear-gradient(to right, #ea580c 0%, #ea580c ${(budget / 100) * 100}%, #e2e8f0 ${(budget / 100) * 100}%, #e2e8f0 100%)`
+                      }}
+                    />
+
+                    {/* Visual Ticks */}
+                    <div className="absolute top-2 left-0 w-full h-2 pointer-events-none z-0">
+                      <div className="absolute left-[0%] w-0.5 h-3 -top-0.5 bg-slate-300"></div>
+                      <div className="absolute left-[50%] w-0.5 h-3 -top-0.5 bg-slate-300"></div>
+                      <div className="absolute left-[100%] w-0.5 h-3 -top-0.5 bg-slate-300" style={{ transform: 'translateX(-100%)' }}></div>
+                    </div>
+
+                    <div className="flex justify-between text-xs font-bold text-slate-400 mt-2 relative">
+                      <span className="absolute left-0 -translate-x-1/4">$0</span>
+                      <span className="absolute left-[50%] -translate-x-1/2">$50</span>
+                      <span className="absolute right-0">Premium ($100+)</span>
+                    </div>
+                  </div>
+
+                  {/* Editable Budget Input */}
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={budget}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val)) setBudget(val);
+                        }}
+                        className="w-32 py-2 pl-8 pr-4 bg-orange-50 text-orange-700 font-black rounded-lg text-center outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-orange-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-3">
             <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Your Vision</label>
             <textarea
@@ -97,47 +253,25 @@ const Concierge: React.FC = () => {
         </form>
       </div>
 
+      {loading && (
+        <div ref={resultRef}>
+          <LoadingRecommendations />
+        </div>
+      )}
+
       {result && (
         <div ref={resultRef} className="space-y-8 animate-in slide-in-from-bottom-6 duration-700">
-          <div className="bg-white text-slate-900 p-12 rounded-[3rem] shadow-xl border-4 border-orange-600 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-orange-900">
-              <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.827c.073-.441.344-.794.677-.794.404 0 .73.512.73 1.144 0 .633-.326 1.145-.73 1.145-.333 0-.604-.353-.677-.794-.037.228-.11.433-.202.595-.19.336-.45.541-.75.541-.3 0-.56-.205-.75-.541-.092-.162-.165-.367-.202-.595-.073.441-.344.794-.677.794-.404 0-.73-.512-.73-1.145 0-.632.326-1.144.73-1.144.333 0 .604.353.677.794.037-.228.11-.433.202-.595.19-.336.45-.541.75-.541.3 0 .56.205.75.541.092.162.165.367.202.595zM4.394 5.827c.073-.441.344-.794.677-.794.404 0 .73.512.73 1.144 0 .633-.326 1.145-.73 1.145-.333 0-.604-.353-.677-.794-.037.228-.11.433-.202.595-.19.336-.45.541-.75.541-.3 0-.56-.205-.75-.541-.092-.162-.165-.367-.202-.595-.073.441-.344.794-.677.794-.404 0-.73-.512-.73-1.145 0-.632.326-1.144.73-1.144.333 0 .604.353.677.794.037-.228.11-.433.202-.595.19-.336.45-.541.75-.541.3 0 .56.205.75.541.092.162.165.367.202.595z" /></svg>
-            </div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-600 mb-8 flex items-center gap-3">
-              <span className="w-12 h-px bg-orange-600/30"></span>
-              Concierge Recommendations
-            </h3>
-            <div className="whitespace-pre-wrap font-medium text-lg leading-relaxed text-slate-800 mb-10">
-              {result.text}
-            </div>
-
-            {result.groundingChunks.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {result.groundingChunks.map((chunk, i) => {
-                  if (!chunk.maps) return null;
-                  // Handle optional fields from API metadata to ensure local state and props receive strings
-                  const restaurantName = chunk.maps.title || 'Unknown Restaurant';
-                  return (
-                    <div key={i} className="bg-orange-50/50 border border-orange-100 p-6 rounded-2xl flex justify-between items-center group/item hover:bg-orange-50 transition-all">
-                      <div className="space-y-1">
-                        <h4 className="font-bold text-slate-900 text-sm">{restaurantName}</h4>
-                        <button
-                          onClick={() => setSelectedRestaurant({ id: restaurantName, name: restaurantName })}
-                          className="text-[9px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-800 transition-colors"
-                        >
-                          Explore Local Ledger
-                        </button>
-                      </div>
-                      {/* Handle optional uri from API metadata */}
-                      <a href={chunk.maps.uri || '#'} target="_blank" className="text-orange-300 group-hover/item:text-orange-600 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </a>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <ExpertPicksSection
+            text={result.text}
+            maxInitialPicks={5}
+            onRestaurantClick={(name) => setSelectedRestaurant({
+              id: name,
+              name: name
+            })}
+            onPicksExtracted={setPickedRestaurants}
+            onLoadMore={handleLoadMore}
+            isLoadingMore={loadingMore}
+          />
         </div>
       )}
 
