@@ -23,6 +23,25 @@ service cloud.firestore {
       }
     }
     
+    // User preferences (users can only read/write their own preferences)
+    match /userPreferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Onboarding data (users can only read/write their own onboarding data)
+    match /onboardingData/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId
+                   && request.resource.data.userId == userId
+                   && request.resource.data.city is string
+                   && request.resource.data.dateOfBirth is string
+                   && request.resource.data.sex in ['Male', 'Female', 'Prefer not to say']
+                   && request.resource.data.cuisinePreferences is list
+                   && request.resource.data.dietaryRestrictions is list
+                   && request.resource.data.termsAccepted == true;
+    }
+    
     // Public restaurant data (read-only for all users)
     match /restaurants/{restaurantId} {
       allow read: if true;

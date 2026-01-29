@@ -11,6 +11,7 @@ import Landing from './pages/Landing';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import InitializingUser from './pages/InitializingUser';
+import Onboarding from './pages/Onboarding';
 
 const App: React.FC = () => {
   return (
@@ -26,6 +27,13 @@ const App: React.FC = () => {
           <Route path="/initializing" element={
             <ProtectedRoute>
               <InitializingUser />
+            </ProtectedRoute>
+          } />
+
+          {/* Onboarding Route */}
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <Onboarding />
             </ProtectedRoute>
           } />
 

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { clearSearchHistory } from '../../services/storageService';
 
 type TabType = 'account' | 'activity' | 'saved' | 'stats';
@@ -13,6 +13,7 @@ interface ProfileSidebarProps {
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab, onTabChange }) => {
     const navigate = useNavigate();
+    const { userid } = useParams<{ userid: string }>();
     const buttonRefs = useRef<{ [key in TabType]?: HTMLButtonElement }>({});
 
     const sidebarItems: { id: TabType; label: string; description: string; icon: React.ReactNode }[] = [
@@ -66,7 +67,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab
                 {/* Back to Home */}
                 <div className="flex pl-5 pt-4">
                     <Link
-                        to="/FoodHunter"
+                        to={`/FoodHunter/${userid}`}
                         className="inline-flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-wider"
                     >
                         <svg

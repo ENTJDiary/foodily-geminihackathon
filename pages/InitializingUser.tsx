@@ -1,20 +1,43 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../src/contexts/AuthContext';
+import { hasCompletedOnboarding } from '../services/onboardingService';
 
 const InitializingUser: React.FC = () => {
     const navigate = useNavigate();
     const { currentUser, userProfile, loading, error, signOut } = useAuth();
+    const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
     useEffect(() => {
-        // Once user profile is loaded, redirect to FoodHunter
-        if (!loading && currentUser && userProfile) {
-            navigate(`/FoodHunter/${currentUser.uid}`);
-        }
+        const checkAndRedirect = async () => {
+            // Wait for auth to finish loading
+            if (loading) return;
+
+            // If no user or profile, don't proceed
+            if (!currentUser || !userProfile) {
+                setCheckingOnboarding(false);
+                return;
+            }
+
+            // Check if user has completed onboarding
+            const completed = await hasCompletedOnboarding(currentUser.uid);
+
+            if (completed) {
+                // Existing user - go to FoodHunter
+                navigate(`/FoodHunter/${currentUser.uid}`);
+            } else {
+                // New user - go to onboarding
+                navigate('/onboarding');
+            }
+
+            setCheckingOnboarding(false);
+        };
+
+        checkAndRedirect();
     }, [loading, currentUser, userProfile, navigate]);
 
     // Handle stuck state or error
-    if (!loading && (!currentUser || !userProfile)) {
+    if (!loading && !checkingOnboarding && (!currentUser || !userProfile)) {
         return (
             <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
