@@ -12,7 +12,7 @@ import {
     onSnapshot,
     Unsubscribe
 } from 'firebase/firestore';
-import { db } from '../src/firebase/config';
+import { db } from '@/src/firebase/config';
 
 const SAVED_RESTAURANTS_COLLECTION = 'savedRestaurants';
 
@@ -69,15 +69,15 @@ export const saveRestaurant = async (
             userId,
             restaurantId: restaurantData.restaurantId,
             restaurantName: restaurantData.restaurantName,
-            restaurantPhoto: restaurantData.restaurantPhoto || null,
+            restaurantPhoto: restaurantData.restaurantPhoto || undefined,
             cuisineTypes: restaurantData.cuisineTypes || [],
             notes: restaurantData.notes || '',
             tags: restaurantData.tags || [],
             savedAt: serverTimestamp(),
-            lastVisited: null,
+            lastVisited: undefined,
             visitCount: 0,
-            rating: restaurantData.rating || null,
-            priceRating: restaurantData.priceRating || null,
+            rating: restaurantData.rating || undefined,
+            priceRating: restaurantData.priceRating || undefined,
         };
 
         const docRef = await addDoc(savedRestaurantsRef, newSavedRestaurant);

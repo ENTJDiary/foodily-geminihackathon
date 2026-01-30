@@ -14,7 +14,7 @@ import {
     onSnapshot,
     Unsubscribe
 } from 'firebase/firestore';
-import { db } from '../src/firebase/config';
+import { db } from '@/src/firebase/config';
 
 const REVIEWS_COLLECTION = 'reviews';
 

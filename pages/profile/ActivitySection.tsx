@@ -87,9 +87,9 @@ const ActivitySection: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {clickedRestaurants.map((restaurant) => (
+                        {clickedRestaurants.map((restaurant, idx) => (
                             <div
-                                key={restaurant.id}
+                                key={`${restaurant.id}-${idx}`}
                                 className="group relative bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-5 hover:border-orange-300 hover:shadow-lg transition-all cursor-pointer"
                             >
                                 {restaurant.photo && (
@@ -139,9 +139,9 @@ const ActivitySection: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {userComments.map((comment) => (
+                        {userComments.map((comment, idx) => (
                             <div
-                                key={comment.id}
+                                key={`${comment.reviewId || comment.id}-${idx}`}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl p-5 hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer overflow-hidden"
                             >
                                 <div className="space-y-3">
@@ -185,9 +185,9 @@ const ActivitySection: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {likedPosts.map((post) => (
+                        {likedPosts.map((post, idx) => (
                             <div
-                                key={post.id}
+                                key={`${post.postId || post.id}-${idx}`}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer"
                             >
                                 {/* Image */}

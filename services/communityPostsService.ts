@@ -14,7 +14,7 @@ import {
     onSnapshot,
     Unsubscribe
 } from 'firebase/firestore';
-import { db } from '../src/firebase/config';
+import { db } from '@/src/firebase/config';
 import { MenuItem, DishDetail } from '../types';
 
 const COMMUNITY_POSTS_COLLECTION = 'communityPosts';
