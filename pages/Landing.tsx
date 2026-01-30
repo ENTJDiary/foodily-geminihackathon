@@ -227,20 +227,11 @@ const Landing: React.FC = () => {
           <div className="absolute inset-0 overflow-hidden">
             <div
                 className="grid grid-cols-5 gap-6 p-12 max-w-[1600px] mx-auto"
-                style={{
-                  maskImage:
-                      'radial-gradient(circle at center, black 40%, transparent 75%)',
-                  WebkitMaskImage:
-                      'radial-gradient(circle at center, black 40%, transparent 75%)',
-                }}
             >
               {userPosts.slice(0, 15).map((post, index) => (
                   <div
                       key={`mask-${index}`}
                       className="aspect-square rounded-2xl overflow-hidden shadow-lg transform"
-                      style={{
-                        transform: `rotate(${(index % 3 - 1) * 3}deg) translateY(${(index % 2) * 12}px)`
-                      }}
                   >
                     <img
                         src={post.imageUrl}
@@ -253,65 +244,66 @@ const Landing: React.FC = () => {
           </div>
 
           {/* MID LAYER: Glassmorphism Frame */}
-          <div className="relative z-10 max-w-5xl w-full mx-auto px-6">
-            <div className="bg-slate-900/30 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/20">
+          <div className="relative z-10 max-w-8xl w-full mx-auto px-6">
+            <div className="bg-slate-900/30 backdrop-blur-[6px] rounded-3xl p-12 shadow-2xl border border-white/20">
+              <div className="max-w-6xl mx-auto">
 
-              {/* Section Header */}
-              <div className="text-center mb-16">
-                <h2 className="text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-lg">
-                  Community Favourites
-                </h2>
-                <p className="text-xl text-white/90 font-medium drop-shadow">
-                  Discover what food lovers are sharing
-                </p>
-              </div>
+                {/* Section Header */}
+                <div className="text-center mb-16">
+                  <h2 className="text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-lg">
+                    Community Favourites
+                  </h2>
+                  <p className="text-xl text-white/90 font-medium drop-shadow">
+                    Discover what food lovers are sharing
+                  </p>
+                </div>
 
-              {/* UPPER LAYER: 3 Featured Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {userPosts.slice(0, 3).map((post, index) => (
-                    <div
-                        key={`featured-${index}`}
-                        className="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white transform hover:scale-105 hover:rotate-1 transition-all duration-300 cursor-pointer"
-                    >
-                      {/* Food Image */}
-                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-slate-100 relative overflow-hidden">
-                        <img
-                            src={post.imageUrl}
-                            alt={post.dishName}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // Fallback gradient if image fails to load
-                              e.currentTarget.style.display = 'none';
-                            }}
-                        />
-                      </div>
+                {/* UPPER LAYER: 3 Featured Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {userPosts.slice(0, 3).map((post, index) => (
+                      <div
+                          key={`featured-${index}`}
+                          className="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white transform hover:scale-105 hover:rotate-1 transition-all duration-300 cursor-pointer"
+                      >
+                        {/* Food Image */}
+                        <div className="aspect-square bg-gradient-to-br from-orange-100 to-slate-100 relative overflow-hidden">
+                          <img
+                              src={post.imageUrl}
+                              alt={post.dishName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback gradient if image fails to load
+                                e.currentTarget.style.display = 'none';
+                              }}
+                          />
+                        </div>
 
-                      {/* Card Footer */}
-                      <div className="p-4">
-                        <h3 className="font-bold text-slate-900 text-lg mb-2 truncate">
-                          {post.dishName}
-                        </h3>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
-                              {post.userName.charAt(0)}
+                        {/* Card Footer */}
+                        <div className="p-4">
+                          <h3 className="font-bold text-slate-900 text-lg mb-2 truncate">
+                            {post.dishName}
+                          </h3>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
+                                {post.userName.charAt(0)}
+                              </div>
+                              <span className="text-sm text-slate-600 font-medium truncate">
+                            {post.userName}
+                          </span>
                             </div>
-                            <span className="text-sm text-slate-600 font-medium truncate">
-                          {post.userName}
-                        </span>
-                          </div>
-                          <div className="flex items-center gap-1 text-slate-500">
-                            <svg className="w-5 h-5 fill-orange-500" viewBox="0 0 24 24">
-                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
-                            <span className="text-sm font-semibold">{post.likes}</span>
+                            <div className="flex items-center gap-1 text-slate-500">
+                              <svg className="w-5 h-5 fill-orange-500" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                              </svg>
+                              <span className="text-sm font-semibold">{post.likes}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                ))}
+                  ))}
+                </div>
               </div>
-
             </div>
           </div>
 
