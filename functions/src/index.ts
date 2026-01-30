@@ -7,6 +7,7 @@
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 
 // Initialize Firebase Admin
@@ -72,43 +73,55 @@ export const initializeUserData = onCall(async (request) => {
             };
         }
 
-        // Create user profile document with complete schema
-        // Using .doc(uid) ensures unique per-user document
+        // Create user profile document with schema-compliant fields
+        // Schema reference: firestore-schema.md lines 24-37
+        // Only core user info - NO onboarding or preference data here
         batch.set(userDocRef, {
             uid: uid,
             email: email,
             displayName: displayName,
             profilePictureURL: profilePictureURL,
-            dietaryPreferences: [],
+            dietaryPreferences: [], // Array of dietary preferences
             bio: "",
             phoneNumber: null,
             authProvider: providerType,
             emailVerified: emailVerified,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+            lastLoginAt: FieldValue.serverTimestamp(),
         });
 
         logger.info("User profile document prepared", { uid });
 
         // Create user preferences document with complete schema
-        // Using .doc(uid) ensures unique per-user document
+        // Schema reference: firestore-schema.md lines 299-325
         const prefsDocRef = db.collection("userPreferences").doc(uid);
         batch.set(prefsDocRef, {
             userId: uid,
+
+            // Onboarding Data (will be filled during onboarding)
             city: "",
             dateOfBirth: "",
             sex: "",
             termsAccepted: false,
+            onboardingCompletedAt: null,
+
+            // Cuisine & Dietary Preferences
             cuisinePreferences: [],
             dietaryRestrictions: [],
+
+            // Restaurant Preferences
             priceRangePreference: null,
             distancePreference: null,
             favoriteRestaurants: [],
             blockedRestaurants: [],
+
+            // Food Wheel Options
             wheelOptions: [],
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+
+            // Metadata
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
 
         logger.info("User preferences document prepared", { uid });
@@ -152,9 +165,9 @@ export const initializeUserData = onCall(async (request) => {
             totalReviewsWritten: 0,
             totalMenuItemsPosted: 0,
             totalLikesReceived: 0,
-            lastCalculatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastCalculatedAt: FieldValue.serverTimestamp(),
             calculationMethod: "realtime",
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         });
 
         logger.info("User stats document prepared", { uid });

@@ -42,6 +42,7 @@ exports.initializeUserData = void 0;
 const v2_1 = require("firebase-functions/v2");
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const firestore_1 = require("firebase-admin/firestore");
 const logger = __importStar(require("firebase-functions/logger"));
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -97,41 +98,48 @@ exports.initializeUserData = (0, https_1.onCall)(async (request) => {
                 alreadyExists: true,
             };
         }
-        // Create user profile document with complete schema
-        // Using .doc(uid) ensures unique per-user document
+        // Create user profile document with schema-compliant fields
+        // Schema reference: firestore-schema.md lines 24-37
+        // Only core user info - NO onboarding or preference data here
         batch.set(userDocRef, {
             uid: uid,
             email: email,
             displayName: displayName,
             profilePictureURL: profilePictureURL,
-            dietaryPreferences: [],
+            dietaryPreferences: [], // Array of dietary preferences
             bio: "",
             phoneNumber: null,
             authProvider: providerType,
             emailVerified: emailVerified,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            lastLoginAt: firestore_1.FieldValue.serverTimestamp(),
         });
         logger.info("User profile document prepared", { uid });
         // Create user preferences document with complete schema
-        // Using .doc(uid) ensures unique per-user document
+        // Schema reference: firestore-schema.md lines 299-325
         const prefsDocRef = db.collection("userPreferences").doc(uid);
         batch.set(prefsDocRef, {
             userId: uid,
+            // Onboarding Data (will be filled during onboarding)
             city: "",
             dateOfBirth: "",
             sex: "",
             termsAccepted: false,
+            onboardingCompletedAt: null,
+            // Cuisine & Dietary Preferences
             cuisinePreferences: [],
             dietaryRestrictions: [],
+            // Restaurant Preferences
             priceRangePreference: null,
             distancePreference: null,
             favoriteRestaurants: [],
             blockedRestaurants: [],
+            // Food Wheel Options
             wheelOptions: [],
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            // Metadata
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
         });
         logger.info("User preferences document prepared", { uid });
         // Create user stats document with initial values
@@ -173,9 +181,9 @@ exports.initializeUserData = (0, https_1.onCall)(async (request) => {
             totalReviewsWritten: 0,
             totalMenuItemsPosted: 0,
             totalLikesReceived: 0,
-            lastCalculatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastCalculatedAt: firestore_1.FieldValue.serverTimestamp(),
             calculationMethod: "realtime",
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
         });
         logger.info("User stats document prepared", { uid });
         // Commit the batch write atomically

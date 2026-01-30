@@ -1,12 +1,13 @@
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../src/firebase/config';
-import { UserProfile } from '../src/types/auth.types';
+import { UserProfile, UserPreferences } from '../src/types/auth.types';
 
 const PROFILE_CACHE_KEY = 'foodily_user_profile_cache';
 
 /**
- * Fetch user profile from Firestore
+ * Fetch user profile from Firestore users collection
+ * Only fetches core user data - NOT preferences or onboarding data
  */
 export const fetchUserProfile = async (uid: string): Promise<UserProfile | null> => {
     try {
@@ -28,7 +29,28 @@ export const fetchUserProfile = async (uid: string): Promise<UserProfile | null>
 };
 
 /**
- * Update user profile in Firestore and cache
+ * Fetch user preferences from Firestore userPreferences collection
+ * Fetches onboarding data and user preferences
+ */
+export const fetchUserPreferences = async (uid: string): Promise<UserPreferences | null> => {
+    try {
+        const prefsDocRef = doc(db, 'userPreferences', uid);
+        const prefsDoc = await getDoc(prefsDocRef);
+
+        if (prefsDoc.exists()) {
+            return prefsDoc.data() as UserPreferences;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error fetching user preferences:', error);
+        throw error;
+    }
+};
+
+/**
+ * Update user profile in Firestore users collection
+ * Only updates core user data fields
  */
 export const updateUserProfile = async (
     uid: string,
@@ -53,6 +75,30 @@ export const updateUserProfile = async (
         }
     } catch (error) {
         console.error('Error updating user profile:', error);
+        throw error;
+    }
+};
+
+/**
+ * Update user preferences in Firestore userPreferences collection
+ * Updates onboarding data and user preferences
+ */
+export const updateUserPreferences = async (
+    uid: string,
+    updates: Partial<UserPreferences>
+): Promise<void> => {
+    try {
+        const prefsDocRef = doc(db, 'userPreferences', uid);
+
+        // Add updatedAt timestamp
+        const updateData = {
+            ...updates,
+            updatedAt: serverTimestamp(),
+        };
+
+        await updateDoc(prefsDocRef, updateData);
+    } catch (error) {
+        console.error('Error updating user preferences:', error);
         throw error;
     }
 };
@@ -84,6 +130,7 @@ export const uploadProfilePicture = async (uid: string, file: File): Promise<str
 
 /**
  * Cache user profile in localStorage
+ * Only caches core user profile data from users collection
  */
 export const cacheUserProfile = (profile: UserProfile): void => {
     try {
@@ -93,7 +140,6 @@ export const cacheUserProfile = (profile: UserProfile): void => {
             createdAt: profile.createdAt?.toDate?.()?.toISOString() || profile.createdAt,
             updatedAt: profile.updatedAt?.toDate?.()?.toISOString() || profile.updatedAt,
             lastLoginAt: profile.lastLoginAt?.toDate?.()?.toISOString() || profile.lastLoginAt,
-            onboardingCompletedAt: profile.onboardingCompletedAt?.toDate?.()?.toISOString() || profile.onboardingCompletedAt,
         };
 
         localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cacheData));
@@ -151,9 +197,15 @@ export const formatDateOfBirth = (isoDate: string | undefined): string => {
 
 /**
  * Migrate data from userPreferences collection to users collection
- * This is a one-time migration helper
+ * DEPRECATED: This migration is no longer needed as we now keep data separate
+ * Keeping function for backward compatibility but disabled
  */
 export const migrateUserPreferences = async (uid: string): Promise<void> => {
+    // Migration disabled - we now keep users and userPreferences separate
+    console.log('⚠️ migrateUserPreferences is deprecated and disabled');
+    return;
+
+    /* OLD MIGRATION CODE - DISABLED
     try {
         // Check if userPreferences document exists
         const prefsDocRef = doc(db, 'userPreferences', uid);
@@ -189,4 +241,5 @@ export const migrateUserPreferences = async (uid: string): Promise<void> => {
         console.error('Error migrating user preferences:', error);
         throw error;
     }
+    */
 };

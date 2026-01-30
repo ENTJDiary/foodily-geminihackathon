@@ -8,10 +8,12 @@ import {
     verifyEmailOTP as verifyOTP,
     signOut as authSignOut
 } from '../firebase/authService';
-import { AuthContextType, UserProfile } from '../types/auth.types';
+import { AuthContextType, UserProfile, UserPreferences } from '../types/auth.types';
 import {
     fetchUserProfile,
+    fetchUserPreferences,
     updateUserProfile as updateProfile,
+    updateUserPreferences as updatePrefs,
     migrateUserPreferences,
     cacheUserProfile,
     clearCachedUserProfile
@@ -34,6 +36,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,13 +46,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setCurrentUser(user);
 
             if (user) {
-                // Fetch user profile from Firestore
-                await fetchUserData(user.uid);
+                // Fetch user profile and preferences from Firestore
+                const wasJustInitialized = await fetchUserData(user.uid);
 
-                // Update lastLoginAt
-                await updateLastLogin(user.uid);
+                // Only update lastLoginAt if user was NOT just initialized
+                // (Cloud Function already sets it for new users)
+                if (!wasJustInitialized) {
+                    await updateLastLogin(user.uid);
+                }
             } else {
                 setUserProfile(null);
+                setUserPreferences(null);
                 clearCachedUserProfile();
             }
 
@@ -60,11 +67,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     /**
-     * Fetch user profile from Firestore
+     * Fetch user data from Firestore (profile and preferences)
+     * @returns true if user was just initialized, false otherwise
      */
-    const fetchUserData = async (uid: string) => {
+    const fetchUserData = async (uid: string): Promise<boolean> => {
+        let wasJustInitialized = false;
+
         try {
-            // Fetch user profile using userDataService
+            // Fetch user profile from users collection
             const profile = await fetchUserProfile(uid);
 
             if (profile) {
@@ -73,6 +83,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 // User data doesn't exist - call Cloud Function to create it
                 console.log('User data not found, initializing...');
                 await initializeUserDataViaFunction();
+                wasJustInitialized = true;
+
+                // Wait a bit for Cloud Function to complete
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // Fetch again after initialization
                 const newProfile = await fetchUserProfile(uid);
@@ -83,13 +97,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
             }
 
-            // Try to migrate data from userPreferences collection if it exists
+            // Fetch user preferences from userPreferences collection
+            const preferences = await fetchUserPreferences(uid);
+            if (preferences) {
+                setUserPreferences(preferences);
+            }
+
+            // Try to migrate data from old userPreferences collection if it exists
+            // This is for backward compatibility - can be removed later
             try {
                 await migrateUserPreferences(uid);
-                // Refresh profile after migration
-                const updatedProfile = await fetchUserProfile(uid);
-                if (updatedProfile) {
-                    setUserProfile(updatedProfile);
+                // Refresh preferences after migration
+                const updatedPreferences = await fetchUserPreferences(uid);
+                if (updatedPreferences) {
+                    setUserPreferences(updatedPreferences);
                 }
             } catch (migrationError) {
                 console.warn('⚠️ User preferences migration skipped or failed:', migrationError);
@@ -108,6 +129,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.error('Error fetching user data:', err);
             setError('Failed to load user profile. Please try again.');
         }
+
+        return wasJustInitialized;
     };
 
     /**
@@ -193,7 +216,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     /**
-     * Update user profile
+     * Update user profile (core user data)
      */
     const handleUpdateUserProfile = async (updates: Partial<UserProfile>) => {
         if (!currentUser) {
@@ -217,6 +240,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     /**
+     * Update user preferences (onboarding data and preferences)
+     */
+    const handleUpdateUserPreferences = async (updates: Partial<UserPreferences>) => {
+        if (!currentUser) {
+            throw new Error('No user logged in');
+        }
+
+        try {
+            setError(null);
+            await updatePrefs(currentUser.uid, updates);
+
+            // Update local state
+            if (userPreferences) {
+                const updatedPreferences = { ...userPreferences, ...updates };
+                setUserPreferences(updatedPreferences);
+            }
+        } catch (err: any) {
+            setError(err.userMessage || err.message);
+            throw err;
+        }
+    };
+
+    /**
      * Sign out current user
      */
     const signOut = async () => {
@@ -225,6 +271,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             await authSignOut();
             setCurrentUser(null);
             setUserProfile(null);
+            setUserPreferences(null);
             clearCachedUserProfile();
         } catch (err: any) {
             setError(err.userMessage || err.message);
@@ -235,12 +282,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const value: AuthContextType = {
         currentUser,
         userProfile,
+        userPreferences,
         loading,
         signInWithGoogle,
         signInWithEmailOTP,
         verifyOTP,
         signOut,
         updateUserProfile: handleUpdateUserProfile,
+        updateUserPreferences: handleUpdateUserPreferences,
         error,
     };
 
