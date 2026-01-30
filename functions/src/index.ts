@@ -36,10 +36,23 @@ export const initializeUserData = onCall(async (request) => {
         "Food Lover";
     const profilePictureURL = request.auth.token.picture || null;
 
+    // Detect authentication provider
+    const authProvider = request.auth.token.firebase.sign_in_provider;
+    let providerType: 'google' | 'email' | 'phone' = 'email';
+    if (authProvider === 'google.com') {
+        providerType = 'google';
+    } else if (authProvider === 'phone') {
+        providerType = 'phone';
+    }
+
+    const emailVerified = request.auth.token.email_verified || false;
+
     logger.info("Initializing user data for:", {
         uid: uid,
         email: email,
         displayName: displayName,
+        authProvider: providerType,
+        emailVerified: emailVerified,
     });
 
     const db = admin.firestore();
@@ -66,8 +79,11 @@ export const initializeUserData = onCall(async (request) => {
             email: email,
             displayName: displayName,
             profilePictureURL: profilePictureURL,
-            bio: "",
             dietaryPreferences: [],
+            bio: "",
+            phoneNumber: null,
+            authProvider: providerType,
+            emailVerified: emailVerified,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -80,16 +96,68 @@ export const initializeUserData = onCall(async (request) => {
         const prefsDocRef = db.collection("userPreferences").doc(uid);
         batch.set(prefsDocRef, {
             userId: uid,
+            city: "",
+            dateOfBirth: "",
+            sex: "",
+            termsAccepted: false,
             cuisinePreferences: [],
             dietaryRestrictions: [],
             priceRangePreference: null,
             distancePreference: null,
             favoriteRestaurants: [],
             blockedRestaurants: [],
+            wheelOptions: [],
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
         logger.info("User preferences document prepared", { uid });
+
+        // Create user stats document with initial values
+        const statsDocRef = db.collection("userStats").doc(uid);
+        batch.set(statsDocRef, {
+            userId: uid,
+            healthLevel: 0,
+            exp: 0,
+            coinsSpent: 0,
+            satisfactory: 0,
+            balance: 0,
+            intensity: 0,
+            topCuisine: {
+                name: "",
+                count: 0,
+                trend: "stable",
+                trendValue: 0,
+            },
+            topRestaurant: {
+                restaurantId: "",
+                name: "",
+                rating: 0,
+                visitCount: 0,
+                trend: "stable",
+            },
+            eatingOutStats: {
+                timesEaten: 0,
+                coinsSpent: 0,
+                avgPerVisit: 0,
+                trend: "stable",
+                trendValue: 0,
+            },
+            nutrientAnalysis: {
+                protein: { grams: 0, percentage: 0 },
+                fat: { grams: 0, percentage: 0 },
+                sugar: { grams: 0, percentage: 0 },
+            },
+            totalRestaurantsExplored: 0,
+            totalReviewsWritten: 0,
+            totalMenuItemsPosted: 0,
+            totalLikesReceived: 0,
+            lastCalculatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            calculationMethod: "realtime",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info("User stats document prepared", { uid });
 
         // Commit the batch write atomically
         await batch.commit();

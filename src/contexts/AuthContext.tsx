@@ -8,7 +8,14 @@ import {
     verifyEmailOTP as verifyOTP,
     signOut as authSignOut
 } from '../firebase/authService';
-import { AuthContextType, UserProfile, UserPreferences } from '../types/auth.types';
+import { AuthContextType, UserProfile } from '../types/auth.types';
+import {
+    fetchUserProfile,
+    updateUserProfile as updateProfile,
+    migrateUserPreferences,
+    cacheUserProfile,
+    clearCachedUserProfile
+} from '../../services/userDataService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -27,7 +34,6 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-    const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -37,14 +43,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setCurrentUser(user);
 
             if (user) {
-                // Fetch user profile and preferences from Firestore
+                // Fetch user profile from Firestore
                 await fetchUserData(user.uid);
 
                 // Update lastLoginAt
                 await updateLastLogin(user.uid);
             } else {
                 setUserProfile(null);
-                setUserPreferences(null);
+                clearCachedUserProfile();
             }
 
             setLoading(false);
@@ -54,36 +60,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     /**
-     * Fetch user profile and preferences from Firestore
+     * Fetch user profile from Firestore
      */
     const fetchUserData = async (uid: string) => {
         try {
-            // Fetch user profile
-            const userDocRef = doc(db, 'users', uid);
-            const userDoc = await getDoc(userDocRef);
+            // Fetch user profile using userDataService
+            const profile = await fetchUserProfile(uid);
 
-            if (userDoc.exists()) {
-                setUserProfile(userDoc.data() as UserProfile);
+            if (profile) {
+                setUserProfile(profile);
             } else {
                 // User data doesn't exist - call Cloud Function to create it
                 console.log('User data not found, initializing...');
                 await initializeUserDataViaFunction();
 
                 // Fetch again after initialization
-                const newUserDoc = await getDoc(userDocRef);
-                if (newUserDoc.exists()) {
-                    setUserProfile(newUserDoc.data() as UserProfile);
+                const newProfile = await fetchUserProfile(uid);
+                if (newProfile) {
+                    setUserProfile(newProfile);
                 } else {
                     throw new Error("Failed to verify user data creation");
                 }
             }
 
-            // Fetch user preferences
-            const prefsDocRef = doc(db, 'userPreferences', uid);
-            const prefsDoc = await getDoc(prefsDocRef);
+            // Try to migrate data from userPreferences collection if it exists
+            try {
+                await migrateUserPreferences(uid);
+                // Refresh profile after migration
+                const updatedProfile = await fetchUserProfile(uid);
+                if (updatedProfile) {
+                    setUserProfile(updatedProfile);
+                }
+            } catch (migrationError) {
+                console.warn('⚠️ User preferences migration skipped or failed:', migrationError);
+                // Don't block user login if migration fails
+            }
 
-            if (prefsDoc.exists()) {
-                setUserPreferences(prefsDoc.data() as UserPreferences);
+            // Run data migration from localStorage (if not already done)
+            try {
+                const { runMigration } = await import('../../services/migrationService');
+                await runMigration(uid);
+            } catch (migrationError) {
+                console.warn('⚠️ Data migration failed, but continuing:', migrationError);
+                // Don't block user login if migration fails
             }
         } catch (err: any) {
             console.error('Error fetching user data:', err);
@@ -174,6 +193,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     /**
+     * Update user profile
+     */
+    const handleUpdateUserProfile = async (updates: Partial<UserProfile>) => {
+        if (!currentUser) {
+            throw new Error('No user logged in');
+        }
+
+        try {
+            setError(null);
+            await updateProfile(currentUser.uid, updates);
+
+            // Update local state
+            if (userProfile) {
+                const updatedProfile = { ...userProfile, ...updates };
+                setUserProfile(updatedProfile);
+                cacheUserProfile(updatedProfile);
+            }
+        } catch (err: any) {
+            setError(err.userMessage || err.message);
+            throw err;
+        }
+    };
+
+    /**
      * Sign out current user
      */
     const signOut = async () => {
@@ -182,7 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             await authSignOut();
             setCurrentUser(null);
             setUserProfile(null);
-            setUserPreferences(null);
+            clearCachedUserProfile();
         } catch (err: any) {
             setError(err.userMessage || err.message);
             throw err;
@@ -192,12 +235,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const value: AuthContextType = {
         currentUser,
         userProfile,
-        userPreferences,
         loading,
         signInWithGoogle,
         signInWithEmailOTP,
         verifyOTP,
         signOut,
+        updateUserProfile: handleUpdateUserProfile,
         error,
     };
 

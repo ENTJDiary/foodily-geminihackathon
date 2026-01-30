@@ -1,8 +1,17 @@
-import React from 'react';
-import { UserProfile } from '../../types';
+import React, { useRef } from 'react';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { uploadProfilePicture, formatDateOfBirth } from '../../services/userDataService';
+
+interface LegacyUserProfile {
+    name: string;
+    email: string;
+    favoriteCuisines: string[];
+    dietaryRestrictions: string[];
+    darkMode: boolean;
+}
 
 interface AccountDetailsProps {
-    profile: UserProfile;
+    profile: LegacyUserProfile;
     isEditingName: boolean;
     tempName: string;
     setTempName: (name: string) => void;
@@ -25,12 +34,6 @@ interface AccountDetailsProps {
 const CUISINE_OPTIONS = ['Italian', 'Japanese', 'Mexican', 'Indian', 'Chinese', 'Thai', 'Greek', 'French', 'Korean', 'Vietnamese'];
 const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Halal', 'Kosher', 'Nut-Free'];
 
-const DUMMY_USER = {
-    dateOfBirth: '1 January 1980',
-    email: 'johndoe@email.com',
-    avatarUrl: null as string | null,
-};
-
 const AccountDetails: React.FC<AccountDetailsProps> = ({
     profile,
     isEditingName,
@@ -51,19 +54,69 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     toggleCuisine,
     toggleDietary,
 }) => {
+    const { userProfile, currentUser } = useAuth();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadingPicture, setUploadingPicture] = React.useState(false);
+
+    // Get profile picture URL (custom or Google photo)
+    const profilePictureURL = userProfile?.profilePictureURL || currentUser?.photoURL;
+
+    const handleProfilePictureClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !currentUser) return;
+
+        try {
+            setUploadingPicture(true);
+            await uploadProfilePicture(currentUser.uid, file);
+            // Profile will be updated automatically via AuthContext
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+            alert('Failed to upload profile picture. Please try again.');
+        } finally {
+            setUploadingPicture(false);
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-300 max-h-[700px]">
             {/* User Profile Card */}
             <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
                 <div className="flex items-start gap-6">
                     {/* Avatar */}
-                    <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center text-orange-600 text-3xl font-black shadow-inner border-2 border-orange-200">
-                        {DUMMY_USER.avatarUrl ? (
-                            <img src={DUMMY_USER.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-2xl" />
+                    <div
+                        className="relative w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center text-orange-600 text-3xl font-black shadow-inner border-2 border-orange-200 cursor-pointer hover:opacity-80 transition-opacity group"
+                        onClick={handleProfilePictureClick}
+                    >
+                        {profilePictureURL ? (
+                            <>
+                                <img src={profilePictureURL} alt="Avatar" className="w-full h-full object-cover rounded-2xl" />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-2xl transition-all flex items-center justify-center">
+                                    <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                            </>
                         ) : (
                             profile.name.charAt(0).toUpperCase()
                         )}
+                        {uploadingPicture && (
+                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                            </div>
+                        )}
                     </div>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                    />
 
                     {/* User Info */}
                     <div className="flex-1 space-y-1">
@@ -100,9 +153,11 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                             )}
                             <span className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-200"></span>
                         </div>
-                        <p className="text-sm text-slate-400 font-medium">{DUMMY_USER.dateOfBirth}</p>
+                        <p className="text-sm text-slate-400 font-medium">
+                            {userProfile?.dateOfBirth ? formatDateOfBirth(userProfile.dateOfBirth) : ''}
+                        </p>
                         <div className="mt-3 inline-block px-4 py-2 bg-slate-50 rounded-lg border border-slate-100">
-                            <span className="text-sm text-slate-600 font-semibold">{DUMMY_USER.email}</span>
+                            <span className="text-sm text-slate-600 font-semibold">{profile.email}</span>
                         </div>
                     </div>
                 </div>

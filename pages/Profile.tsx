@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getUserProfile, saveUserProfile, clearSearchHistory } from '../services/storageService';
-import { UserProfile } from '../types';
+import { useAuth } from '../src/contexts/AuthContext';
+import { UserProfile as FirebaseUserProfile } from '../src/types/auth.types';
 import ProfileSidebar from './profile/ProfileSidebar';
 import AccountDetails from './profile/AccountDetails';
 import ActivitySection from './profile/ActivitySection';
@@ -10,10 +10,29 @@ import StatsSection from './profile/StatsSection';
 
 type TabType = 'account' | 'activity' | 'saved' | 'stats';
 
+// Legacy UserProfile type for compatibility
+interface LegacyUserProfile {
+  name: string;
+  email: string;
+  favoriteCuisines: string[];
+  dietaryRestrictions: string[];
+  darkMode: boolean;
+}
+
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { userid } = useParams<{ userid: string }>();
-  const [profile, setProfile] = useState<UserProfile>(getUserProfile());
+  const { userProfile, updateUserProfile, loading } = useAuth();
+
+  // Convert Firebase profile to legacy format for UI compatibility
+  const [profile, setProfile] = useState<LegacyUserProfile>({
+    name: userProfile?.displayName || 'User',
+    email: userProfile?.email || '',
+    favoriteCuisines: userProfile?.cuisinePreferences || [],
+    dietaryRestrictions: userProfile?.dietaryRestrictions || [],
+    darkMode: false,
+  });
+
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [activeTab, setActiveTab] = useState<TabType>('account');
   const [isAnimating, setIsAnimating] = useState(false);
@@ -29,12 +48,45 @@ const Profile: React.FC = () => {
   const [isAddingDietary, setIsAddingDietary] = useState(false);
   const [customDietary, setCustomDietary] = useState('');
 
-  const handleUpdate = (updates: Partial<UserProfile>) => {
+  // Update local profile when Firebase profile changes
+  useEffect(() => {
+    if (userProfile) {
+      setProfile({
+        name: userProfile.displayName || 'User',
+        email: userProfile.email || '',
+        favoriteCuisines: userProfile.cuisinePreferences || [],
+        dietaryRestrictions: userProfile.dietaryRestrictions || [],
+        darkMode: false,
+      });
+      setTempName(userProfile.displayName || 'User');
+    }
+  }, [userProfile]);
+
+  const handleUpdate = async (updates: Partial<LegacyUserProfile>) => {
     const newProfile = { ...profile, ...updates };
     setProfile(newProfile);
-    saveUserProfile(newProfile);
-    setSaveStatus('saved');
-    setTimeout(() => setSaveStatus('idle'), 2000);
+
+    // Convert to Firebase format and update
+    const firebaseUpdates: Partial<FirebaseUserProfile> = {};
+    if (updates.name !== undefined) {
+      firebaseUpdates.displayName = updates.name;
+    }
+    if (updates.favoriteCuisines !== undefined) {
+      firebaseUpdates.cuisinePreferences = updates.favoriteCuisines;
+    }
+    if (updates.dietaryRestrictions !== undefined) {
+      firebaseUpdates.dietaryRestrictions = updates.dietaryRestrictions;
+    }
+
+    try {
+      setSaveStatus('saving');
+      await updateUserProfile(firebaseUpdates);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setSaveStatus('idle');
+    }
   };
 
   const handleSaveName = () => {

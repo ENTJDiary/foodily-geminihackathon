@@ -3,6 +3,16 @@
 ## Overview
 This document defines the complete Firestore database schema for the food.ily platform. The database uses Firebase/GCP as the backend with a user-centric data structure starting from `users/{uid}`.
 
+**Schema Version:** 2.0  
+**Last Updated:** 2026-01-29  
+**Changes in v2.0:**
+- Enhanced user authentication tracking (auth provider, email verification)
+- Merged onboarding data into UserPreferences collection
+- Added SearchHistory collection for tracking user searches
+- Enhanced Restaurants collection with external API caching
+- Added UserStats collection for analytics and visualization
+- Added wheel options to UserPreferences for Food Gacha feature
+
 ## Collections Structure
 
 ### 1. Users Collection
@@ -16,8 +26,11 @@ interface User {
   email: string;                  // User email address
   displayName: string;            // User's display name
   profilePictureURL?: string;     // URL to profile picture in Firebase Storage
-  bio?: string;                   // User biography/description
   dietaryPreferences: string[];   // Array of dietary preferences (e.g., ["vegetarian", "gluten-free"])
+  bio?: string;                   // User biography/description
+  phoneNumber?: string;           // User phone number (if provided)
+  authProvider: 'google' | 'email' | 'phone'; // Authentication provider type
+  emailVerified: boolean;         // Email verification status
   createdAt: Timestamp;           // Account creation timestamp
   updatedAt: Timestamp;           // Last profile update timestamp
   lastLoginAt?: Timestamp;        // Last login timestamp
@@ -69,7 +82,7 @@ interface FoodLog {
 ### 3. Restaurants Collection
 **Path:** `restaurants/{restaurantId}`
 
-Shared collection of restaurant data accessible to all users.
+Shared collection of restaurant data accessible to all users. Caches data from external APIs and supports user-generated restaurants.
 
 ```typescript
 interface Restaurant {
@@ -91,7 +104,19 @@ interface Restaurant {
     [day: string]: string;        // e.g., "monday": "9:00 AM - 10:00 PM"
   };
   tags: string[];                 // Searchable tags (e.g., ["outdoor seating", "family-friendly"])
+  
+  // Data Source & Caching
+  dataSource: 'google_places' | 'gemini_ai' | 'user_generated'; // Where data originated
   externalId?: string;            // ID from external API (Google Places, Yelp, etc.)
+  placeId?: string;               // Google Places ID (if from Google)
+  lastSyncedAt?: Timestamp;       // Last time data was synced from external API
+  cacheExpiresAt?: Timestamp;     // When cached data should be refreshed
+  
+  // User-Generated Restaurant Fields
+  addedByUserId?: string;         // User who added this restaurant (if user-generated)
+  isVerified: boolean;            // Whether restaurant has been verified by admin/system
+  
+  // Metadata
   createdAt: Timestamp;           // Entry creation timestamp
   updatedAt: Timestamp;           // Last update timestamp
 }
@@ -261,17 +286,41 @@ interface PostComment {
 ### 9. User Preferences Collection
 **Path:** `userPreferences/{uid}`
 
-Stores user's cuisine preferences and dietary restrictions.
+Stores user's preferences, onboarding data, and personalization settings.
 
 ```typescript
+interface WheelOption {
+  id: string;                     // Unique option ID
+  name: string;                   // Option name (cuisine/restaurant)
+  color: string;                  // Hex color for wheel segment
+  timestamp: number;              // When option was added
+}
+
 interface UserPreferences {
   userId: string;                 // Firebase Auth UID (document ID)
+  
+  // Onboarding Data (merged from onboardingData collection)
+  city: string;                   // User's city location
+  dateOfBirth: string;            // ISO date string (YYYY-MM-DD)
+  sex: 'Male' | 'Female' | 'Prefer not to say'; // User's sex/gender
+  termsAccepted: boolean;         // Terms and conditions acceptance
+  onboardingCompletedAt?: Timestamp; // When onboarding was completed
+  
+  // Cuisine & Dietary Preferences
   cuisinePreferences: string[];   // Preferred cuisines (e.g., ["Italian", "Mexican"])
   dietaryRestrictions: string[];  // Dietary restrictions (e.g., ["vegetarian", "nut-free"])
+  
+  // Restaurant Preferences
   priceRangePreference?: number[]; // Preferred price range [min, max] (1-4)
   distancePreference?: number;    // Max distance in miles/km
   favoriteRestaurants: string[];  // Array of restaurant IDs
   blockedRestaurants: string[];   // Restaurants user wants to avoid
+  
+  // Food Wheel Options
+  wheelOptions: WheelOption[];    // Custom options for food wheel feature
+  
+  // Metadata
+  createdAt: Timestamp;           // Preferences creation timestamp
   updatedAt: Timestamp;           // Last update timestamp
 }
 ```
@@ -284,7 +333,41 @@ interface UserPreferences {
 
 ---
 
-### 10. Saved Restaurants Collection
+### 10. Search History Collection
+**Path:** `searchHistory/{searchId}`
+
+Tracks user's search queries and exploration history (separate from actual food logs).
+
+```typescript
+interface SearchHistory {
+  searchId: string;               // Auto-generated document ID
+  userId: string;                 // Reference to users/{uid}
+  searchQuery: string;            // The search query text
+  searchType: 'dish' | 'cuisine' | 'restaurant' | 'location'; // Type of search
+  dishName?: string;              // Dish searched for (if applicable)
+  cuisineType?: string;           // Cuisine type searched (if applicable)
+  locationSearched?: string;      // Location used in search
+  resultsCount: number;           // Number of results returned
+  timestamp: Timestamp;           // When search was performed
+  userLocation?: {                // User's location at time of search
+    latitude: number;
+    longitude: number;
+  };
+}
+```
+
+**Indexes:**
+- Composite: `userId` + `timestamp` (DESC) - for user's search history
+- `userId` + `searchType` - for filtering by search type
+- `timestamp` (DESC) - for recent searches across all users (analytics)
+
+**Security Rules:**
+- Users can only read/write their own search history
+- Queries must filter by authenticated user's `userId`
+
+---
+
+### 11. Saved Restaurants Collection
 **Path:** `savedRestaurants/{saveId}`
 
 User's saved/favorited restaurants with metadata.
@@ -314,7 +397,7 @@ interface SavedRestaurant {
 
 ---
 
-### 11. Recommendation History Collection
+### 12. Recommendation History Collection
 **Path:** `recommendationHistory/{recommendationId}`
 
 Tracks AI-generated recommendations from the Food Gacha feature.
@@ -355,6 +438,81 @@ interface RecommendationHistory {
 
 ---
 
+### 13. User Stats Collection
+**Path:** `userStats/{uid}`
+
+Stores aggregated user statistics for analytics and visualization. Updated via Cloud Functions and real-time calculations.
+
+```typescript
+interface UserStats {
+  userId: string;                 // Firebase Auth UID (document ID)
+  
+  // Hexagon Stats (0-100 scale for visualization)
+  healthLevel: number;            // Healthiness of food choices
+  exp: number;                    // New restaurants/food tried (exploration)
+  coinsSpent: number;             // Priciness level of dining
+  satisfactory: number;           // Based on user ratings
+  balance: number;                // Nutrient balance
+  intensity: number;              // Flavor intensity preference
+  
+  // Top Rankings
+  topCuisine: {
+    name: string;
+    count: number;
+    trend: 'up' | 'down' | 'stable';
+    trendValue: number;           // Percentage change
+  };
+  topRestaurant: {
+    restaurantId: string;
+    name: string;
+    rating: number;
+    visitCount: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  
+  // Eating Out Statistics
+  eatingOutStats: {
+    timesEaten: number;           // Total dining out count
+    coinsSpent: number;           // Total money spent
+    avgPerVisit: number;          // Average cost per visit
+    trend: 'up' | 'down' | 'stable';
+    trendValue: number;           // Percentage change
+  };
+  
+  // Nutrient Analysis (aggregated from food logs)
+  nutrientAnalysis: {
+    protein: { grams: number; percentage: number; };
+    fat: { grams: number; percentage: number; };
+    sugar: { grams: number; percentage: number; };
+  };
+  
+  // Activity Counts
+  totalRestaurantsExplored: number;
+  totalReviewsWritten: number;
+  totalMenuItemsPosted: number;
+  totalLikesReceived: number;
+  
+  // Metadata
+  lastCalculatedAt: Timestamp;    // Last time stats were calculated
+  calculationMethod: 'realtime' | 'aggregated'; // How stats were computed
+  updatedAt: Timestamp;           // Last update timestamp
+}
+```
+
+**Indexes:**
+- `userId` (document ID serves as index)
+- `lastCalculatedAt` (for identifying stale stats)
+
+**Security Rules:**
+- Users can read their own stats
+- Only Cloud Functions can write stats
+
+**Cloud Function Triggers:**
+- `calculateUserStats` - Triggered on schedule (daily) or on-demand
+- `updateStatsOnActivity` - Triggered when user creates reviews, logs, etc.
+
+---
+
 ## Data Relationships
 
 ```mermaid
@@ -368,8 +526,10 @@ graph TB
     PostLikes[postLikes/{likeId}]
     PostComments[postComments/{commentId}]
     UserPrefs[userPreferences/{uid}]
+    SearchHistory[searchHistory/{searchId}]
     SavedRest[savedRestaurants/{saveId}]
     RecHistory[recommendationHistory/{recommendationId}]
+    UserStats[userStats/{uid}]
 
     Users -->|userId| FoodLogs
     Users -->|userId| Reviews
@@ -378,8 +538,10 @@ graph TB
     Users -->|userId| PostLikes
     Users -->|userId| PostComments
     Users -->|userId| UserPrefs
+    Users -->|userId| SearchHistory
     Users -->|userId| SavedRest
     Users -->|userId| RecHistory
+    Users -->|userId| UserStats
     
     Restaurants -->|restaurantId| FoodLogs
     Restaurants -->|restaurantId| Reviews
