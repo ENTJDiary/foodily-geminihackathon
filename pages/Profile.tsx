@@ -22,14 +22,14 @@ interface LegacyUserProfile {
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { userid } = useParams<{ userid: string }>();
-  const { userProfile, updateUserProfile, loading } = useAuth();
+  const { userProfile, userPreferences, updateUserProfile, updateUserPreferences, loading } = useAuth();
 
   // Convert Firebase profile to legacy format for UI compatibility
   const [profile, setProfile] = useState<LegacyUserProfile>({
     name: userProfile?.displayName || 'User',
     email: userProfile?.email || '',
-    favoriteCuisines: userProfile?.cuisinePreferences || [],
-    dietaryRestrictions: userProfile?.dietaryRestrictions || [],
+    favoriteCuisines: userPreferences?.cuisinePreferences || [],
+    dietaryRestrictions: userPreferences?.dietaryRestrictions || [],
     darkMode: false,
   });
 
@@ -48,39 +48,45 @@ const Profile: React.FC = () => {
   const [isAddingDietary, setIsAddingDietary] = useState(false);
   const [customDietary, setCustomDietary] = useState('');
 
-  // Update local profile when Firebase profile changes
+  // Update local profile when Firebase profile or preferences change
   useEffect(() => {
     if (userProfile) {
       setProfile({
         name: userProfile.displayName || 'User',
         email: userProfile.email || '',
-        favoriteCuisines: userProfile.cuisinePreferences || [],
-        dietaryRestrictions: userProfile.dietaryRestrictions || [],
+        favoriteCuisines: userPreferences?.cuisinePreferences || [],
+        dietaryRestrictions: userPreferences?.dietaryRestrictions || [],
         darkMode: false,
       });
       setTempName(userProfile.displayName || 'User');
     }
-  }, [userProfile]);
+  }, [userProfile, userPreferences]);
 
   const handleUpdate = async (updates: Partial<LegacyUserProfile>) => {
     const newProfile = { ...profile, ...updates };
     setProfile(newProfile);
 
-    // Convert to Firebase format and update
-    const firebaseUpdates: Partial<FirebaseUserProfile> = {};
-    if (updates.name !== undefined) {
-      firebaseUpdates.displayName = updates.name;
-    }
-    if (updates.favoriteCuisines !== undefined) {
-      firebaseUpdates.cuisinePreferences = updates.favoriteCuisines;
-    }
-    if (updates.dietaryRestrictions !== undefined) {
-      firebaseUpdates.dietaryRestrictions = updates.dietaryRestrictions;
-    }
-
     try {
       setSaveStatus('saving');
-      await updateUserProfile(firebaseUpdates);
+
+      // Update core profile if name changed
+      if (updates.name !== undefined) {
+        await updateUserProfile({ displayName: updates.name });
+      }
+
+      // Update preferences if cuisines or dietary changed
+      const prefUpdates: any = {};
+      if (updates.favoriteCuisines !== undefined) {
+        prefUpdates.cuisinePreferences = updates.favoriteCuisines;
+      }
+      if (updates.dietaryRestrictions !== undefined) {
+        prefUpdates.dietaryRestrictions = updates.dietaryRestrictions;
+      }
+
+      if (Object.keys(prefUpdates).length > 0) {
+        await updateUserPreferences(prefUpdates);
+      }
+
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {

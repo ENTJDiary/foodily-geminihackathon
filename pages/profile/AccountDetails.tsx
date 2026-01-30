@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { uploadProfilePicture, formatDateOfBirth } from '../../services/userDataService';
+import { uploadProfilePicture, formatDateOfBirth, calculateAge } from '../../services/userDataService';
 
 interface LegacyUserProfile {
     name: string;
@@ -54,7 +54,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     toggleCuisine,
     toggleDietary,
 }) => {
-    const { userProfile, currentUser } = useAuth();
+    const { userProfile, userPreferences, currentUser } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadingPicture, setUploadingPicture] = React.useState(false);
 
@@ -153,9 +153,19 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                             )}
                             <span className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-200"></span>
                         </div>
-                        <p className="text-sm text-slate-400 font-medium">
-                            {userProfile?.dateOfBirth ? formatDateOfBirth(userProfile.dateOfBirth) : ''}
-                        </p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm text-slate-400 font-medium">
+                                {userPreferences?.dateOfBirth ? formatDateOfBirth(userPreferences.dateOfBirth) : ''}
+                            </p>
+                            {userPreferences?.dateOfBirth && (
+                                <>
+                                    <span className="text-slate-200">•</span>
+                                    <p className="text-sm font-bold text-orange-600">
+                                        {calculateAge(userPreferences.dateOfBirth)} Years Old
+                                    </p>
+                                </>
+                            )}
+                        </div>
                         <div className="mt-3 inline-block px-4 py-2 bg-slate-50 rounded-lg border border-slate-100">
                             <span className="text-sm text-slate-600 font-semibold">{profile.email}</span>
                         </div>

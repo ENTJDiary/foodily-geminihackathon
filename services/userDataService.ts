@@ -196,6 +196,31 @@ export const formatDateOfBirth = (isoDate: string | undefined): string => {
 };
 
 /**
+ * Calculate age from date of birth string
+ * @param dob - ISO date string (YYYY-MM-DD)
+ * @returns Age in years as a number
+ */
+export const calculateAge = (dob: string | undefined): number | null => {
+    if (!dob) return null;
+
+    try {
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    } catch (error) {
+        console.error('Error calculating age:', error);
+        return null;
+    }
+};
+
+/**
  * Migrate data from userPreferences collection to users collection
  * DEPRECATED: This migration is no longer needed as we now keep data separate
  * Keeping function for backward compatibility but disabled
