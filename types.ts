@@ -29,13 +29,28 @@ export interface SearchResult {
 export type AppTab = 'search' | 'chat' | 'concierge' | 'profile';
 
 export interface Review {
-  id: string;
+  reviewId: string; // ID from Firestore
+  id?: string;      // Legacy support if needed
   rating: number;
   comment: string;
   userName: string;
-  timestamp: number;
+  userPhoto?: string;
+
+  // Timestamp handling
+  createdAt: any; // Firestore Timestamp
+  updatedAt?: any; // Firestore Timestamp
+  timestamp?: number; // Legacy, optional
+  visitDate?: string;
+
+  // Likes
   likes?: number;
   isLiked?: boolean;
+
+  // Relations
+  restaurantId?: string;
+  restaurantName?: string;
+  userId?: string;
+  photos?: string[];
 }
 
 export interface DishDetail {

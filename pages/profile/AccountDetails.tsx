@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { uploadProfilePicture, formatDateOfBirth, calculateAge } from '../../services/userDataService';
+import { getUserPosts, CommunityPost } from '../../services/communityPostsService';
 
 interface LegacyUserProfile {
     name: string;
@@ -56,10 +57,33 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
 }) => {
     const { userProfile, userPreferences, currentUser } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [uploadingPicture, setUploadingPicture] = React.useState(false);
+    const [uploadingPicture, setUploadingPicture] = useState(false);
+    const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState(true);
 
     // Get profile picture URL (custom or Google photo)
     const profilePictureURL = userProfile?.profilePictureURL || currentUser?.photoURL;
+
+    // Fetch user's community posts
+    useEffect(() => {
+        const fetchUserPosts = async () => {
+            if (!currentUser) {
+                setLoadingPosts(false);
+                return;
+            }
+
+            try {
+                const posts = await getUserPosts(currentUser.uid, 10); // Limit to 10 posts
+                setUserPosts(posts);
+            } catch (error) {
+                console.error('Error fetching user posts:', error);
+            } finally {
+                setLoadingPosts(false);
+            }
+        };
+
+        fetchUserPosts();
+    }, [currentUser]);
 
     const handleProfilePictureClick = () => {
         fileInputRef.current?.click();
@@ -270,8 +294,67 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Your Posts */}
+            <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Your Posts</h3>
+                {loadingPosts ? (
+                    <div className="text-center py-8">
+                        <p className="text-sm text-slate-400 font-medium">Loading posts...</p>
+                    </div>
+                ) : userPosts.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-sm text-slate-400 font-medium">No posts yet</p>
+                        <p className="text-xs text-slate-300 mt-2">Share your food experiences to see them here!</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {userPosts.map((post) => (
+                            <div
+                                key={post.postId}
+                                className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer"
+                            >
+                                {/* Image */}
+                                {post.image || (post.images && post.images.length > 0) ? (
+                                    <div className="aspect-square bg-slate-100 overflow-hidden">
+                                        <img
+                                            src={post.image || post.images![0]}
+                                            alt={post.title || post.name}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
+                                        <svg className="w-16 h-16 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                )}
+
+                                {/* Content */}
+                                <div className="p-4 space-y-2">
+                                    <h4 className="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-1">
+                                        {post.title || post.name}
+                                    </h4>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] text-slate-500 font-medium">{post.restaurantName}</span>
+                                        {/* Likes count */}
+                                        <div className="flex items-center gap-1">
+                                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                            </svg>
+                                            <span className="text-xs text-slate-600 font-bold">{post.likes}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
 
 export default AccountDetails;
+

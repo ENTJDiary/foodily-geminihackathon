@@ -7,8 +7,11 @@ import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import { getAverageRating } from '../services/storageService';
 import { getCurrentLocation } from '../services/locationService';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
+import { trackRestaurantClick } from '../services/restaurantClicksService';
+import { useAuth } from '../src/contexts/AuthContext';
 
 const Concierge: React.FC = () => {
+  const { currentUser } = useAuth();
   const [occasion, setOccasion] = useState('');
   const [people, setPeople] = useState('');
   const [request, setRequest] = useState('');
@@ -264,10 +267,20 @@ const Concierge: React.FC = () => {
           <ExpertPicksSection
             text={result.text}
             maxInitialPicks={5}
-            onRestaurantClick={(name) => setSelectedRestaurant({
-              id: name,
-              name: name
-            })}
+            onRestaurantClick={(name) => {
+              setSelectedRestaurant({
+                id: name,
+                name: name
+              });
+              // Track restaurant click
+              if (currentUser) {
+                trackRestaurantClick(currentUser.uid, {
+                  restaurantId: name,
+                  restaurantName: name,
+                  source: 'concierge'
+                }).catch(err => console.error('Failed to track click:', err));
+              }
+            }}
             onPicksExtracted={setPickedRestaurants}
             onLoadMore={handleLoadMore}
             isLoadingMore={loadingMore}

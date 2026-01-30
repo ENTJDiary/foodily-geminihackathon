@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../src/contexts/AuthContext';
 import { MenuItem } from '../../../types';
+import { subscribeRestaurantPosts, createCommunityPost, communityPostToMenuItem } from '../../../services/communityPostsService';
 import UserAvatar from '../shared/UserAvatar';
 import AddMenuItemModal from '../modals/AddMenuItemModal';
 import MenuItemDetailModal from '../modals/MenuItemDetailModal';
 
 interface CommunityMenuPageProps {
-    menuItems: MenuItem[];
+    restaurantId: string;
+    restaurantName: string;
     selectedMenuItem: MenuItem | null;
     showAddDish: boolean;
     searchedDish?: string;
@@ -13,18 +16,11 @@ interface CommunityMenuPageProps {
     onMenuItemClick: (item: MenuItem) => void;
     onCloseMenuItemDetail: () => void;
     onCloseAddDish: () => void;
-    onSubmitMenuItem: (data: {
-        title: string;
-        images: string[];
-        dishes: { name: string; price: string; desc: string; rating: number }[];
-        rating: number;
-        experience: string;
-    }) => void;
-    onToggleLike: (itemId: string) => void;
 }
 
 const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
-    menuItems,
+    restaurantId,
+    restaurantName,
     selectedMenuItem,
     showAddDish,
     searchedDish,
@@ -32,9 +28,70 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
     onMenuItemClick,
     onCloseMenuItemDetail,
     onCloseAddDish,
-    onSubmitMenuItem,
-    onToggleLike,
 }) => {
+    const { currentUser: user, userProfile } = useAuth();
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Subscribe to real-time community posts from Firestore
+    useEffect(() => {
+        if (!restaurantId) return;
+
+        const unsubscribe = subscribeRestaurantPosts(restaurantId, (fetchedPosts) => {
+            // Convert CommunityPost[] to MenuItem[] for compatibility
+            const items = fetchedPosts.map(communityPostToMenuItem);
+            setMenuItems(items);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [restaurantId]);
+
+    const handleSubmitMenuItem = async (data: {
+        title: string;
+        images: string[];
+        dishes: { name: string; price: string; desc: string; rating: number }[];
+        rating: number;
+        experience: string;
+    }) => {
+        if (!user || !userProfile || submitting) return;
+
+        setSubmitting(true);
+        try {
+            // Use first dish as primary name/description for backward compatibility
+            const primaryDish = data.dishes[0] || { name: '', desc: '', price: '' };
+
+            await createCommunityPost(
+                user.uid,
+                userProfile.displayName || 'Local Explorer',
+                userProfile.profilePictureURL,
+                {
+                    restaurantId,
+                    restaurantName,
+                    title: data.title,
+                    name: primaryDish.name,
+                    description: primaryDish.desc,
+                    price: primaryDish.price,
+                    dishes: data.dishes.map(d => ({
+                        name: d.name,
+                        description: d.desc,
+                        price: d.price,
+                    })),
+                    image: data.images.length > 0 ? data.images[0] : undefined,
+                    images: data.images,
+                    rating: data.rating,
+                    experience: data.experience,
+                }
+            );
+            onCloseAddDish();
+        } catch (error) {
+            console.error('Error submitting menu item:', error);
+            alert('Failed to submit menu item. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
     return (
         <>
             <section className="space-y-6">
@@ -46,7 +103,9 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
                         </p>
                     </div>
                     <button
-                        onClick={onAddDishClick}
+                        onClick={() => {
+                            onAddDishClick();
+                        }}
                         className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 active:scale-95 transition-all"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
@@ -150,29 +209,20 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
                                                         {item.userName || 'Explorer'}
                                                     </span>
                                                 </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onToggleLike(item.id);
-                                                    }}
-                                                    className={`flex items-center gap-1 transition-colors ${item.isLiked ? 'text-red-500' : 'text-slate-300 hover:text-red-400'
-                                                        }`}
-                                                >
-                                                    <svg
-                                                        className={`w-4 h-4 transition-transform active:scale-125 ${item.isLiked ? 'fill-current' : ''}`}
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                        />
-                                                    </svg>
-                                                    <span className="text-[9px] font-medium">{displayLikes}</span>
-                                                </button>
+                                                {item.likes > 0 && (
+                                                    <div className="flex items-center gap-1 text-slate-400">
+                                                        <svg
+                                                            className="w-4 h-4"
+                                                            fill="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                                            />
+                                                        </svg>
+                                                        <span className="text-[9px] font-medium">{displayLikes}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -184,15 +234,23 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
             </section>
 
             {/* Modals */}
-            <AddMenuItemModal
-                isOpen={showAddDish}
-                onClose={onCloseAddDish}
-                onSubmit={onSubmitMenuItem}
-            />
-            <MenuItemDetailModal
-                menuItem={selectedMenuItem}
-                onClose={onCloseMenuItemDetail}
-            />
+            {showAddDish && (
+                <AddMenuItemModal
+                    isOpen={true}
+                    onClose={onCloseAddDish}
+                    onSubmit={handleSubmitMenuItem}
+                    searchedDish={searchedDish}
+                    isSubmitting={submitting}
+                />
+            )}
+
+            {selectedMenuItem && (
+                <MenuItemDetailModal
+                    menuItem={selectedMenuItem}
+                    onClose={onCloseMenuItemDetail}
+                    restaurantId={restaurantId}
+                />
+            )}
         </>
     );
 };

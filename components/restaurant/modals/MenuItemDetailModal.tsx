@@ -1,21 +1,80 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../src/contexts/AuthContext';
 import { MenuItem } from '../../../types';
+import { togglePostLike, isPostLiked } from '../../../services/postLikesService';
+import { toggleSaveMenuItem, isMenuItemSaved } from '../../../services/savedMenuItemsService';
 import PriceTag from '../shared/PriceTag';
 import UserAvatar from '../shared/UserAvatar';
 
 interface MenuItemDetailModalProps {
     menuItem: MenuItem | null;
     onClose: () => void;
+    restaurantId?: string;
 }
 
-const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({ menuItem, onClose }) => {
+const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({ menuItem, onClose, restaurantId }) => {
+    const { currentUser: user } = useAuth();
     const [activeImage, setActiveImage] = useState<string | null>(null);
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [isLiking, setIsLiking] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (menuItem) {
             setActiveImage(menuItem.image || (menuItem.images && menuItem.images[0]) || null);
+            setLikeCount(menuItem.likes || 0);
+
+            // Check if user has liked this post
+            if (user && menuItem.id) {
+                isPostLiked(user.uid, menuItem.id).then(setIsLiked);
+                isMenuItemSaved(user.uid, menuItem.id).then(setIsSaved);
+            }
         }
-    }, [menuItem]);
+    }, [menuItem, user]);
+
+    const handleToggleLike = async () => {
+        if (!user || !menuItem || !restaurantId || isLiking) return;
+
+        setIsLiking(true);
+        try {
+            const nowLiked = await togglePostLike(user.uid, menuItem.id, restaurantId);
+            setIsLiked(nowLiked);
+            setLikeCount(prev => nowLiked ? prev + 1 : prev - 1);
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        } finally {
+            setIsLiking(false);
+        }
+    };
+
+    const handleToggleSave = async () => {
+        if (!user || !menuItem || isSaving) return;
+
+        setIsSaving(true);
+        try {
+            if (!restaurantId) {
+                console.error("❌ Missing restaurantId for saving");
+                return;
+            }
+
+            const nowSaved = await toggleSaveMenuItem(user.uid, {
+                menuItemId: menuItem.id,
+                restaurantId: restaurantId,
+                restaurantName: menuItem.userName || 'Unknown Restaurant',
+                title: menuItem.title || menuItem.name,
+                image: menuItem.image || (menuItem.images && menuItem.images[0]),
+                price: menuItem.price,
+                rating: menuItem.rating
+            });
+            setIsSaved(nowSaved);
+        } catch (error) {
+            console.error('❌ Error toggling save:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     if (!menuItem) return null;
 
@@ -166,17 +225,48 @@ const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({ menuItem, onC
                         </div>
 
                         <div className="flex gap-3 pt-4 mt-auto">
-                            <button className="flex-1 bg-white border-2 border-red-200 text-red-500 font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-red-50 hover:border-red-300 transition-all flex items-center justify-center gap-2 group">
-                                <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <button
+                                onClick={handleToggleLike}
+                                disabled={!user || isLiking}
+                                className={`flex-1 border-2 font-bold py-4 rounded-xl text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 group ${isLiked
+                                    ? 'bg-red-500 border-red-500 text-white hover:bg-red-600 hover:border-red-600'
+                                    : 'bg-white border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300'
+                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                <svg
+                                    className={`w-4 h-4 group-hover:scale-110 transition-transform ${isLiked ? 'fill-current' : ''}`}
+                                    fill={isLiked ? 'currentColor' : 'none'}
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="2"
+                                >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
-                                Like
+                                {isLiked ? 'Liked' : 'Like'}
+                                {likeCount > 0 && (
+                                    <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-black">
+                                        {likeCount}
+                                    </span>
+                                )}
                             </button>
-                            <button className="flex-1 bg-orange-600 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-orange-700 transition-all flex items-center justify-center gap-2 group">
-                                <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                            <button
+                                onClick={handleToggleSave}
+                                disabled={!user || isSaving}
+                                className={`flex-1 font-bold py-4 rounded-xl text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 group ${isSaved
+                                    ? 'bg-orange-600 text-white hover:bg-orange-700'
+                                    : 'bg-orange-50 text-orange-600 hover:bg-orange-100 border-2 border-orange-200'
+                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                <svg
+                                    className={`w-4 h-4 group-hover:scale-110 transition-transform ${isSaved ? 'fill-current' : ''}`}
+                                    fill={isSaved ? 'currentColor' : 'none'}
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                                 </svg>
-                                Save
+                                {isSaved ? 'Saved' : 'Save'}
                             </button>
                         </div>
                     </div>

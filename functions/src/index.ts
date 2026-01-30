@@ -6,6 +6,7 @@
 
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
@@ -183,7 +184,96 @@ export const initializeUserData = onCall(async (request) => {
             alreadyExists: false,
         };
     } catch (error) {
-        logger.error("Error creating user data:", error);
+        logger.error("Error in initializeUserData:", error);
         throw new HttpsError("internal", "Failed to initialize user data");
     }
 });
+
+/**
+ * Cloud Function: Update review like count
+ * Triggers when a reviewLike document is created or deleted
+ */
+
+export const updateReviewLikeCount = onDocumentCreated(
+    "reviewLikes/{likeId}",
+    async (event) => {
+        const likeData = event.data?.data();
+        if (!likeData) return;
+
+        const reviewId = likeData.reviewId;
+        const reviewRef = admin.firestore().collection("reviews").doc(reviewId);
+
+        try {
+            await reviewRef.update({
+                likes: FieldValue.increment(1),
+            });
+            logger.info(`Incremented like count for review ${reviewId}`);
+        } catch (error) {
+            logger.error(`Error incrementing like count for review ${reviewId}:`, error);
+        }
+    }
+);
+
+export const decrementReviewLikeCount = onDocumentDeleted(
+    "reviewLikes/{likeId}",
+    async (event) => {
+        const likeData = event.data?.data();
+        if (!likeData) return;
+
+        const reviewId = likeData.reviewId;
+        const reviewRef = admin.firestore().collection("reviews").doc(reviewId);
+
+        try {
+            await reviewRef.update({
+                likes: FieldValue.increment(-1),
+            });
+            logger.info(`Decremented like count for review ${reviewId}`);
+        } catch (error) {
+            logger.error(`Error decrementing like count for review ${reviewId}:`, error);
+        }
+    }
+);
+
+/**
+ * Cloud Function: Update post like count
+ * Triggers when a postLike document is created or deleted
+ */
+export const updatePostLikeCount = onDocumentCreated(
+    "postLikes/{likeId}",
+    async (event) => {
+        const likeData = event.data?.data();
+        if (!likeData) return;
+
+        const postId = likeData.postId;
+        const postRef = admin.firestore().collection("communityPosts").doc(postId);
+
+        try {
+            await postRef.update({
+                likes: FieldValue.increment(1),
+            });
+            logger.info(`Incremented like count for post ${postId}`);
+        } catch (error) {
+            logger.error(`Error incrementing like count for post ${postId}:`, error);
+        }
+    }
+);
+
+export const decrementPostLikeCount = onDocumentDeleted(
+    "postLikes/{likeId}",
+    async (event) => {
+        const likeData = event.data?.data();
+        if (!likeData) return;
+
+        const postId = likeData.postId;
+        const postRef = admin.firestore().collection("communityPosts").doc(postId);
+
+        try {
+            await postRef.update({
+                likes: FieldValue.increment(-1),
+            });
+            logger.info(`Decremented like count for post ${postId}`);
+        } catch (error) {
+            logger.error(`Error decrementing like count for post ${postId}:`, error);
+        }
+    }
+);

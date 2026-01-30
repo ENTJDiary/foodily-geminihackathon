@@ -1,32 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../src/contexts/AuthContext';
 import { Review } from '../../../types';
+import { subscribeRestaurantReviews, createReview } from '../../../services/reviewsService';
 import InsightFormModal from '../modals/InsightFormModal';
 import InsightDetailModal from '../modals/InsightDetailModal';
 
 interface CommunityInsightsPageProps {
-    reviews: Review[];
+    restaurantId: string;
+    restaurantName: string;
     selectedReview: Review | null;
     showInsightForm: boolean;
     onAddInsightClick: () => void;
     onReviewClick: (review: Review) => void;
     onCloseReviewDetail: () => void;
     onCloseInsightForm: () => void;
-    onSubmitInsight: (data: { userName: string; rating: number; comment: string }) => void;
-    onToggleLike: (reviewId: string) => void;
 }
 
 const CommunityInsightsPage: React.FC<CommunityInsightsPageProps> = ({
-    reviews,
+    restaurantId,
+    restaurantName,
     selectedReview,
     showInsightForm,
     onAddInsightClick,
     onReviewClick,
     onCloseReviewDetail,
     onCloseInsightForm,
-    onSubmitInsight,
-    onToggleLike,
 }) => {
+    const { currentUser: user, userProfile } = useAuth();
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [visibleReviews, setVisibleReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
+
+
+    // Subscribe to real-time reviews from Firestore
+    useEffect(() => {
+        if (!restaurantId) return;
+
+        const unsubscribe = subscribeRestaurantReviews(restaurantId, (fetchedReviews) => {
+            setReviews(fetchedReviews);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [restaurantId]);
 
     // Initialize and sync visible reviews with all reviews
     useEffect(() => {
@@ -45,13 +63,40 @@ const CommunityInsightsPage: React.FC<CommunityInsightsPageProps> = ({
         return () => clearInterval(intervalId); // Cleanup on unmount
     }, [reviews]);
 
+    const handleSubmitInsight = async (data: { userName: string; rating: number; comment: string }) => {
+        if (!user || !userProfile || submitting) return;
+
+        setSubmitting(true);
+        try {
+            await createReview(
+                user.uid,
+                userProfile.displayName || data.userName,
+                userProfile.profilePictureURL,
+                {
+                    restaurantId,
+                    restaurantName,
+                    rating: data.rating,
+                    comment: data.comment,
+                }
+            );
+            onCloseInsightForm();
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            alert('Failed to submit review. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <>
             <section className="space-y-4 px-2">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="font-black text-slate-900 uppercase tracking-widest text-[11px]">COMMUNITY INSIGHT</h3>
                     <button
-                        onClick={onAddInsightClick}
+                        onClick={() => {
+                            onAddInsightClick();
+                        }}
                         className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 active:scale-95 transition-all"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
@@ -100,16 +145,22 @@ const CommunityInsightsPage: React.FC<CommunityInsightsPageProps> = ({
             </section>
 
             {/* Modals */}
-            <InsightFormModal
-                isOpen={showInsightForm}
-                onClose={onCloseInsightForm}
-                onSubmit={onSubmitInsight}
-            />
-            <InsightDetailModal
-                review={selectedReview}
-                onClose={onCloseReviewDetail}
-                onToggleLike={onToggleLike}
-            />
+            {showInsightForm && (
+                <InsightFormModal
+                    isOpen={true}
+                    onClose={onCloseInsightForm}
+                    onSubmit={handleSubmitInsight}
+                    isSubmitting={submitting}
+                />
+            )}
+
+            {selectedReview && (
+                <InsightDetailModal
+                    review={selectedReview}
+                    onClose={onCloseReviewDetail}
+                    restaurantId={restaurantId}
+                />
+            )}
         </>
     );
 };

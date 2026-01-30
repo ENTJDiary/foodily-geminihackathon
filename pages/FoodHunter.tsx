@@ -9,8 +9,11 @@ import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import TrendingSlideshow from "@/components/common/TrendingSlideshow.tsx";
 import Clueless from '../components/features/Clueless';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
+import { trackRestaurantClick } from '../services/restaurantClicksService';
+import { useAuth } from '../src/contexts/AuthContext';
 
 const FoodHunter: React.FC = () => {
+  const { currentUser } = useAuth();
   const [dish, setDish] = useState('');
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -233,11 +236,27 @@ const FoodHunter: React.FC = () => {
             <ExpertPicksSection
               text={results.text}
               maxInitialPicks={5}
-              onRestaurantClick={(name) => setSelectedRestaurant({
-                id: name,
-                name: name,
-                searchedDish: dish
-              })}
+              onRestaurantClick={(name) => {
+                console.log('🍽️ [FoodHunter] Restaurant clicked:', name);
+                setSelectedRestaurant({
+                  id: name,
+                  name: name,
+                  searchedDish: dish
+                });
+                // Track restaurant click
+                if (currentUser) {
+                  console.log('📊 [FoodHunter] Tracking click for user:', currentUser.uid);
+                  trackRestaurantClick(currentUser.uid, {
+                    restaurantId: name,
+                    restaurantName: name,
+                    source: 'food_hunter'
+                  })
+                    .then(() => console.log('✅ [FoodHunter] Click tracked successfully'))
+                    .catch(err => console.error('❌ [FoodHunter] Failed to track click:', err));
+                } else {
+                  console.warn('⚠️ [FoodHunter] No user found, cannot track click');
+                }
+              }}
               onPicksExtracted={setPickedRestaurants}
               onLoadMore={handleLoadMore}
               isLoadingMore={loadingMore}

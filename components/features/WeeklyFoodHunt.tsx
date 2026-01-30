@@ -1,29 +1,109 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../src/contexts/AuthContext';
 import { analyzeWeeklyHabits } from '../../services/geminiService';
 import { HistoryEntry } from '../../types';
-import { updateHistoryEntry } from '../../services/storageService';
+import {
+  subscribeFoodLogs,
+  updateFoodLog,
+  foodLogToHistoryEntry
+} from '../../services/foodLogsService';
+import {
+  saveHabitAnalysis,
+  parseAnalysisText
+} from '../../services/habitAnalysisService';
 import DailyLogModal from './DailyLogModal';
 import HabitReportSection from './HabitReportSection';
 
-interface WeeklyFoodHuntProps {
-  history: HistoryEntry[];
-  onHistoryUpdate?: () => void;
-}
+// Helper functions to replace date-fns
+const getStartOfWeek = (date: Date) => {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 for Sunday, 1 for Monday, etc.
+  const diff = d.getDate() - day; // adjust date to get Sunday
+  return new Date(d.setDate(diff));
+};
 
-const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history, onHistoryUpdate }) => {
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const isSameDay = (d1: Date, d2: Date) => {
+  return d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+};
+
+const formatDayName = (date: Date) => {
+  return date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+};
+
+const WeeklyFoodHunt: React.FC = () => {
+  const { currentUser } = useAuth();
+  const [currentDay, setCurrentDay] = useState(new Date());
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
 
+  // Subscribe to weekly food logs from Firestore
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Calculate current week's date range
+    const today = new Date();
+    const start = getStartOfWeek(today); // Sunday
+    const weekDates = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+
+    // Format dates for query (YYYY-MM-DD)
+    const startDateStr = start.toISOString().split('T')[0];
+    const endDateStr = addDays(start, 6).toISOString().split('T')[0];
+
+    // Correctly call subscribe with callback as 2nd arg, then dates
+    const unsubscribe = subscribeFoodLogs(
+      currentUser.uid,
+      (logs) => {
+        // Convert FoodLog[] to HistoryEntry[]
+        const historyEntries = logs.map(foodLogToHistoryEntry);
+        setHistory(historyEntries);
+      },
+      startDateStr,
+      endDateStr
+    );
+
+    return () => unsubscribe();
+  }, [currentUser]);
+
   const handleAnalyze = async () => {
+    if (!currentUser) return;
     if (history.length === 0) {
       alert("Start searching for food to populate your weekly hunt!");
       return;
     }
+
     setLoading(true);
     try {
       const result = await analyzeWeeklyHabits(history);
       setAnalysis(result);
+
+      // Parse and save the analysis to Firestore
+      const parsed = parseAnalysisText(result);
+
+      const today = new Date();
+      const start = getStartOfWeek(today); // Sunday
+      const startDate = start.toISOString().split('T')[0];
+      const endDate = addDays(start, 6).toISOString().split('T')[0];
+
+      await saveHabitAnalysis(currentUser.uid, {
+        analysisText: result,
+        summaryPoints: parsed.summaryPoints,
+        nextStep: parsed.nextStep,
+        dateRangeStart: startDate,
+        dateRangeEnd: endDate,
+        totalLogsAnalyzed: history.length,
+      });
+
+      console.log('✅ Habit analysis saved to Firestore');
     } catch (err) {
       console.error(err);
     } finally {
@@ -35,11 +115,19 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history, onHistoryUpdat
     setEditingEntry(entry);
   };
 
-  const handleSaveEntry = (updates: Partial<HistoryEntry>) => {
-    if (editingEntry) {
-      updateHistoryEntry(editingEntry.id, updates);
+  const handleSaveEntry = async (updates: Partial<HistoryEntry>) => {
+    if (!editingEntry || !currentUser) return;
+
+    try {
+      await updateFoodLog(currentUser.uid, editingEntry.id, {
+        restaurantName: updates.restaurantName,
+        logs: updates.logs,
+        foodType: updates.foodType,
+      });
       setEditingEntry(null);
-      if (onHistoryUpdate) onHistoryUpdate();
+    } catch (error) {
+      console.error('Error updating food log:', error);
+      alert('Failed to update food log. Please try again.');
     }
   };
 
@@ -75,7 +163,7 @@ const WeeklyFoodHunt: React.FC<WeeklyFoodHuntProps> = ({ history, onHistoryUpdat
         </h3>
         <button
           onClick={handleAnalyze}
-          disabled={loading}
+          disabled={loading || !currentUser}
           className="text-[10px] font-black text-orange-600 hover:bg-orange-50 uppercase tracking-[0.2em] px-5 py-2.5 bg-white border border-orange-200 rounded-full transition-all disabled:opacity-50"
         >
           {loading ? 'Analyzing...' : 'Analyze Habits'}

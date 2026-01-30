@@ -11,9 +11,12 @@ import { getAverageRating, saveSearchToHistory, getWeeklyHistory, getUserProfile
 import { getCurrentLocation } from '../services/locationService';
 import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
+import { trackRestaurantClick } from '../services/restaurantClicksService';
+import { useAuth } from '../src/contexts/AuthContext';
 
 
 const FoodGatcha: React.FC = () => {
+  const { currentUser } = useAuth();
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string; searchedDish?: string } | null>(null);
@@ -141,11 +144,21 @@ const FoodGatcha: React.FC = () => {
           <ExpertPicksSection
             text={results.text}
             maxInitialPicks={5}
-            onRestaurantClick={(name) => setSelectedRestaurant({
-              id: name,
-              name: name,
-              searchedDish: history[history.length - 1]?.foodType
-            })}
+            onRestaurantClick={(name) => {
+              setSelectedRestaurant({
+                id: name,
+                name: name,
+                searchedDish: history[history.length - 1]?.foodType
+              });
+              // Track restaurant click
+              if (currentUser) {
+                trackRestaurantClick(currentUser.uid, {
+                  restaurantId: name,
+                  restaurantName: name,
+                  source: 'food_gacha'
+                }).catch(err => console.error('Failed to track click:', err));
+              }
+            }}
             onPicksExtracted={setPickedRestaurants}
             onLoadMore={handleLoadMore}
             isLoadingMore={loadingMore}

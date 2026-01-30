@@ -1,6 +1,22 @@
 
 import { Review, RestaurantData, HistoryEntry, UserProfile, MenuItem } from "../types";
 
+/**
+ * ⚠️ DEPRECATION NOTICE ⚠️
+ * 
+ * This file contains legacy localStorage-based storage functions.
+ * Most functions have been migrated to Firestore services:
+ * 
+ * - Reviews → reviewsService.ts, reviewLikesService.ts
+ * - Menu Items → communityPostsService.ts, postLikesService.ts
+ * - Food Logs → foodLogsService.ts
+ * - Saved Restaurants → savedRestaurantsService.ts
+ * - Habit Analysis → habitAnalysisService.ts
+ * 
+ * Only user profile functions remain active for backward compatibility.
+ * All other functions should be considered deprecated.
+ */
+
 const REVIEWS_KEY = "flavorfinder_reviews";
 const HISTORY_KEY = "flavorfinder_search_history";
 const PROFILE_KEY = "flavorfinder_user_profile";

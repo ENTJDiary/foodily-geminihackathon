@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getRestaurantData, saveReview, getAverageRating, addMenuItem, toggleReviewLike, isRestaurantSaved, toggleSaveRestaurant } from '../../services/storageService';
+import { getRestaurantData, saveReview, getAverageRating, addMenuItem, toggleReviewLike } from '../../services/storageService';
+import { isRestaurantSaved, toggleSaveRestaurant } from '../../services/savedRestaurantsService';
+import { useAuth } from '../../src/contexts/AuthContext';
 import { getRestaurantDetails } from '../../services/geminiService';
 import { searchPlaceByName, getGoogleMapsUrl } from '../../services/placesService';
 import { Review, SearchResult, MenuItem, PlaceDetails } from '../../types';
@@ -29,7 +31,21 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [showAddDish, setShowAddDish] = useState(false);
   const [showInsightForm, setShowInsightForm] = useState(false);
-  const [isSaved, setIsSaved] = useState(isRestaurantSaved(restaurantId));
+  const { currentUser: user } = useAuth();
+  const [isSaved, setIsSaved] = useState(false);
+
+
+
+  // Check if restaurant is saved
+  useEffect(() => {
+    const checkSavedStatus = async () => {
+      if (user) {
+        const saved = await isRestaurantSaved(user.uid, restaurantId);
+        setIsSaved(saved);
+      }
+    };
+    checkSavedStatus();
+  }, [user, restaurantId]);
 
   // Function to load restaurant details (can be called for retry)
   const loadDetails = async () => {
@@ -175,14 +191,27 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     window.open(mapsUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleToggleSave = () => {
-    toggleSaveRestaurant({
-      id: restaurantId,
-      name: restaurantName,
-      rating: avgRating,
-      priceRating: priceRating,
-    });
-    setIsSaved(!isSaved);
+  const handleToggleSave = async () => {
+    if (!user) {
+      alert("Please log in to save restaurants!");
+      return;
+    }
+
+    try {
+      const saved = await toggleSaveRestaurant(user.uid, {
+        restaurantId,
+        restaurantName,
+        restaurantPhoto: menuItems[0]?.image || menuItems[0]?.images?.[0] || undefined,
+        cuisineTypes: [], // TODO: Extract from details or implement cuisine detection
+        rating: avgRating,
+        priceRating: priceRating,
+      });
+      setIsSaved(saved);
+    } catch (error) {
+      console.error("Error toggling save:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to update saved status: ${errorMessage}`);
+    }
   };
 
   return (
@@ -201,24 +230,24 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
               <div className="flex items-center gap-3">
                 <div className="flex text-white">
                   {[1, 2, 3, 4, 5].map((s) => (
-                      <svg key={s} className={`w-5 h-5 ${avgRating >= s ? 'fill-current' : 'opacity-20'}`} viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                    <svg key={s} className={`w-5 h-5 ${avgRating >= s ? 'fill-current' : 'opacity-20'}`} viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
                   ))}
                 </div>
                 <span className="font-black text-lg">
-          {avgRating > 0 ? avgRating.toFixed(1) : 'New'}
-        </span>
+                  {avgRating > 0 ? avgRating.toFixed(1) : 'New'}
+                </span>
                 <span className="text-orange-200 text-xs font-bold uppercase tracking-widest ml-2">
-          ({reviews.length} Insights)
-        </span>
+                  ({reviews.length} Insights)
+                </span>
               </div>
             </div>
 
             {/* RIGHT — close (unchanged) */}
             <button
-                onClick={onClose}
-                className="p-3 hover:bg-white/10 rounded-full transition-colors text-white"
+              onClick={onClose}
+              className="p-3 hover:bg-white/10 rounded-full transition-colors text-white"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -231,14 +260,14 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
 
             {/* Price — unchanged */}
             {priceRating > 0 && (
-                <PriceRating rating={priceRating} />
+              <PriceRating rating={priceRating} />
             )}
 
             {/* Explore + Bookmark — unchanged */}
             <div className="flex items-center gap-2">
               <button
-                  onClick={handleExploreClick}
-                  className="px-4 py-2 bg-white text-orange-600 font-bold rounded-lg hover:bg-orange-50 transition-all shadow-md flex items-center gap-1.5 active:scale-95 text-sm"
+                onClick={handleExploreClick}
+                className="px-4 py-2 bg-white text-orange-600 font-bold rounded-lg hover:bg-orange-50 transition-all shadow-md flex items-center gap-1.5 active:scale-95 text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -247,16 +276,16 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
               </button>
 
               <button
-                  onClick={handleToggleSave}
-                  className="p-3 hover:bg-white/10 rounded-full transition-colors"
-                  title={isSaved ? "Unsave restaurant" : "Save restaurant"}
+                onClick={handleToggleSave}
+                className="p-3 hover:bg-white/10 rounded-full transition-colors"
+                title={isSaved ? "Unsave restaurant" : "Save restaurant"}
               >
                 <svg
-                    className={`w-6 h-6 ${isSaved ? 'text-yellow-400 fill-current' : 'text-slate-300'}`}
-                    fill={isSaved ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
+                  className={`w-6 h-6 ${isSaved ? 'text-yellow-400 fill-current' : 'text-slate-300'}`}
+                  fill={isSaved ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
@@ -272,20 +301,20 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
 
           {/* Community Insights Section */}
           <CommunityInsightsPage
-            reviews={reviews}
+            restaurantId={restaurantId}
+            restaurantName={restaurantName}
             selectedReview={selectedReview}
             showInsightForm={showInsightForm}
             onAddInsightClick={() => setShowInsightForm(true)}
             onReviewClick={setSelectedReview}
             onCloseReviewDetail={() => setSelectedReview(null)}
             onCloseInsightForm={() => setShowInsightForm(false)}
-            onSubmitInsight={handleSubmitInsight}
-            onToggleLike={handleToggleReviewLike}
           />
 
           {/* Community Menu Section */}
           <CommunityMenuPage
-            menuItems={menuItems}
+            restaurantId={restaurantId}
+            restaurantName={restaurantName}
             selectedMenuItem={selectedMenuItem}
             showAddDish={showAddDish}
             searchedDish={searchedDish}
@@ -293,8 +322,6 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
             onMenuItemClick={setSelectedMenuItem}
             onCloseMenuItemDetail={() => setSelectedMenuItem(null)}
             onCloseAddDish={() => setShowAddDish(false)}
-            onSubmitMenuItem={handleSubmitMenuItem}
-            onToggleLike={toggleLike}
           />
         </div>
       </div>
