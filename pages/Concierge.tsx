@@ -9,6 +9,7 @@ import { getCurrentLocation } from '../services/locationService';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
 import { trackRestaurantClick } from '../services/restaurantClicksService';
 import { useAuth } from '../src/contexts/AuthContext';
+import { autoLogFoodSearch } from '../services/foodLogsService';
 
 const Concierge: React.FC = () => {
   const { currentUser } = useAuth();
@@ -64,6 +65,10 @@ const Concierge: React.FC = () => {
 
       const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords);
       setResult(response);
+
+      if (currentUser) {
+        autoLogFoodSearch(currentUser.uid, 'Concierge', occasion);
+      }
     } catch (error) {
       console.error(error);
       alert("Concierge is currently busy. Please try again.");

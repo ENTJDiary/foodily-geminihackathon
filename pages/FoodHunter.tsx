@@ -11,6 +11,7 @@ import Clueless from '../components/features/Clueless';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
 import { trackRestaurantClick } from '../services/restaurantClicksService';
 import { useAuth } from '../src/contexts/AuthContext';
+import { autoLogFoodSearch } from '../services/foodLogsService';
 
 const FoodHunter: React.FC = () => {
   const { currentUser } = useAuth();
@@ -84,6 +85,12 @@ const FoodHunter: React.FC = () => {
       );
 
       setResults(response);
+
+      if (dish && currentUser) {
+        autoLogFoodSearch(currentUser.uid, 'Search', dish);
+      } else if (locationName && currentUser) {
+        autoLogFoodSearch(currentUser.uid, 'Local Hunt', locationName);
+      }
 
       if (dish) {
         saveSearchToHistory('', dish);

@@ -13,6 +13,7 @@ import ExpertPicksSection from '../components/common/ExpertPicksSection';
 import LoadingRecommendations from '../components/common/LoadingRecommendations';
 import { trackRestaurantClick } from '../services/restaurantClicksService';
 import { useAuth } from '../src/contexts/AuthContext';
+import { autoLogFoodSearch } from '../services/foodLogsService';
 
 
 const FoodGatcha: React.FC = () => {
@@ -73,6 +74,11 @@ const FoodGatcha: React.FC = () => {
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, []);
       setResults(response);
+
+      if (currentUser) {
+        autoLogFoodSearch(currentUser.uid, cuisine, foodType);
+      }
+
       saveSearchToHistory(cuisine, foodType);
       setHistory(getWeeklyHistory());
     } catch (error) {
@@ -91,6 +97,11 @@ const FoodGatcha: React.FC = () => {
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, []);
       setResults(response);
+
+      if (currentUser) {
+        autoLogFoodSearch(currentUser.uid, 'Wheel', foodName);
+      }
+
       // Save to history with foodName as both cuisine and foodType
       saveSearchToHistory('Wheel', foodName);
       setHistory(getWeeklyHistory());

@@ -136,16 +136,22 @@ export const getFoodLogs = async (
 export const getWeeklyLogs = async (userId: string): Promise<FoodLog[]> => {
     try {
         const today = new Date();
-        const dayOfWeek = today.getDay();
-        const sundayOfCurrentWeek = new Date(today);
-        sundayOfCurrentWeek.setDate(today.getDate() - dayOfWeek);
+        const start = new Date(today);
+        start.setHours(0, 0, 0, 0);
+        start.setDate(today.getDate() - today.getDay()); // Sunday
 
-        // Format dates as YYYY-MM-DD
-        const startDate = sundayOfCurrentWeek.toISOString().split('T')[0];
+        const toLocalDateString = (d: Date) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
 
-        const saturdayOfCurrentWeek = new Date(sundayOfCurrentWeek);
-        saturdayOfCurrentWeek.setDate(sundayOfCurrentWeek.getDate() + 6);
-        const endDate = saturdayOfCurrentWeek.toISOString().split('T')[0];
+        const startDate = toLocalDateString(start);
+
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        const endDate = toLocalDateString(end);
 
         return await getFoodLogs(userId, startDate, endDate);
     } catch (error) {
@@ -241,6 +247,34 @@ export const foodLogToHistoryEntry = (foodLog: FoodLog): HistoryEntry => {
         logs: foodLog.logs,
         timestamp: foodLog.createdAt?.toMillis() || Date.now(),
     };
+};
+
+/**
+ * Auto-log a search event as a food log for the current day
+ */
+export const autoLogFoodSearch = async (
+    userId: string,
+    cuisine: string,
+    foodType: string,
+    restaurantName?: string
+): Promise<void> => {
+    try {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        await createFoodLog(userId, {
+            date: dateStr,
+            cuisine: cuisine || 'General',
+            foodType: foodType || 'Exploring',
+            restaurantName: restaurantName || ''
+        });
+        console.log('✅ Auto-logged search to Weekly Food Hunt');
+    } catch (error) {
+        console.error('❌ Error auto-logging food search:', error);
+    }
 };
 
 /**
