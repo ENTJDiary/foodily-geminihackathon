@@ -5,71 +5,72 @@ const EmailSignup: React.FC = () => {
     const [email, setEmail] = useState('');
     const navigate = useNavigate();
 
+
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (email) {
-            // Redirect to signup page with email pre-filled
             navigate('/signup', { state: { email } });
         }
     };
 
     return (
-        <div className="w-full py-24 px-6 bg-white">
-            <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="relative w-full h-full flex items-center justify-center p-6">
 
-                {/* Heading */}
-                <div className="space-y-4">
-                    <h2 className="text-5xl lg:text-6xl font-black text-slate-900 leading-tight">
-                        Join the Food Revolution
-                    </h2>
-                    <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
-                        Get early access to personalized food recommendations powered by AI.
-                        Start discovering your next favorite dish today.
-                    </p>
-                </div>
+            {/* Ambient Background Glow (Optional enhancement) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white/50 blur-3xl pointer-events-none -z-10" />
 
-                {/* Email Form */}
-                <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
-                    <div className="flex flex-col sm:flex-row gap-4">
+            {/* Main Card */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/50 p-8 md:p-12 max-w-xl w-full text-center relative overflow-hidden">
+
+                {/* Content Container */}
+                <div className="space-y-8 relative z-10">
+
+                    {/* Header */}
+                    <div className="space-y-3">
+                        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 font-cormorant tracking-tight">
+                            Join the waitlist
+                        </h2>
+                        <p className="text-slate-500 font-medium font-inter text-sm md:text-base max-w-md mx-auto leading-relaxed">
+                            Get early access to Foodily, the intelligent AI food companion built for modern foodies.
+                        </p>
+                    </div>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
+                            placeholder="name@email.com"
                             required
-                            className="flex-1 px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:outline-none text-lg font-medium transition-colors duration-300"
+                            className="flex-1 px-5 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all font-inter text-slate-700 placeholder:text-slate-400"
                         />
                         <button
                             type="submit"
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap"
+                            className="bg-slate-900 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold font-inter text-sm transition-all duration-300 shadow-lg hover:shadow-orange-500/20 active:scale-95 shrink-0"
                         >
-                            Get Started
+                            Sign Up
                         </button>
-                    </div>
-                </form>
+                    </form>
 
-                {/* Trust indicators */}
-                <div className="flex flex-wrap justify-center items-center gap-8 pt-8 text-slate-500">
-                    <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-sm font-semibold">Free to join</span>
+                    {/* Social Proof */}
+                    <div className="flex items-center justify-center gap-3 py-2">
+                        <div className="flex -space-x-3">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
+                                    <img src={`https://i.pravatar.cc/100?img=${i + 20}`} alt="User" className="w-full h-full object-cover" />
+                                </div>
+                            ))}
+                        </div>
+                        <span className="text-xs font-semibold text-slate-400 font-inter">
+                            + 10k Foodies is interested in Food.ily
+                        </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-sm font-semibold">No credit card required</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-sm font-semibold">Cancel anytime</span>
-                    </div>
+
+
+
                 </div>
-
             </div>
         </div>
     );

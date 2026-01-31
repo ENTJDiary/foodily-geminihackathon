@@ -6,17 +6,18 @@ const StatsSection: React.FC = () => {
     const rankings = getUserRankings();
     const nutrients = getNutrientAnalysis();
 
-    const [hoverTarget, setHoverTarget] = useState<{ key: string; type: 'point' | 'label' } | null>(null);
+    const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
+    const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
     const [hoveredNutrient, setHoveredNutrient] = useState<string | null>(null);
 
     // Hexagon configuration
     const hexagonStats = [
-        { key: 'healthLevel', label: 'Health Level', value: stats.healthLevel, angle: 0, description: "Overall nutrient quality of your recent meals" },
-        { key: 'exp', label: 'Exp Lvl', value: stats.exp, angle: 60, description: "Variety of different cuisines and restaurants tried" },
-        { key: 'coinsSpent', label: 'Coins', value: stats.coinsSpent, angle: 120, description: "Total spending on dining out" },
-        { key: 'satisfactory', label: 'Satisfactory', value: stats.satisfactory, angle: 180, description: "Average rating of your dining experiences" },
-        { key: 'balance', label: 'Balance', value: stats.balance, angle: 240, description: "Macronutrient balance (Protein/Fat/Carbs)" },
-        { key: 'intensity', label: 'Intensity', value: stats.intensity, angle: 300, description: "Flavor intensity profile of your favorite foods" },
+        { key: 'healthLevel', label: 'Health Level', value: stats.healthLevel, angle: 0, description: 'Overall wellness score based on your nutrient intake and consistency.' },
+        { key: 'exp', label: 'Exp Lvl', value: stats.exp, angle: 60, description: 'Your level based on app usage and community contributions.' },
+        { key: 'coinsSpent', label: 'Coins', value: stats.coinsSpent, angle: 120, description: 'Total value of coins redeemed for discounts and offers.' },
+        { key: 'satisfactory', label: 'Satisfactory', value: stats.satisfactory, angle: 180, description: 'Average satisfaction rating from your reviews.' },
+        { key: 'balance', label: 'Balance', value: stats.balance, angle: 240, description: 'Variety score based on different cuisines tried.' },
+        { key: 'intensity', label: 'Intensity', value: stats.intensity, angle: 300, description: 'Frequency of dining out vs. home cooking.' },
     ];
 
     // Calculate hexagon points
@@ -82,7 +83,7 @@ const StatsSection: React.FC = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* 1st Bracket - Hexagon Stats */}
-            <div className="bg-white p-8 rounded-2xl border border-orange-100 shadow-sm relative z-10">
+            <div className="bg-white p-8 rounded-2xl border border-orange-100 shadow-sm">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Stats Overview</h3>
 
                 <div className="flex justify-center items-center">
@@ -146,8 +147,7 @@ const StatsSection: React.FC = () => {
                         {/* Data points */}
                         {hexagonStats.map((stat) => {
                             const point = getPoint(stat.angle, stat.value);
-                            const isHovered = hoverTarget?.key === stat.key;
-                            const showValue = isHovered && hoverTarget?.type === 'point';
+                            const isHovered = hoveredPoint === stat.key;
 
                             return (
                                 <g key={stat.key}>
@@ -159,35 +159,32 @@ const StatsSection: React.FC = () => {
                                         stroke="white"
                                         strokeWidth="2"
                                         className="transition-all duration-200 cursor-pointer"
-                                        onMouseEnter={() => setHoverTarget({ key: stat.key, type: 'point' })}
-                                        onMouseLeave={() => setHoverTarget(null)}
+                                        onMouseEnter={() => setHoveredPoint(stat.key)}
+                                        onMouseLeave={() => setHoveredPoint(null)}
                                     />
 
-                                    {/* Value Tooltip (only when hovering point) */}
-                                    {showValue && (
-                                        <g className="animate-in fade-in zoom-in duration-200">
+                                    {/* Hover tooltip */}
+                                    {isHovered && (
+                                        <g>
                                             <rect
-                                                x={point.x - 20}
+                                                x={point.x - 25}
                                                 y={point.y - 35}
-                                                width="40"
+                                                width="50"
                                                 height="24"
                                                 rx="6"
                                                 fill="#1e293b"
-                                                className="shadow-xl"
+                                                opacity="0.95"
                                             />
                                             <text
                                                 x={point.x}
-                                                y={point.y - 19}
+                                                y={point.y - 18}
                                                 textAnchor="middle"
-                                                dominantBaseline="middle"
                                                 fill="white"
                                                 fontSize="12"
                                                 fontWeight="bold"
                                             >
                                                 {stat.value}
                                             </text>
-                                            {/* Little triangle pointing down */}
-                                            <path d={`M${point.x} ${point.y - 11} L${point.x - 5} ${point.y - 11} L${point.x} ${point.y - 6} L${point.x + 5} ${point.y - 11} Z`} fill="#1e293b" />
                                         </g>
                                     )}
                                 </g>
@@ -197,51 +194,55 @@ const StatsSection: React.FC = () => {
                         {/* Labels */}
                         {hexagonStats.map((stat) => {
                             const labelPos = getLabelPoint(stat.angle);
-                            const isHovered = hoverTarget?.key === stat.key;
-                            const showDescription = isHovered && hoverTarget?.type === 'label';
+                            const isLabelHovered = hoveredLabel === stat.key;
+
+                            // Determine tooltip position based on angle to avoid blocking the chart
+                            let tooltipX = labelPos.x - 80; // Default centered x for top/bottom
+                            let tooltipY = labelPos.y;
+
+                            if (stat.angle === 0) { // Top (Health Level)
+                                tooltipY = labelPos.y - 110;
+                            } else if (stat.angle === 180) { // Bottom (Satisfactory)
+                                tooltipY = labelPos.y + 25;
+                            } else if (stat.angle === 60 || stat.angle === 120) { // Right (Exp, Coins)
+                                tooltipX = labelPos.x + 10;
+                                tooltipY = labelPos.y - 50; // Center vertically relative to tooltip height
+                            } else { // Left (Balance, Intensity)
+                                tooltipX = labelPos.x - 170;
+                                tooltipY = labelPos.y - 50; // Center vertically
+                            }
 
                             return (
                                 <g key={`label-group-${stat.key}`}>
                                     <text
+                                        key={`label-${stat.key}`}
                                         x={labelPos.x}
                                         y={labelPos.y}
                                         textAnchor="middle"
                                         dominantBaseline="middle"
-                                        fill={isHovered ? "#FF6B35" : "#64748b"}
+                                        fill="#64748b"
                                         fontSize="11"
                                         fontWeight="700"
-                                        className="cursor-pointer uppercase tracking-wider transition-colors duration-200"
-                                        onMouseEnter={() => setHoverTarget({ key: stat.key, type: 'label' })}
-                                        onMouseLeave={() => setHoverTarget(null)}
+                                        className="cursor-pointer uppercase tracking-wider"
+                                        onMouseEnter={() => setHoveredLabel(stat.key)}
+                                        onMouseLeave={() => setHoveredLabel(null)}
                                     >
                                         {stat.label}
                                     </text>
 
-                                    {/* Description Tooltip (only when hovering label) */}
-                                    {showDescription && (
-                                        <g className="animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-none">
-                                            {/* 
-                                                Center the tooltip above/below/near the label depending on position.
-                                                For simplicity, we'll position it closer to the center or just below the label.
-                                                Let's try positioning it dynamically based on angle or just fixed near the label.
-                                                
-                                                Since we are inside SVG, we need to be careful with text wrapping.
-                                                A foreignObject might be better for wrapping text, or just a wide rect.
-                                            */}
-                                            <foreignObject
-                                                x={labelPos.x - 75}
-                                                y={labelPos.y + 15}
-                                                width="150"
-                                                height="80"
-                                                className="overflow-visible"
-                                            >
-                                                <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center">
-                                                    <div className="bg-slate-800 text-white text-[10px] p-2 rounded-lg shadow-xl text-center leading-tight max-w-[140px] border border-slate-700">
-                                                        {stat.description}
-                                                    </div>
-                                                </div>
-                                            </foreignObject>
-                                        </g>
+                                    {/* Description Tooltip for Label */}
+                                    {isLabelHovered && (
+                                        <foreignObject
+                                            x={tooltipX}
+                                            y={tooltipY}
+                                            width="160"
+                                            height="100"
+                                            className="pointer-events-none"
+                                        >
+                                            <div className="bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg text-center leading-tight animate-in fade-in zoom-in duration-200">
+                                                {stat.description}
+                                            </div>
+                                        </foreignObject>
                                     )}
                                 </g>
                             );
