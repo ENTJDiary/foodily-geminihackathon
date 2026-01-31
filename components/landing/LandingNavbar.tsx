@@ -60,16 +60,22 @@ const LandingNavbar: React.FC<LandingNavbarProps> = ({ isScrolled: externalScrol
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-8">
                     <button
+                        onClick={() => scrollToSection('why-foodily')}
+                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
+                    >
+                        Why Food.ily
+                    </button>
+                    <button
+                        onClick={() => scrollToSection('features')}
+                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
+                    >
+                        Features
+                    </button>
+                    <button
                         onClick={() => scrollToSection('community')}
                         className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
                     >
                         Community Favourites
-                    </button>
-                    <button
-                        onClick={() => scrollToSection('hunter')}
-                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
-                    >
-                        Features
                     </button>
                     <button
                         onClick={() => scrollToSection('join')}
