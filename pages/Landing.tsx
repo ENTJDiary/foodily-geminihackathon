@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserPostCarousel from '../components/landing/UserPostCarousel';
 import UserPostCard from '../components/landing/UserPostCard';
@@ -6,6 +6,7 @@ import FeatureShowcase from '../components/landing/FeatureShowcase';
 import EmailSignup from '../components/landing/EmailSignup';
 import FAQSection from '../components/landing/FAQSection';
 import Footer from '../components/layout/Footer';
+import LandingNavbar from '../components/landing/LandingNavbar';
 
 // Import preview images
 import foodHunterPreview from '../components/landing/image/food-hunter-recolored.png';
@@ -14,6 +15,27 @@ import conciergeIcon from '../components/landing/image/concierge-icon-minimal.pn
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sections definition for navigation
+  const sections = [
+    { id: 'hero', label: 'Home' },
+    { id: 'community', label: 'Community' },
+    { id: 'hunter', label: 'Food Hunter' },
+    { id: 'gacha', label: 'Food Gacha' },
+    { id: 'concierge', label: 'Concierge' },
+    { id: 'join', label: 'Join' },
+    { id: 'faq', label: 'FAQ' }
+  ];
+
+  // Handle scroll on the container
+  const handleScroll = () => {
+    if (containerRef.current) {
+      setIsScrolled(containerRef.current.scrollTop > 20);
+    }
+  };
 
   // Dummy user posts data (15 posts for Community Favourites section)
   const userPosts = [
@@ -109,18 +131,61 @@ const Landing: React.FC = () => {
     }
   ];
 
+  // Intersection Observer to track active section
+  useEffect(() => {
+    const options = {
+      root: containerRef.current,
+      threshold: 0.5, // Trigger when 50% of the section is visible
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const index = sections.findIndex(section => section.id === entry.target.id);
+          if (index !== -1) {
+            setActiveSection(index);
+          }
+        }
+      });
+    }, options);
+
+    const sectionElements = document.querySelectorAll('section');
+    sectionElements.forEach((el) => observer.observe(el));
+
+    return () => {
+      sectionElements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
+
+  const scrollToSection = (index: number) => {
+    const sectionId = sections[index].id;
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-      <div className="min-h-screen flex flex-col overflow-x-hidden bg-white">
+    <div className="relative h-screen w-full overflow-hidden bg-white">
+      <LandingNavbar isScrolled={isScrolled} />
 
-        {/* ================= L1: HERO SECTION ================= */}
-        <section className="relative w-full min-h-screen flex items-center bg-zinc-50 overflow-hidden">
+
+
+      {/* Main Snap Container */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="h-full w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar"
+      >
+
+        {/* ================= S1: HERO SECTION ================= */}
+        <section id="hero" className="w-full h-screen snap-start relative flex items-center bg-zinc-50 overflow-hidden shrink-0">
 
           {/* Background blobs for premium feel */}
           <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-orange-200/30 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-orange-100/40 rounded-full blur-[120px]" />
 
-          <div className="max-w-[1400px] w-full mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10 pt-20 lg:pt-0">
+          <div className="max-w-[1400px] w-full mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
 
             {/* LEFT COLUMN: Text Content */}
             <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
@@ -144,8 +209,8 @@ const Landing: React.FC = () => {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                 <button
-                    onClick={() => navigate('/signup')}
-                    className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-slate-200"
+                  onClick={() => navigate('/signup')}
+                  className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-slate-200"
                 >
                   Try Out
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,8 +219,8 @@ const Landing: React.FC = () => {
                 </button>
 
                 <button
-                    onClick={() => navigate('/login')}
-                    className="w-full sm:w-auto bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-lg border border-slate-200 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                  onClick={() => navigate('/login')}
+                  className="w-full sm:w-auto bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-lg border border-slate-200 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                 >
                   Learn More
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,11 +229,11 @@ const Landing: React.FC = () => {
                 </button>
               </div>
 
-              {/* Stats/Social Proof (optional enhancement to match VivaChat vibe) */}
+              {/* Stats/Social Proof */}
               <div className="flex items-center gap-8 pt-4">
                 <div className="flex -space-x-3">
                   {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200" style={{ backgroundImage: `url(https://i.pravatar.cc/100?img=${i + 10})`, backgroundSize: 'cover' }} />
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200" style={{ backgroundImage: `url(https://i.pravatar.cc/100?img=${i + 10})`, backgroundSize: 'cover' }} />
                   ))}
                 </div>
                 <div>
@@ -178,67 +243,51 @@ const Landing: React.FC = () => {
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Visuals (Grid Layout like VivaChat) */}
+            {/* RIGHT COLUMN: Visuals */}
             <div className="relative h-[800px] w-full hidden lg:block overflow-hidden mask-image-gradient">
-
-              {/* Grid Container */}
               <div className="grid grid-cols-2 gap-6 h-full absolute inset-0 transform scale-90 origin-top">
-
-                {/* Column 1 (Left-ish): 2 Cards (Middle & Bottom aligned relative to Col 2) */}
                 <div className="flex flex-col gap-6 justify-center pt-20">
                   <UserPostCard {...userPosts[0]} className="animate-[float_6s_ease-in-out_infinite]" />
                   <UserPostCard {...userPosts[1]} className="animate-[float_7s_ease-in-out_infinite_1s]" />
                 </div>
-
-                {/* Column 2 (Right-ish): 3 Cards (Top, Center-Main, Bottom) */}
                 <div className="flex flex-col gap-6 -mt-20">
-                  {/* Top Partial Card */}
                   <div className="opacity-60 scale-90 blur-[1px]">
                     <UserPostCard {...userPosts[2]} />
                   </div>
-
-                  {/* Main Highlighted Card (The "Circled" one) */}
                   <div className="relative z-10 scale-110 shadow-2xl animate-[float_5s_ease-in-out_infinite_0.5s]">
                     <UserPostCard
-                        {...userPosts[3]}
-                        className="ring-4 ring-white scale-[1.15]"
+                      {...userPosts[3]}
+                      className="ring-4 ring-white scale-[1.15]"
                     />
                   </div>
-
-                  {/* Bottom Partial Card */}
                   <div className="opacity-60 scale-90 blur-[1px]">
                     <UserPostCard {...userPosts[4]} />
                   </div>
                 </div>
-
               </div>
-
-              {/* Decorative Elements */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/30 rounded-full blur-3xl -z-10" />
             </div>
 
           </div>
         </section>
 
-        {/* ================= COMMUNITY FAVOURITES SECTION (Three-Layer Glassmorphism) ================= */}
-        <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-slate-50 to-orange-100">
+        {/* ================= S2: COMMUNITY FAVOURITES SECTION ================= */}
+        <section id="community" className="w-full h-screen snap-start relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-slate-50 to-orange-100 shrink-0">
 
           {/* LOWER LAYER: Masked Image Collage */}
           <div className="absolute inset-0 overflow-hidden">
-            <div
-                className="grid grid-cols-5 gap-6 p-12 max-w-[1600px] mx-auto"
-            >
+            <div className="grid grid-cols-5 gap-6 p-12 max-w-[1600px] mx-auto opacity-40 blur-sm">
               {userPosts.slice(0, 15).map((post, index) => (
-                  <div
-                      key={`mask-${index}`}
-                      className="aspect-square rounded-2xl overflow-hidden shadow-lg transform"
-                  >
-                    <img
-                        src={post.imageUrl}
-                        alt={post.dishName}
-                        className="w-full h-full object-cover opacity-60"
-                    />
-                  </div>
+                <div
+                  key={`mask-${index}`}
+                  className="aspect-square rounded-2xl overflow-hidden shadow-lg transform"
+                >
+                  <img
+                    src={post.imageUrl}
+                    alt={post.dishName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -261,46 +310,39 @@ const Landing: React.FC = () => {
                 {/* UPPER LAYER: 3 Featured Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {userPosts.slice(0, 3).map((post, index) => (
-                      <div
-                          key={`featured-${index}`}
-                          className="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white transform hover:scale-105 hover:rotate-1 transition-all duration-300 cursor-pointer"
-                      >
-                        {/* Food Image */}
-                        <div className="aspect-square bg-gradient-to-br from-orange-100 to-slate-100 relative overflow-hidden">
-                          <img
-                              src={post.imageUrl}
-                              alt={post.dishName}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                // Fallback gradient if image fails to load
-                                e.currentTarget.style.display = 'none';
-                              }}
-                          />
-                        </div>
-
-                        {/* Card Footer */}
-                        <div className="p-4">
-                          <h3 className="font-bold text-slate-900 text-lg mb-2 truncate">
-                            {post.dishName}
-                          </h3>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
-                                {post.userName.charAt(0)}
-                              </div>
-                              <span className="text-sm text-slate-600 font-medium truncate">
-                            {post.userName}
-                          </span>
+                    <div
+                      key={`featured-${index}`}
+                      className="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white transform hover:scale-105 hover:rotate-1 transition-all duration-300 cursor-pointer"
+                    >
+                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-slate-100 relative overflow-hidden">
+                        <img
+                          src={post.imageUrl}
+                          alt={post.dishName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-slate-900 text-lg mb-2 truncate">
+                          {post.dishName}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
+                              {post.userName.charAt(0)}
                             </div>
-                            <div className="flex items-center gap-1 text-slate-500">
-                              <svg className="w-5 h-5 fill-orange-500" viewBox="0 0 24 24">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                              </svg>
-                              <span className="text-sm font-semibold">{post.likes}</span>
-                            </div>
+                            <span className="text-sm text-slate-600 font-medium truncate">
+                              {post.userName}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-slate-500">
+                            <span className="text-sm font-semibold">{post.likes} ❤️</span>
                           </div>
                         </div>
                       </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -309,21 +351,23 @@ const Landing: React.FC = () => {
 
           {/* Decorative gradient blobs */}
           <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-300/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
         </section>
 
-        {/* ================= F1: FOOD HUNTER ================= */}
-        <FeatureShowcase
+        {/* ================= S3: FOOD HUNTER ================= */}
+        <section id="hunter" className="w-full h-screen snap-start flex items-center justify-center shrink-0 bg-white">
+          <FeatureShowcase
             title="Food Hunter"
             description="Search for what you're craving, not just keywords. Our AI understands your taste preferences, mood, and specific cravings to find the perfect dish for you."
             screenshotUrl={foodHunterPreview}
             route="/signup"
             reverse={false}
             ctaText="Explore More"
-        />
+          />
+        </section>
 
-        {/* ================= F2: FOOD GACHA ================= */}
-        <FeatureShowcase
+        {/* ================= S4: FOOD GACHA ================= */}
+        <section id="gacha" className="w-full h-screen snap-start flex items-center justify-center shrink-0 bg-slate-50">
+          <FeatureShowcase
             title="Food Gacha"
             description="Feeling adventurous? Spin the Gourmet Slot and let fate decide your next meal. Discover new cuisines and hidden gems with every spin."
             screenshotUrl={foodGachaIcon}
@@ -331,10 +375,12 @@ const Landing: React.FC = () => {
             reverse={true}
             scale={0.85}
             ctaText="Spin it Now"
-        />
+          />
+        </section>
 
-        {/* ================= F3: CONCIERGE ================= */}
-        <FeatureShowcase
+        {/* ================= S5: CONCIERGE ================= */}
+        <section id="concierge" className="w-full h-screen snap-start flex items-center justify-center shrink-0 bg-white">
+          <FeatureShowcase
             title="Concierge"
             description="Chat with our AI food concierge for personalized recommendations. Tell us your preferences, budget, and location—we'll find the perfect spot for you."
             screenshotUrl={conciergeIcon}
@@ -342,17 +388,26 @@ const Landing: React.FC = () => {
             reverse={false}
             scale={0.85}
             ctaText="Learn More"
-        />
+          />
+        </section>
 
-        {/* ================= JOIN NOW (Email Signup) ================= */}
-        <EmailSignup />
+        {/* ================= S6: JOIN NOW (Email Signup) ================= */}
+        <section id="join" className="w-full h-screen snap-start flex items-center justify-center shrink-0 bg-orange-50">
+          <div className="w-full max-w-4xl px-6">
+            <EmailSignup />
+          </div>
+        </section>
 
-        {/* ================= FAQ SECTION ================= */}
-        <FAQSection />
+        {/* ================= S7: FAQ + FOOTER ================= */}
+        <section id="faq" className="w-full h-screen snap-start flex flex-col shrink-0 bg-white overflow-y-auto">
+          <div className="flex-grow flex items-center justify-center py-20">
+            <FAQSection />
+          </div>
+          <Footer />
+        </section>
 
-        {/* ================= FOOTER ================= */}
-        <Footer />
       </div>
+    </div>
   );
 };
 
