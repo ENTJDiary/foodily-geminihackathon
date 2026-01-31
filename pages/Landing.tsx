@@ -68,6 +68,8 @@ const Landing: React.FC = () => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setIsVisionVisible(true);
+        } else {
+          setIsVisionVisible(false);
         }
       });
     }, { threshold: 0.45 }); // Trigger when section is ~90% visible (user has landed)

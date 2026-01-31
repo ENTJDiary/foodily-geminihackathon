@@ -70,7 +70,8 @@ const CommunityInsights: React.FC = () => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     setIsAnimated(true);
-                    observer.unobserve(entry.target);
+                } else {
+                    setIsAnimated(false);
                 }
             });
         }, observerOptions);
@@ -158,8 +159,8 @@ const CommunityInsights: React.FC = () => {
                     {/* Left Column (Slides Down) */}
                     <div
                         className={`flex flex-col gap-6 w-72 transition-all duration-[1500ms] ease-out ${isAnimated
-                                ? 'translate-y-0 opacity-100'
-                                : '-translate-y-[150%] opacity-0'
+                            ? 'translate-y-0 opacity-100'
+                            : '-translate-y-[150%] opacity-0'
                             }`}
                     >
                         {/* Add infinite scroll duplicate logic visually or just static list for now as per prompt */}
@@ -171,8 +172,8 @@ const CommunityInsights: React.FC = () => {
                     {/* Right Column (Slides Up) */}
                     <div
                         className={`flex flex-col gap-6 w-72 mt-24 transition-all duration-[1500ms] ease-out ${isAnimated
-                                ? 'translate-y-0 opacity-100'
-                                : 'translate-y-[150%] opacity-0'
+                            ? 'translate-y-0 opacity-100'
+                            : 'translate-y-[150%] opacity-0'
                             }`}
                     >
                         <div className="flex flex-col gap-6">
