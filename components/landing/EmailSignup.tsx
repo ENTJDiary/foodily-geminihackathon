@@ -64,7 +64,7 @@ const EmailSignup: React.FC = () => {
                             ))}
                         </div>
                         <span className="text-xs font-semibold text-slate-400 font-inter">
-                            + 70k Foodies already joined
+                            + 10k Foodies is interested in Food.ily
                         </span>
                     </div>
 
