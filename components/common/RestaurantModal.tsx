@@ -201,7 +201,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
       const saved = await toggleSaveRestaurant(user.uid, {
         restaurantId,
         restaurantName,
-        restaurantPhoto: menuItems[0]?.image || menuItems[0]?.images?.[0] || undefined,
+        restaurantPhoto: menuItems[0]?.image || menuItems[0]?.images?.[0] || null,
         cuisineTypes: [], // TODO: Extract from details or implement cuisine detection
         rating: avgRating,
         priceRating: priceRating,

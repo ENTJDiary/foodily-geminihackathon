@@ -57,14 +57,16 @@ export const saveRestaurantDescription = (restaurantId: string, restaurantName: 
   localStorage.setItem(REVIEWS_KEY, JSON.stringify(allData));
 };
 
-export const saveReview = (restaurantId: string, restaurantName: string, review: Omit<Review, "id" | "timestamp">) => {
+export const saveReview = (restaurantId: string, restaurantName: string, review: Omit<Review, "id" | "timestamp" | "reviewId" | "createdAt">) => {
   const allData = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "{}");
   const restaurant = getRestaurantData(restaurantId);
 
   const newReview: Review = {
     ...review,
     id: Math.random().toString(36).substr(2, 9),
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    reviewId: 'legacy-' + Math.random().toString(36).substr(2, 9),
+    createdAt: new Date(),
   };
 
   restaurant.reviews.unshift(newReview);

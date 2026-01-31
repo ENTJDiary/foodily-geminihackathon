@@ -6,6 +6,7 @@ import {
     orderBy,
     getDocs,
     deleteDoc,
+    updateDoc,
     doc,
     serverTimestamp,
     Timestamp,
@@ -69,15 +70,15 @@ export const saveRestaurant = async (
             userId,
             restaurantId: restaurantData.restaurantId,
             restaurantName: restaurantData.restaurantName,
-            restaurantPhoto: restaurantData.restaurantPhoto || undefined,
+            restaurantPhoto: restaurantData.restaurantPhoto || null,
             cuisineTypes: restaurantData.cuisineTypes || [],
             notes: restaurantData.notes || '',
             tags: restaurantData.tags || [],
             savedAt: serverTimestamp(),
-            lastVisited: undefined,
+            lastVisited: null,
             visitCount: 0,
-            rating: restaurantData.rating || undefined,
-            priceRating: restaurantData.priceRating || undefined,
+            rating: restaurantData.rating || null,
+            priceRating: restaurantData.priceRating || null,
         };
 
         const docRef = await addDoc(savedRestaurantsRef, newSavedRestaurant);
@@ -208,7 +209,7 @@ export const updateSavedRestaurant = async (
         }
 
         const docRef = doc(db, SAVED_RESTAURANTS_COLLECTION, querySnapshot.docs[0].id);
-        await deleteDoc(docRef); // Using deleteDoc as placeholder - should use updateDoc
+        await updateDoc(docRef, updates);
 
         console.log('✅ Saved restaurant updated successfully');
     } catch (error) {
