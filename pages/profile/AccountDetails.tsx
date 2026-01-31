@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { uploadProfilePicture, formatDateOfBirth, calculateAge } from '../../services/userDataService';
-import { getUserPosts, CommunityPost } from '../../services/communityPostsService';
+import { getUserPosts, CommunityPost, communityPostToMenuItem } from '../../services/communityPostsService';
+import MenuItemDetailModal from '../../components/restaurant/modals/MenuItemDetailModal';
+import { MenuItem } from '../../types';
 
 interface LegacyUserProfile {
     name: string;
@@ -60,6 +62,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     const [uploadingPicture, setUploadingPicture] = useState(false);
     const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
+    const [selectedPost, setSelectedPost] = useState<MenuItem | null>(null);
 
     // Get profile picture URL (custom or Google photo)
     const profilePictureURL = userProfile?.profilePictureURL || currentUser?.photoURL;
@@ -312,6 +315,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                         {userPosts.map((post) => (
                             <div
                                 key={post.postId}
+                                onClick={() => setSelectedPost(communityPostToMenuItem(post))}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer"
                             >
                                 {/* Image */}
@@ -352,6 +356,15 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                     </div>
                 )}
             </div>
+
+            {/* Post Modal */}
+            {selectedPost && (
+                <MenuItemDetailModal
+                    menuItem={selectedPost}
+                    restaurantId={selectedPost.restaurantId}
+                    onClose={() => setSelectedPost(null)}
+                />
+            )}
         </div>
     );
 };

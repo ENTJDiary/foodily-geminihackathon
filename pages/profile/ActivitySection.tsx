@@ -3,7 +3,11 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { subscribeClickedRestaurants } from '../../services/restaurantClicksService';
 import { getUserReviews } from '../../services/reviewsService';
 import { getUserLikedPostsWithDetails } from '../../services/postLikesService';
+import { communityPostToMenuItem } from '../../services/communityPostsService';
 import WeeklyFoodHunt from '../../components/features/WeeklyFoodHunt';
+import InsightDetailModal from '../../components/restaurant/modals/InsightDetailModal';
+import MenuItemDetailModal from '../../components/restaurant/modals/MenuItemDetailModal';
+import { Review, MenuItem } from '../../types';
 
 const ActivitySection: React.FC = () => {
     const { currentUser } = useAuth();
@@ -15,9 +19,11 @@ const ActivitySection: React.FC = () => {
         timestamp: number;
         source: string;
     }[]>([]);
-    const [userComments, setUserComments] = useState<any[]>([]);
+    const [userComments, setUserComments] = useState<Review[]>([]);
     const [likedPosts, setLikedPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedInsight, setSelectedInsight] = useState<Review | null>(null);
+    const [selectedLikedPost, setSelectedLikedPost] = useState<MenuItem | null>(null);
 
     useEffect(() => {
         if (!currentUser) {
@@ -141,7 +147,8 @@ const ActivitySection: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {userComments.map((comment, idx) => (
                             <div
-                                key={`${comment.reviewId || comment.id}-${idx}`}
+                                key={`${comment.reviewId || (comment as any).id}-${idx}`}
+                                onClick={() => setSelectedInsight(comment)}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl p-5 hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer overflow-hidden"
                             >
                                 <div className="space-y-3">
@@ -188,6 +195,7 @@ const ActivitySection: React.FC = () => {
                         {likedPosts.map((post, idx) => (
                             <div
                                 key={`${post.postId || post.id}-${idx}`}
+                                onClick={() => setSelectedLikedPost(communityPostToMenuItem(post))}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer"
                             >
                                 {/* Image */}
@@ -227,6 +235,23 @@ const ActivitySection: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modals */}
+            {selectedInsight && (
+                <InsightDetailModal
+                    review={selectedInsight}
+                    restaurantId={selectedInsight.restaurantId}
+                    onClose={() => setSelectedInsight(null)}
+                />
+            )}
+
+            {selectedLikedPost && (
+                <MenuItemDetailModal
+                    menuItem={selectedLikedPost}
+                    restaurantId={selectedLikedPost.restaurantId}
+                    onClose={() => setSelectedLikedPost(null)}
+                />
+            )}
         </div>
     );
 };

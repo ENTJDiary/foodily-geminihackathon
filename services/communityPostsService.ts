@@ -273,5 +273,7 @@ export const communityPostToMenuItem = (post: CommunityPost): MenuItem => {
         isLiked: false, // This will be determined by checking postLikes collection
         rating: post.rating,
         experience: post.experience,
+        restaurantId: post.restaurantId,
+        restaurantName: post.restaurantName,
     };
 };

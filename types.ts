@@ -81,6 +81,8 @@ export interface MenuItem {
   isLiked?: boolean;
   rating?: number;
   experience?: string;
+  restaurantId?: string;
+  restaurantName?: string;
 }
 
 export interface RestaurantData {
