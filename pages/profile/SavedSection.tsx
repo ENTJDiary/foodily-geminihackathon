@@ -10,12 +10,14 @@ import {
     unsaveMenuItem,
     SavedMenuItem
 } from '../../services/savedMenuItemsService';
+import RestaurantModal from '../../components/common/RestaurantModal';
 
 const SavedSection: React.FC = () => {
     const { currentUser: user } = useAuth();
     const [savedRestaurants, setSavedRestaurants] = useState<SavedRestaurant[]>([]);
     const [savedMenuItems, setSavedMenuItems] = useState<SavedMenuItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
 
     // Subscribe to saved restaurants from Firestore
     useEffect(() => {
@@ -106,6 +108,10 @@ const SavedSection: React.FC = () => {
                         {savedRestaurants.map((restaurant) => (
                             <div
                                 key={restaurant.saveId}
+                                onClick={() => setSelectedRestaurant({
+                                    id: restaurant.restaurantId,
+                                    name: restaurant.restaurantName
+                                })}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer"
                             >
                                 {/* Image */}
@@ -248,6 +254,15 @@ const SavedSection: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Restaurant Modal */}
+            {selectedRestaurant && (
+                <RestaurantModal
+                    restaurantId={selectedRestaurant.id}
+                    restaurantName={selectedRestaurant.name}
+                    onClose={() => setSelectedRestaurant(null)}
+                />
+            )}
         </div>
     );
 };
