@@ -29,17 +29,17 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({
 
                     {/* Text Content */}
                     <div className={`space-y-10 ${reverse ? 'lg:col-start-2' : ''}`}>
-                        <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight tracking-tight">
+                        <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight tracking-tight font-cormorant">
                             {title}
                         </h2>
 
-                        <p className="text-lg text-slate-600 leading-relaxed font-medium">
+                        <p className="text-lg text-slate-600 leading-relaxed font-medium font-inter">
                             {description}
                         </p>
 
                         <button
                             onClick={() => navigate(route)}
-                            className="group bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg flex items-center gap-2 w-fit"
+                            className="group bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg flex items-center gap-2 w-fit font-inter font-medium"
                         >
                             {ctaText}
                             <svg

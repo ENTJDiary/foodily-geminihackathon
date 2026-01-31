@@ -52,7 +52,7 @@ const LandingNavbar: React.FC<LandingNavbarProps> = ({ isScrolled: externalScrol
                     <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-200">
                         F
                     </div>
-                    <span className="text-2xl font-black tracking-tight text-slate-900 hidden sm:block">
+                    <span className="text-2xl font-black tracking-tight text-slate-900 hidden sm:block font-cormorant">
                         Food.ily
                     </span>
                 </div>
@@ -61,19 +61,19 @@ const LandingNavbar: React.FC<LandingNavbarProps> = ({ isScrolled: externalScrol
                 <div className="hidden md:flex items-center gap-8">
                     <button
                         onClick={() => scrollToSection('community')}
-                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide"
+                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
                     >
                         Community Favourites
                     </button>
                     <button
                         onClick={() => scrollToSection('hunter')}
-                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide"
+                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
                     >
                         Features
                     </button>
                     <button
                         onClick={() => scrollToSection('join')}
-                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide"
+                        className="text-slate-600 font-bold hover:text-orange-600 transition-colors text-sm uppercase tracking-wide font-inter font-medium"
                     >
                         Waitlist
                     </button>
@@ -83,7 +83,7 @@ const LandingNavbar: React.FC<LandingNavbarProps> = ({ isScrolled: externalScrol
                 <div>
                     <button
                         onClick={() => navigate('/signup')}
-                        className="bg-slate-900 text-white px-6 py-2.5 rounded-full font-bold text-sm hover:bg-orange-600 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-slate-200"
+                        className="bg-slate-900 text-white px-6 py-2.5 rounded-full font-bold text-sm hover:bg-orange-600 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-slate-200 font-inter font-medium"
                     >
                         Join Now
                     </button>

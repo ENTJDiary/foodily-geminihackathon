@@ -26,8 +26,7 @@ const Landing: React.FC = () => {
     { id: 'hunter', label: 'Food Hunter' },
     { id: 'gacha', label: 'Food Gacha' },
     { id: 'concierge', label: 'Concierge' },
-    { id: 'join', label: 'Join' },
-    { id: 'faq', label: 'FAQ' }
+    { id: 'join', label: 'Join' }
   ];
 
   // Handle scroll on the container
@@ -166,7 +165,7 @@ const Landing: React.FC = () => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-white">
+    <div className="relative h-screen w-full overflow-hidden bg-white font-inter">
       <LandingNavbar isScrolled={isScrolled} />
 
 
@@ -192,17 +191,17 @@ const Landing: React.FC = () => {
               {/* Logo / Badge */}
               <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-slate-100">
                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                <span className="text-sm font-semibold text-slate-600 tracking-wide">World's #1 AI Food Suggestor</span>
+                <span className="text-sm font-semibold text-slate-600 tracking-wide font-inter">World's #1 AI Food Suggestor</span>
               </div>
 
               {/* Headline */}
-              <h1 className="text-5xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight">
+              <h1 className="text-5xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight font-cormorant">
                 The World's Best <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400"> AI Food Companion</span>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium">
+              <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium font-inter">
                 Your ultimate personal food suggestor. Discover hyper-personalized restaurant recommendations and dishes tailored exactly to your cravings using advanced AI.
               </p>
 
@@ -210,7 +209,7 @@ const Landing: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                 <button
                   onClick={() => navigate('/signup')}
-                  className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-slate-200"
+                  className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-slate-200 font-inter font-medium"
                 >
                   Try Out
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,7 +219,7 @@ const Landing: React.FC = () => {
 
                 <button
                   onClick={() => navigate('/login')}
-                  className="w-full sm:w-auto bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-lg border border-slate-200 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-lg border border-slate-200 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-inter font-medium"
                 >
                   Learn More
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,10 +298,10 @@ const Landing: React.FC = () => {
 
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                  <h2 className="text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-lg">
+                  <h2 className="text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-lg font-cormorant">
                     Community Favourites
                   </h2>
-                  <p className="text-xl text-white/90 font-medium drop-shadow">
+                  <p className="text-xl text-white/90 font-medium drop-shadow font-inter">
                     Discover what food lovers are sharing
                   </p>
                 </div>
@@ -391,18 +390,20 @@ const Landing: React.FC = () => {
           />
         </section>
 
-        {/* ================= S6: JOIN NOW (Email Signup) ================= */}
-        <section id="join" className="w-full h-screen snap-start flex items-center justify-center shrink-0 bg-orange-50">
-          <div className="w-full max-w-4xl px-6">
-            <EmailSignup />
+        {/* ================= S6: JOIN NOW & FAQ ================= */}
+        <section id="join" className="w-full h-screen snap-start flex flex-col shrink-0 bg-gradient-to-b from-orange-50 to-white overflow-y-auto">
+          {/* Email Signup Area */}
+          <div className="w-full min-h-[80vh] flex items-center justify-center p-6">
+            <div className="w-full max-w-4xl">
+              <EmailSignup />
+            </div>
           </div>
-        </section>
 
-        {/* ================= S7: FAQ + FOOTER ================= */}
-        <section id="faq" className="w-full h-screen snap-start flex flex-col shrink-0 bg-white overflow-y-auto">
-          <div className="flex-grow flex items-center justify-center py-20">
+          {/* FAQ Area */}
+          <div className="w-full bg-white pb-20">
             <FAQSection />
           </div>
+
           <Footer />
         </section>
 

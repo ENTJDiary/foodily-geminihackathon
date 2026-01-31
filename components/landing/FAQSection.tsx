@@ -25,15 +25,15 @@ const FAQSection: React.FC = () => {
     ];
 
     return (
-        <div className="w-full py-20 px-6 bg-slate-50">
+        <div className="w-full py-20 px-6">
             <div className="max-w-4xl mx-auto">
 
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mb-4">
+                    <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4 font-cormorant">
                         Frequently Asked Questions
                     </h2>
-                    <p className="text-lg text-slate-600 font-medium">
+                    <p className="text-lg text-slate-600 font-medium font-inter">
                         Everything you need to know about Food.ily
                     </p>
                 </div>
@@ -43,12 +43,12 @@ const FAQSection: React.FC = () => {
                     {faqs.map((faq, index) => (
                         <div
                             key={index}
-                            className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300"
+                            className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-slate-100"
                         >
-                            <h3 className="text-xl font-bold text-slate-900 mb-3">
+                            <h3 className="text-xl font-bold text-slate-900 mb-3 font-cormorant">
                                 {faq.question}
                             </h3>
-                            <p className="text-slate-600 leading-relaxed font-medium">
+                            <p className="text-slate-600 leading-relaxed font-medium font-inter">
                                 {faq.answer}
                             </p>
                         </div>
