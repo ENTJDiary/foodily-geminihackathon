@@ -6,15 +6,22 @@ interface DailyLogModalProps {
     onClose: () => void;
     entry: HistoryEntry;
     onSave: (updates: Partial<HistoryEntry>) => void;
+    // New props for multi-log support
+    dayEntries: HistoryEntry[];
+    onSelectEntry: (entry: HistoryEntry) => void;
+    onAddNew: () => void;
+    currentDateStr: string;
 }
 
-const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, onSave }) => {
+const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, onSave, dayEntries, onSelectEntry, onAddNew, currentDateStr }) => {
     const [restaurantName, setRestaurantName] = useState(entry.restaurantName || '');
+    const [mealType, setMealType] = useState<'Breakfast' | 'Lunch' | 'Dinner' | 'Snack'>(entry.mealType || 'Breakfast');
     const [logs, setLogs] = useState<HistoryLogItem[]>(entry.logs || []);
 
     useEffect(() => {
         if (isOpen) {
             setRestaurantName(entry.restaurantName || '');
+            setMealType(entry.mealType || 'Breakfast');
             setLogs(entry.logs || [{ id: Date.now().toString(), foodName: entry.foodType, rating: 0 }]);
         }
     }, [isOpen, entry]);
@@ -37,7 +44,8 @@ const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, o
         onSave({
             restaurantName,
             logs,
-            foodType: foodType || entry.foodType // Fallback if empty
+            foodType: foodType || entry.foodType, // Fallback if empty
+            mealType
         });
         onClose();
     };
@@ -46,88 +54,157 @@ const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, o
 
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-4 border-orange-50 flex flex-col max-h-[90vh]">
-                <div className="p-8 border-b border-orange-50 bg-white flex justify-between items-center sticky top-0 z-10">
-                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                        <span className="text-orange-600 text-2xl">✎</span> Daily Food Log
-                    </h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
-                        <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <div className="flex gap-6 max-h-[90vh] items-start">
+
+                {/* Floating Sidebar */}
+                <div className="w-64 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 p-6 flex flex-col gap-4 animate-in slide-in-from-left-4 duration-500 overflow-hidden h-[500px]">
+                    <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</span>
+                            <span className="text-lg font-black text-slate-800">{currentDateStr}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                        {dayEntries.length === 0 ? (
+                            <div className="text-center py-8 text-slate-400 text-xs">No entries yet</div>
+                        ) : (
+                            dayEntries.map((e, idx) => (
+                                <button
+                                    key={e.id || idx}
+                                    onClick={() => onSelectEntry(e)}
+                                    className={`w-full text-left p-4 rounded-xl transition-all border-l-4 group relative overflow-hidden ${entry.id === e.id
+                                        ? 'bg-orange-50 border-orange-500 shadow-sm'
+                                        : 'bg-slate-50 border-transparent hover:bg-slate-100'
+                                        }`}
+                                >
+                                    <div className="flex justify-between items-start mb-1">
+                                        <span className={`text-[10px] font-black uppercase tracking-wider ${entry.id === e.id ? 'text-orange-600' : 'text-slate-400 group-hover:text-slate-500'
+                                            }`}>
+                                            {e.mealType || 'Meal'}
+                                        </span>
+                                    </div>
+                                    <h4 className={`font-bold text-sm truncate ${entry.id === e.id ? 'text-slate-800' : 'text-slate-600'
+                                        }`}>
+                                        {e.restaurantName || 'No Restaurant'}
+                                    </h4>
+                                    <p className="text-[10px] text-slate-400 truncate mt-1">
+                                        {e.foodType}
+                                    </p>
+                                </button>
+                            ))
+                        )}
+                    </div>
+
+                    <button
+                        onClick={onAddNew}
+                        className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                        Add Meal
                     </button>
                 </div>
 
-                <div className="p-8 space-y-8 overflow-y-auto">
-                    {/* Restaurant Name */}
-                    <div className="space-y-3">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Restaurant</label>
-                        <input
-                            type="text"
-                            value={restaurantName}
-                            onChange={(e) => setRestaurantName(e.target.value)}
-                            placeholder="Where did you eat?"
-                            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-orange-500 focus:bg-white transition-all font-bold text-slate-700 outline-none placeholder:text-slate-300 placeholder:font-medium"
-                        />
+                {/* Main Form Modal */}
+                <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-4 border-orange-50 flex flex-col h-[600px]">
+                    <div className="p-8 border-b border-orange-50 bg-white flex justify-between items-center sticky top-0 z-10">
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                            <span className="text-orange-600 text-2xl">✎</span> Daily Food Log
+                        </h3>
+                        <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+                            <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
                     </div>
 
-                    <div className="w-full h-px bg-slate-100"></div>
-
-                    {/* Food Items */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-end">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Food & Ratings</label>
-                        </div>
-
-                        <div className="space-y-3">
-                            {logs.map((log, index) => (
-                                <div key={log.id} className="flex gap-3 items-center group animate-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${index * 50}ms` }}>
-                                    <div className="flex-1 space-y-2">
-                                        <input
-                                            type="text"
-                                            value={log.foodName}
-                                            onChange={(e) => handleUpdateLog(log.id, 'foodName', e.target.value)}
-                                            placeholder="What did you have?"
-                                            className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:bg-white transition-all font-semibold text-sm outline-none"
-                                        />
-                                    </div>
-                                    <div className="flex gap-1">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                onClick={() => handleUpdateLog(log.id, 'rating', star)}
-                                                className={`w-6 h-6 transition-transform active:scale-90 ${log.rating >= star ? 'text-orange-500' : 'text-slate-200'}`}
-                                            >
-                                                <svg className="w-full h-full fill-current" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {logs.length > 1 && (
-                                        <button onClick={() => handleRemoveLog(log.id)} className="text-slate-300 hover:text-red-500">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                    )}
-                                </div>
+                    <div className="p-8 space-y-8 overflow-y-auto">
+                        {/* Meal Type Toggle - Moved to top left as small toggle */}
+                        <div className="flex gap-2">
+                            {['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() => setMealType(type as any)}
+                                    className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${mealType === type
+                                        ? 'bg-orange-500 text-white shadow-md shadow-orange-200'
+                                        : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                                        }`}
+                                >
+                                    {type}
+                                </button>
                             ))}
                         </div>
 
+                        {/* Restaurant Name */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Restaurant</label>
+                            <input
+                                type="text"
+                                value={restaurantName}
+                                onChange={(e) => setRestaurantName(e.target.value)}
+                                placeholder="Where did you eat?"
+                                className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-orange-500 focus:bg-white transition-all font-bold text-slate-700 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                        </div>
+
+                        <div className="w-full h-px bg-slate-100"></div>
+
+                        {/* Food Items */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Food & Ratings</label>
+                            </div>
+
+                            <div className="space-y-3">
+                                {logs.map((log, index) => (
+                                    <div key={log.id} className="flex gap-3 items-center group animate-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${index * 50}ms` }}>
+                                        <div className="flex-1 space-y-2">
+                                            <input
+                                                type="text"
+                                                value={log.foodName}
+                                                onChange={(e) => handleUpdateLog(log.id, 'foodName', e.target.value)}
+                                                placeholder="What did you have?"
+                                                className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:bg-white transition-all font-semibold text-sm outline-none"
+                                            />
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    onClick={() => handleUpdateLog(log.id, 'rating', star)}
+                                                    className={`w-6 h-6 transition-transform active:scale-90 ${log.rating >= star ? 'text-orange-500' : 'text-slate-200'}`}
+                                                >
+                                                    <svg className="w-full h-full fill-current" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {logs.length > 1 && (
+                                            <button onClick={() => handleRemoveLog(log.id)} className="text-slate-300 hover:text-red-500">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={handleAddLog}
+                                className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50 transition-all flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                                Add Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-8 border-t border-slate-100 bg-slate-50">
                         <button
-                            onClick={handleAddLog}
-                            className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50 transition-all flex items-center justify-center gap-2"
+                            onClick={handleSave}
+                            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                            Add Item
+                            Save Food Log
                         </button>
                     </div>
-                </div>
-
-                <div className="p-8 border-t border-slate-100 bg-slate-50">
-                    <button
-                        onClick={handleSave}
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                    >
-                        Save Food Log
-                    </button>
                 </div>
             </div>
         </div>

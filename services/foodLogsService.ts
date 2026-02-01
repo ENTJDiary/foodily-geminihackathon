@@ -27,6 +27,7 @@ export interface FoodLog {
     date: string;                   // Date of the food log entry (YYYY-MM-DD)
     cuisine: string;                // Type of cuisine (e.g., "Italian", "Japanese")
     foodType: string;               // Specific food type (e.g., "Pizza", "Sushi")
+    mealType?: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack'; // Meal type
     restaurantId?: string;          // Reference to restaurants/{restaurantId} if visited
     restaurantName?: string;        // Restaurant name (denormalized for quick access)
     logs?: HistoryLogItem[];        // Array of food items with ratings
@@ -43,6 +44,7 @@ export interface CreateFoodLogInput {
     date: string;
     cuisine: string;
     foodType: string;
+    mealType?: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
     restaurantName?: string;
     logs?: HistoryLogItem[];
     rating?: number;
@@ -64,6 +66,7 @@ export const createFoodLog = async (
             date: logData.date,
             cuisine: logData.cuisine,
             foodType: logData.foodType,
+            mealType: logData.mealType || null,
             restaurantId: null,
             restaurantName: logData.restaurantName || '',
             logs: logData.logs || [],
@@ -243,6 +246,7 @@ export const foodLogToHistoryEntry = (foodLog: FoodLog): HistoryEntry => {
         date: foodLog.date,
         cuisine: foodLog.cuisine,
         foodType: foodLog.foodType,
+        mealType: foodLog.mealType,
         restaurantName: foodLog.restaurantName,
         logs: foodLog.logs,
         timestamp: foodLog.createdAt?.toMillis() || Date.now(),

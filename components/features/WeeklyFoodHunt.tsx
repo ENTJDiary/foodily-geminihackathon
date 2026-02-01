@@ -141,6 +141,7 @@ const WeeklyFoodHunt: React.FC = () => {
           restaurantName: updates.restaurantName,
           logs: updates.logs,
           foodType: updates.foodType,
+          mealType: updates.mealType,
         });
       } else {
         // Create new entry
@@ -148,6 +149,7 @@ const WeeklyFoodHunt: React.FC = () => {
           date: editingEntry.date,
           cuisine: updates.cuisine || 'Manual',
           foodType: updates.foodType || '',
+          mealType: updates.mealType || 'Breakfast',
           restaurantName: updates.restaurantName || '',
           logs: updates.logs || []
         });
@@ -167,12 +169,19 @@ const WeeklyFoodHunt: React.FC = () => {
     const dateStr = toLocalDateString(d);
 
     const entriesForDay = history.filter(h => h.date === dateStr);
-    const entry = entriesForDay.length > 0 ? entriesForDay[entriesForDay.length - 1] : null;
+
+    // Sort entries: Breakfast > Lunch > Dinner > Snack > Others
+    const mealOrder = { 'Breakfast': 1, 'Lunch': 2, 'Dinner': 3, 'Snack': 4 };
+    const sortedEntries = [...entriesForDay].sort((a, b) => {
+      const orderA = mealOrder[a.mealType as keyof typeof mealOrder] || 99;
+      const orderB = mealOrder[b.mealType as keyof typeof mealOrder] || 99;
+      return orderA - orderB;
+    });
 
     return {
       name: daysLabels[i],
       date: dateStr,
-      entry
+      entries: sortedEntries
     };
   });
 
@@ -196,32 +205,41 @@ const WeeklyFoodHunt: React.FC = () => {
         {weekDays.map((day, i) => (
           <div key={i} className="flex flex-col items-center group/day">
             <span className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">{day.name}</span>
-            <div className={`relative w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${day.entry
-              ? 'bg-orange-600 text-white shadow-md'
-              : 'bg-slate-50 text-slate-300'
+            <div className={`relative w-full aspect-square rounded-2xl flex flex-col transition-all overflow-hidden border border-transparent hover:border-orange-200 hover:shadow-lg hover:shadow-orange-100 ${day.entries.length > 0
+              ? 'bg-transparent'
+              : 'bg-slate-50 items-center justify-center text-slate-300'
               }`}>
-              {day.entry ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+              {day.entries.length > 0 ? (
+                <div className="flex flex-col w-full h-full">
+                  {day.entries.map((entry, idx) => (
+                    <button
+                      key={entry.id || idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditEntry(entry);
+                      }}
+                      className="flex-1 w-full flex flex-col items-center justify-center bg-orange-600 text-white first:pt-4 last:pb-4 hover:bg-orange-500 transition-colors relative group/entry border-b border-orange-500/50 last:border-0 min-h-0"
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-wider opacity-90">{entry.mealType || 'Meal'}</span>
+                      <span className="text-[8px] font-bold line-clamp-1 text-center w-full px-2 opacity-75 group-hover/entry:opacity-100 transition-opacity">{entry.foodType}</span>
+                    </button>
+                  ))}
+                </div>
               ) : (
                 <span className="text-[10px] font-black">{day.date.split('-')[2]}</span>
               )}
 
-              {/* Hover Pen Icon - Always available */}
+              {/* Hover Add Icon for empty days or quick access */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleEditEntry(day.entry, day.date);
+                  handleEditEntry(null, day.date);
                 }}
-                className="absolute bottom-1 right-1 w-6 h-6 bg-white text-orange-600 rounded-lg flex items-center justify-center transition-all shadow-sm hover:scale-110 active:scale-95 z-20 opacity-0 group-hover/day:opacity-100"
+                className={`absolute bottom-1 right-1 w-[22px] h-[22px] bg-white text-orange-600 rounded-lg flex items-center justify-center transition-all shadow-sm hover:scale-110 active:scale-95 z-20 opacity-0 group-hover/day:opacity-100`}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
               </button>
             </div>
-            {day.entry && (
-              <p className="text-[9px] mt-2 font-black text-orange-700 text-center truncate w-full px-1 uppercase tracking-tight">
-                {day.entry.foodType}
-              </p>
-            )}
           </div>
         ))}
       </div>
@@ -236,8 +254,29 @@ const WeeklyFoodHunt: React.FC = () => {
         <DailyLogModal
           isOpen={true}
           entry={editingEntry}
+          currentDateStr={editingEntry.date}
           onClose={() => setEditingEntry(null)}
           onSave={handleSaveEntry}
+          dayEntries={history.filter(h => h.date === editingEntry.date).sort((a, b) => {
+            const mealOrder = { 'Breakfast': 1, 'Lunch': 2, 'Dinner': 3, 'Snack': 4 };
+            const orderA = mealOrder[a.mealType as keyof typeof mealOrder] || 99;
+            const orderB = mealOrder[b.mealType as keyof typeof mealOrder] || 99;
+            return orderA - orderB;
+          })}
+          onSelectEntry={(entry) => setEditingEntry(entry)}
+          onAddNew={() => {
+            const dateStr = editingEntry.date;
+            setEditingEntry({
+              id: '', // Empty ID signifies a new entry
+              date: dateStr,
+              cuisine: '',
+              foodType: '',
+              mealType: 'Breakfast',
+              restaurantName: '',
+              logs: [],
+              timestamp: Date.now()
+            });
+          }}
         />
       )}
     </div>

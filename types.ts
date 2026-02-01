@@ -104,6 +104,7 @@ export interface HistoryEntry {
   date: string; // YYYY-MM-DD
   cuisine: string;
   foodType: string;
+  mealType?: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
   restaurantName?: string;
   logs?: HistoryLogItem[];
   timestamp: number;
