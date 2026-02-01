@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { searchRestaurantsByMaps } from '../services/geminiService';
-import WeeklyFoodHunt from '../components/features/WeeklyFoodHunt';
+
 import FoodRandomizer from '../components/features/FoodRandomizer';
 import FoodWheel from '../components/features/FoodWheel';
 import { Location, SearchResult, HistoryEntry } from '../types';
@@ -119,8 +119,16 @@ const FoodGatcha: React.FC = () => {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 pb-12 max-w-4xl mx-auto">
+      <div className="text-center space-y-4 pt-4">
+        <h2 className="text-4xl md:text-5xl font-bold text-brand-black tracking-tight">
+          Feeling <span className="text-brand-orange">Lucky?</span>
+        </h2>
+        <p className="text-brand-slate/70 font-medium text-lg max-w-xl mx-auto">
+          Spin the wheel or let fate decide your next meal.
+        </p>
+      </div>
+
       <div className="space-y-12">
-        <WeeklyFoodHunt history={history} onHistoryUpdate={() => setHistory(getWeeklyHistory())} />
         <FoodRandomizer
           applyFilters={applyFilters}
           onToggleFilters={() => setApplyFilters(!applyFilters)}
