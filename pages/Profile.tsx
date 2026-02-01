@@ -124,19 +124,20 @@ const Profile: React.FC = () => {
     }
   };
 
-  const toggleCuisine = (cuisine: string) => {
-    const newCuisines = profile.favoriteCuisines.includes(cuisine)
-      ? profile.favoriteCuisines.filter(c => c !== cuisine)
-      : [...profile.favoriteCuisines, cuisine];
+  /* 
+   * Handlers for debounced updates from AccountDetails
+   * These accept the full new array of values
+   */
+  const handleUpdateCuisines = (newCuisines: string[]) => {
     handleUpdate({ favoriteCuisines: newCuisines });
   };
 
-  const toggleDietary = (diet: string) => {
-    const newDietary = profile.dietaryRestrictions.includes(diet)
-      ? profile.dietaryRestrictions.filter(d => d !== diet)
-      : [...profile.dietaryRestrictions, diet];
+  const handleUpdateDietary = (newDietary: string[]) => {
     handleUpdate({ dietaryRestrictions: newDietary });
   };
+
+  // Clean up legacy toggle handlers if they are no longer used anywhere else
+  // Keep them if other components need them, but for AccountDetails we switched strategy.
 
   const handleTabChange = (tab: TabType, buttonRect: DOMRect) => {
     // Calculate the center of the button as animation origin
@@ -173,8 +174,8 @@ const Profile: React.FC = () => {
             setCustomDietary={setCustomDietary}
             setIsAddingDietary={setIsAddingDietary}
             handleAddCustomDietary={handleAddCustomDietary}
-            toggleCuisine={toggleCuisine}
-            toggleDietary={toggleDietary}
+            onUpdateCuisines={handleUpdateCuisines}
+            onUpdateDietary={handleUpdateDietary}
           />
         );
       case 'activity':
@@ -202,8 +203,8 @@ const Profile: React.FC = () => {
             setCustomDietary={setCustomDietary}
             setIsAddingDietary={setIsAddingDietary}
             handleAddCustomDietary={handleAddCustomDietary}
-            toggleCuisine={toggleCuisine}
-            toggleDietary={toggleDietary}
+            onUpdateCuisines={handleUpdateCuisines}
+            onUpdateDietary={handleUpdateDietary}
           />
         );
     }

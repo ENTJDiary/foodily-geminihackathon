@@ -30,8 +30,9 @@ interface AccountDetailsProps {
     setCustomDietary: (dietary: string) => void;
     setIsAddingDietary: (adding: boolean) => void;
     handleAddCustomDietary: () => void;
-    toggleCuisine: (cuisine: string) => void;
-    toggleDietary: (diet: string) => void;
+    // Debounced update handlers
+    onUpdateCuisines: (cuisines: string[]) => void;
+    onUpdateDietary: (dietary: string[]) => void;
 }
 
 const CUISINE_OPTIONS = ['Italian', 'Japanese', 'Mexican', 'Indian', 'Chinese', 'Thai', 'Greek', 'French', 'Korean', 'Vietnamese'];
@@ -54,8 +55,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     setCustomDietary,
     setIsAddingDietary,
     handleAddCustomDietary,
-    toggleCuisine,
-    toggleDietary,
+    onUpdateCuisines, // Changed from toggleCuisine
+    onUpdateDietary,  // Changed from toggleDietary
 }) => {
     const { userProfile, userPreferences, currentUser } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,6 +64,68 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [selectedPost, setSelectedPost] = useState<MenuItem | null>(null);
+
+    // Local state for debouncing
+    const [localCuisines, setLocalCuisines] = useState<string[]>(profile.favoriteCuisines);
+    const [localDietary, setLocalDietary] = useState<string[]>(profile.dietaryRestrictions);
+    const cuisineTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const dietaryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Sync local state with props when props change (and we're not actively editing - optimistic UI usually handles this, 
+    // but good to sync if external changes happen)
+    useEffect(() => {
+        setLocalCuisines(profile.favoriteCuisines);
+    }, [profile.favoriteCuisines]);
+
+    useEffect(() => {
+        setLocalDietary(profile.dietaryRestrictions);
+    }, [profile.dietaryRestrictions]);
+
+    // Cleanup timeouts
+    useEffect(() => {
+        return () => {
+            if (cuisineTimeoutRef.current) clearTimeout(cuisineTimeoutRef.current);
+            if (dietaryTimeoutRef.current) clearTimeout(dietaryTimeoutRef.current);
+        };
+    }, []);
+
+    const handleToggleCuisine = (cuisine: string) => {
+        const newCuisines = localCuisines.includes(cuisine)
+            ? localCuisines.filter(c => c !== cuisine)
+            : [...localCuisines, cuisine];
+
+        setLocalCuisines(newCuisines);
+
+        if (cuisineTimeoutRef.current) clearTimeout(cuisineTimeoutRef.current);
+        cuisineTimeoutRef.current = setTimeout(() => {
+            onUpdateCuisines(newCuisines);
+        }, 1000); // 1 second debounce
+    };
+
+    const handleToggleDietary = (diet: string) => {
+        const newDietary = localDietary.includes(diet)
+            ? localDietary.filter(d => d !== diet)
+            : [...localDietary, diet];
+
+        setLocalDietary(newDietary);
+
+        if (dietaryTimeoutRef.current) clearTimeout(dietaryTimeoutRef.current);
+        dietaryTimeoutRef.current = setTimeout(() => {
+            onUpdateDietary(newDietary);
+        }, 1000); // 1 second debounce
+    };
+
+    // Override custom add handlers to use local state logic too (or wrap them)
+    // Actually, the parent passes handleAddCustomCuisine which calls handleUpdate immediately.
+    // For consistency, we should probably intercept those too, but the prompt specifically asked for "Favourite Cuisine" and "Dietary Restriction" sections for DEBOUNCE.
+    // The "Add Custom" flow is a bit distinct. Let's stick to the toggle buttons for now as requested, 
+    // OR ideally we effectively replace the "toggle" prop usage. 
+
+    // NOTE: The `handleAddCustomCuisine` prop from parent directly modifes the profile. 
+    // To fully debounce everything in this section we would need to refactor how custom additions work too.
+    // However, clicking "Add" is an explicit action, so debouncing might not be desired there?
+    // Usually debouncing is for "toggling" many items quickly. 
+    // I will stick to debouncing the toggles as that is the primary "noisy" interaction.
 
     // Get profile picture URL (custom or Google photo)
     const profilePictureURL = userProfile?.profilePictureURL || currentUser?.photoURL;
@@ -204,11 +267,11 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
             <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Favourite Cuisine</h3>
                 <div className="flex flex-wrap gap-2">
-                    {Array.from(new Set([...CUISINE_OPTIONS, ...profile.favoriteCuisines])).map(cuisine => (
+                    {Array.from(new Set([...CUISINE_OPTIONS, ...localCuisines])).map(cuisine => (
                         <button
                             key={cuisine}
-                            onClick={() => toggleCuisine(cuisine)}
-                            className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${profile.favoriteCuisines.includes(cuisine)
+                            onClick={() => handleToggleCuisine(cuisine)}
+                            className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${localCuisines.includes(cuisine)
                                 ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-100'
                                 : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
                                 }`}
@@ -253,11 +316,11 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
             <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Dietary</h3>
                 <div className="flex flex-wrap gap-2">
-                    {Array.from(new Set([...DIETARY_OPTIONS, ...profile.dietaryRestrictions])).map(diet => (
+                    {Array.from(new Set([...DIETARY_OPTIONS, ...localDietary])).map(diet => (
                         <button
                             key={diet}
-                            onClick={() => toggleDietary(diet)}
-                            className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${profile.dietaryRestrictions.includes(diet)
+                            onClick={() => handleToggleDietary(diet)}
+                            className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${localDietary.includes(diet)
                                 ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-100'
                                 : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
                                 }`}
