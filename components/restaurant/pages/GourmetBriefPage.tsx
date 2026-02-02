@@ -80,12 +80,62 @@ const GourmetBriefPage: React.FC<GourmetBriefPageProps> = ({ details, loadingDet
 
     if (loadingDetails) {
         return (
-            <div className="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 space-y-4 animate-pulse">
-                <div className="h-6 bg-slate-800 rounded w-1/3"></div>
-                <div className="h-24 bg-slate-800 rounded w-full"></div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="h-20 bg-slate-800 rounded"></div>
-                    <div className="h-20 bg-slate-800 rounded"></div>
+            <div className="space-y-4 animate-pulse">
+                {/* Header Skeleton */}
+                <div className="bg-white p-6 rounded-[2rem] border border-orange-100 shadow-sm h-48 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                        <div className="w-32 h-32 bg-orange-400 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between mb-6">
+                        <div className="flex gap-2 w-1/3">
+                            <div className="w-8 h-8 rounded-full bg-orange-100"></div>
+                            <div className="h-4 bg-orange-100 rounded w-24 my-2"></div>
+                        </div>
+                        <div className="w-20 h-6 bg-green-50 rounded-full border border-green-100"></div>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="h-2 bg-slate-100 rounded w-full"></div>
+                        <div className="h-2 bg-slate-100 rounded w-5/6"></div>
+                        <div className="h-2 bg-slate-100 rounded w-4/6"></div>
+                    </div>
+                </div>
+
+                {/* Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left Card Skeleton */}
+                    <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 h-64">
+                        <div className="flex gap-2 mb-4">
+                            <div className="w-5 h-5 bg-orange-100 rounded"></div>
+                            <div className="h-4 bg-orange-50 rounded w-24"></div>
+                        </div>
+                        <div className="space-y-3">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="flex gap-3">
+                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex-shrink-0"></div>
+                                    <div className="flex-1 space-y-2 py-1">
+                                        <div className="h-2 bg-slate-100 rounded w-3/4"></div>
+                                        <div className="h-2 bg-slate-50 rounded w-1/2"></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Right Card Skeleton */}
+                    <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 h-64">
+                        <div className="flex gap-2 mb-4">
+                            <div className="w-5 h-5 bg-orange-100 rounded"></div>
+                            <div className="h-4 bg-orange-50 rounded w-24"></div>
+                        </div>
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <div key={i} className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-orange-200 rounded-full"></div>
+                                    <div className="h-2 bg-slate-100 rounded w-1/2"></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         );

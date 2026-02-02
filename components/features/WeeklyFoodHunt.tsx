@@ -6,6 +6,7 @@ import {
   subscribeFoodLogs,
   updateFoodLog,
   createFoodLog,
+  deleteFoodLog,
   foodLogToHistoryEntry
 } from '../../services/foodLogsService';
 import {
@@ -161,6 +162,32 @@ const WeeklyFoodHunt: React.FC = () => {
     }
   };
 
+  const handleDeleteEntry = async (entryId: string) => {
+    if (!currentUser) return;
+    try {
+      await deleteFoodLog(entryId);
+      // Keep modal open by switching to "Add New" mode for the current date
+      if (editingEntry) {
+        // Create a fresh template for the same date
+        setEditingEntry({
+          id: '',
+          date: editingEntry.date,
+          cuisine: '',
+          foodType: '',
+          mealType: 'Breakfast',
+          restaurantName: '',
+          logs: [],
+          timestamp: Date.now()
+        });
+      } else {
+        setEditingEntry(null);
+      }
+    } catch (error) {
+      console.error('Error deleting food log:', error);
+      alert('Failed to delete food log. Please try again.');
+    }
+  };
+
   const daysLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const startOfCurrentWeek = getStartOfWeek(new Date());
 
@@ -277,6 +304,7 @@ const WeeklyFoodHunt: React.FC = () => {
               timestamp: Date.now()
             });
           }}
+          onDelete={handleDeleteEntry}
         />
       )}
     </div>

@@ -81,8 +81,23 @@ export const getRestaurantDetails = async (name: string): Promise<SearchResult> 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Provide a very brief summary, current opening hours, the top 3 popular dishes, and an estimated Price Rating (1-4, where 1 is cheap and 4 is expensive) for the restaurant "${name}". Format the response clearly with headings. PROMINENTLY STATE "Price Rating: X/4" on its own line.`,
+        model: 'gemini-2.5-flash',
+        contents: `Analyze the restaurant "${name}". Provide ONLY the following details in this exact format:
+
+### Description
+[2-3 exciting sentences about the vibe and food]
+
+### Current Opening Hours
+* [Day]: [Hours]
+* [Day]: [Hours]
+(List today and upcoming days)
+
+### Top 3 Popular Dishes
+1. **[Dish Name]**: [Brief appetizing description]
+2. **[Dish Name]**: [Brief appetizing description]
+3. **[Dish Name]**: [Brief appetizing description]
+
+**Price Rating: [1-4]/4**`,
         config: {
           tools: [{ googleSearch: {} }],
         },

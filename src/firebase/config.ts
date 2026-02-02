@@ -35,19 +35,19 @@ if (useEmulators) {
 
     try {
         // Connect to Auth Emulator
-        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
         console.log('✅ Auth Emulator connected (localhost:9099)');
 
         // Connect to Firestore Emulator
-        connectFirestoreEmulator(db, 'localhost', 8080);
+        connectFirestoreEmulator(db, '127.0.0.1', 8080);
         console.log('✅ Firestore Emulator connected (localhost:8080)');
 
         // Connect to Functions Emulator
-        connectFunctionsEmulator(functions, 'localhost', 5001);
+        connectFunctionsEmulator(functions, '127.0.0.1', 5001);
         console.log('✅ Functions Emulator connected (localhost:5001)');
 
         // Connect to Storage Emulator
-        connectStorageEmulator(storage, 'localhost', 9199);
+        connectStorageEmulator(storage, '127.0.0.1', 9199);
         console.log('✅ Storage Emulator connected (localhost:9199)');
 
         console.log('🎉 All emulators connected successfully!');
