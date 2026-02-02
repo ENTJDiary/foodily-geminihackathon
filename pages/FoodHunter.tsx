@@ -189,15 +189,6 @@ const FoodHunter: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <button
-              type="button"
-              onClick={() => setIsCluelesOpen(true)}
-              className="px-6 py-4 bg-purple-50 hover:bg-purple-100 text-purple-600 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 btn-bounce border border-purple-200"
-            >
-              <span className="text-xl">🤔</span>
-              <span className="text-sm uppercase tracking-wider">Clueless?</span>
-            </button>
-
-            <button
               disabled={loading}
               type="submit"
               className="flex-1 bg-brand-orange hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-brand-orange/20 flex items-center justify-center gap-3 text-lg btn-bounce"
@@ -212,6 +203,14 @@ const FoodHunter: React.FC = () => {
                   Find Restaurants
                 </>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsCluelesOpen(true)}
+              className="px-6 py-4 bg-purple-50 hover:bg-purple-100 text-purple-600 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 btn-bounce border border-purple-200"
+            >
+              <span className="text-sm uppercase tracking-wider">Clueless?</span>
             </button>
           </div>
         </form>

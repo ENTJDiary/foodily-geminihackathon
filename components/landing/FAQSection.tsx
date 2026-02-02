@@ -30,7 +30,7 @@ const FAQSection: React.FC = () => {
 
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4 font-cormorant">
+                    <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4 font-sans">
                         Frequently Asked Questions
                     </h2>
                     <p className="text-lg text-slate-600 font-medium font-inter">
@@ -45,7 +45,7 @@ const FAQSection: React.FC = () => {
                             key={index}
                             className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-slate-100"
                         >
-                            <h3 className="text-xl font-bold text-slate-900 mb-3 font-cormorant">
+                            <h3 className="text-xl font-bold text-slate-900 mb-3 font-sans">
                                 {faq.question}
                             </h3>
                             <p className="text-slate-600 leading-relaxed font-medium font-inter">

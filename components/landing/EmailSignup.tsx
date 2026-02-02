@@ -28,7 +28,7 @@ const EmailSignup: React.FC = () => {
 
                     {/* Header */}
                     <div className="space-y-3">
-                        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 font-cormorant tracking-tight">
+                        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 font-sans tracking-tight">
                             Join the waitlist
                         </h2>
                         <p className="text-slate-500 font-medium font-inter text-sm md:text-base max-w-md mx-auto leading-relaxed">
