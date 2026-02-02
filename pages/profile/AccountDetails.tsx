@@ -55,8 +55,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     setCustomDietary,
     setIsAddingDietary,
     handleAddCustomDietary,
-    onUpdateCuisines, // Changed from toggleCuisine
-    onUpdateDietary,  // Changed from toggleDietary
+    onUpdateCuisines,
+    onUpdateDietary,
 }) => {
     const { userProfile, userPreferences, currentUser } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,8 +71,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     const cuisineTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const dietaryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Sync local state with props when props change (and we're not actively editing - optimistic UI usually handles this, 
-    // but good to sync if external changes happen)
+    // Sync local state with props when props change
     useEffect(() => {
         setLocalCuisines(profile.favoriteCuisines);
     }, [profile.favoriteCuisines]);
@@ -114,18 +113,6 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
             onUpdateDietary(newDietary);
         }, 1000); // 1 second debounce
     };
-
-    // Override custom add handlers to use local state logic too (or wrap them)
-    // Actually, the parent passes handleAddCustomCuisine which calls handleUpdate immediately.
-    // For consistency, we should probably intercept those too, but the prompt specifically asked for "Favourite Cuisine" and "Dietary Restriction" sections for DEBOUNCE.
-    // The "Add Custom" flow is a bit distinct. Let's stick to the toggle buttons for now as requested, 
-    // OR ideally we effectively replace the "toggle" prop usage. 
-
-    // NOTE: The `handleAddCustomCuisine` prop from parent directly modifes the profile. 
-    // To fully debounce everything in this section we would need to refactor how custom additions work too.
-    // However, clicking "Add" is an explicit action, so debouncing might not be desired there?
-    // Usually debouncing is for "toggling" many items quickly. 
-    // I will stick to debouncing the toggles as that is the primary "noisy" interaction.
 
     // Get profile picture URL (custom or Google photo)
     const profilePictureURL = userProfile?.profilePictureURL || currentUser?.photoURL;
@@ -172,13 +159,13 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300 max-h-[700px]">
+        <div className="space-y-6 animate-in fade-in duration-300">
             {/* User Profile Card */}
-            <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
+            <div className="glass-panel p-6 md:p-8 rounded-3xl shadow-sm">
                 <div className="flex items-start gap-6">
                     {/* Avatar */}
                     <div
-                        className="relative w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center text-orange-600 text-3xl font-black shadow-inner border-2 border-orange-200 cursor-pointer hover:opacity-80 transition-opacity group"
+                        className="relative w-24 h-24 bg-gradient-to-br from-brand-orange/20 to-brand-orange/40 rounded-2xl flex items-center justify-center text-brand-orange text-3xl font-black shadow-inner border border-brand-orange/20 cursor-pointer hover:opacity-80 transition-opacity group"
                         onClick={handleProfilePictureClick}
                     >
                         {profilePictureURL ? (
@@ -217,7 +204,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                                         type="text"
                                         value={tempName}
                                         onChange={(e) => setTempName(e.target.value)}
-                                        className="text-2xl font-black text-slate-900 tracking-tight bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-500"
+                                        className="text-2xl font-bold text-brand-black tracking-tight bg-white/50 border border-brand-slate/20 rounded-lg px-2 py-1 focus:outline-none focus:border-brand-orange"
                                         autoFocus
                                     />
                                     <button onClick={handleSaveName} className="p-1 text-green-500 hover:bg-green-50 rounded-full">
@@ -233,8 +220,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-3 group">
-                                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">{profile.name}</h3>
-                                    <button onClick={() => setIsEditingName(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-orange-500">
+                                    <h3 className="text-2xl font-bold text-brand-black tracking-tight">{profile.name}</h3>
+                                    <button onClick={() => setIsEditingName(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-brand-slate/40 hover:text-brand-orange">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
@@ -244,36 +231,36 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                             <span className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-200"></span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <p className="text-sm text-slate-400 font-medium">
+                            <p className="text-sm text-brand-slate/60 font-medium">
                                 {userPreferences?.dateOfBirth ? formatDateOfBirth(userPreferences.dateOfBirth) : ''}
                             </p>
                             {userPreferences?.dateOfBirth && (
                                 <>
-                                    <span className="text-slate-200">•</span>
-                                    <p className="text-sm font-bold text-orange-600">
+                                    <span className="text-brand-slate/30">•</span>
+                                    <p className="text-sm font-bold text-brand-orange">
                                         {calculateAge(userPreferences.dateOfBirth)} Years Old
                                     </p>
                                 </>
                             )}
                         </div>
-                        <div className="mt-3 inline-block px-4 py-2 bg-slate-50 rounded-lg border border-slate-100">
-                            <span className="text-sm text-slate-600 font-semibold">{profile.email}</span>
+                        <div className="mt-3 inline-block px-4 py-2 bg-brand-orange/5 rounded-lg border border-brand-orange/10">
+                            <span className="text-sm text-brand-slate/80 font-semibold">{profile.email}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Favourite Cuisine */}
-            <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Favourite Cuisine</h3>
-                <div className="flex flex-wrap gap-2">
+            <div className="glass-panel p-6 md:p-8 rounded-3xl shadow-sm">
+                <h3 className="text-xs font-bold text-brand-slate/50 uppercase tracking-widest mb-6">Favourite Cuisine</h3>
+                <div className="flex flex-wrap gap-3">
                     {Array.from(new Set([...CUISINE_OPTIONS, ...localCuisines])).map(cuisine => (
                         <button
                             key={cuisine}
                             onClick={() => handleToggleCuisine(cuisine)}
-                            className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${localCuisines.includes(cuisine)
-                                ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-100'
-                                : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
+                            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border uppercase tracking-wider ${localCuisines.includes(cuisine)
+                                ? 'bg-brand-orange border-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                                : 'bg-white/50 border-white/40 text-brand-slate/60 hover:border-brand-orange/30 hover:text-brand-orange'
                                 }`}
                         >
                             {cuisine}
@@ -281,27 +268,27 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                     ))}
 
                     {isAddingCuisine ? (
-                        <div className="flex items-center gap-2 px-2 py-1 rounded-full border border-orange-200 bg-orange-50 pl-4">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-brand-orange/30 bg-white shadow-sm">
                             <input
                                 type="text"
                                 value={customCuisine}
                                 onChange={(e) => setCustomCuisine(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddCustomCuisine()}
-                                placeholder="Add custom..."
-                                className="bg-transparent border-none focus:outline-none text-[10px] font-black uppercase text-orange-800 w-24"
+                                placeholder="Add..."
+                                className="bg-transparent border-none focus:outline-none text-xs font-bold uppercase text-brand-orange w-24 placeholder:text-brand-orange/30"
                                 autoFocus
                             />
-                            <button onClick={handleAddCustomCuisine} className="p-1 rounded-full hover:bg-orange-200 text-orange-600">
+                            <button onClick={handleAddCustomCuisine} className="p-1 rounded-full hover:bg-brand-orange/10 text-brand-orange">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                             </button>
-                            <button onClick={() => { setIsAddingCuisine(false); setCustomCuisine(''); }} className="p-1 rounded-full hover:bg-orange-200 text-orange-400">
+                            <button onClick={() => { setIsAddingCuisine(false); setCustomCuisine(''); }} className="p-1 rounded-full hover:bg-brand-orange/10 text-brand-orange/50">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
                     ) : (
                         <button
                             onClick={() => setIsAddingCuisine(true)}
-                            className="px-5 py-2.5 rounded-full text-[10px] font-black transition-all border border-dashed border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-500 uppercase tracking-widest flex items-center gap-2 group"
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all border border-dashed border-brand-slate/20 text-brand-slate/40 hover:border-brand-orange hover:text-brand-orange uppercase tracking-wider flex items-center gap-2 group"
                         >
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -313,16 +300,16 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
             </div>
 
             {/* Dietary */}
-            <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5">Dietary</h3>
-                <div className="flex flex-wrap gap-2">
+            <div className="glass-panel p-6 md:p-8 rounded-3xl shadow-sm">
+                <h3 className="text-xs font-bold text-brand-slate/50 uppercase tracking-widest mb-6">Dietary</h3>
+                <div className="flex flex-wrap gap-3">
                     {Array.from(new Set([...DIETARY_OPTIONS, ...localDietary])).map(diet => (
                         <button
                             key={diet}
                             onClick={() => handleToggleDietary(diet)}
-                            className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all border uppercase tracking-widest ${localDietary.includes(diet)
-                                ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-100'
-                                : 'bg-white border-slate-200 text-slate-400 hover:border-orange-500 hover:text-orange-600'
+                            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border uppercase tracking-wider ${localDietary.includes(diet)
+                                ? 'bg-brand-orange border-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                                : 'bg-white/50 border-white/40 text-brand-slate/60 hover:border-brand-orange/30 hover:text-brand-orange'
                                 }`}
                         >
                             {diet}
@@ -330,27 +317,27 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                     ))}
 
                     {isAddingDietary ? (
-                        <div className="flex items-center gap-2 px-2 py-1 rounded-full border border-orange-200 bg-orange-50 pl-4">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-brand-orange/30 bg-white shadow-sm">
                             <input
                                 type="text"
                                 value={customDietary}
                                 onChange={(e) => setCustomDietary(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddCustomDietary()}
-                                placeholder="Add custom..."
-                                className="bg-transparent border-none focus:outline-none text-[10px] font-black uppercase text-orange-800 w-24"
+                                placeholder="Add..."
+                                className="bg-transparent border-none focus:outline-none text-xs font-bold uppercase text-brand-orange w-24 placeholder:text-brand-orange/30"
                                 autoFocus
                             />
-                            <button onClick={handleAddCustomDietary} className="p-1 rounded-full hover:bg-orange-200 text-orange-600">
+                            <button onClick={handleAddCustomDietary} className="p-1 rounded-full hover:bg-brand-orange/10 text-brand-orange">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                             </button>
-                            <button onClick={() => { setIsAddingDietary(false); setCustomDietary(''); }} className="p-1 rounded-full hover:bg-orange-200 text-orange-400">
+                            <button onClick={() => { setIsAddingDietary(false); setCustomDietary(''); }} className="p-1 rounded-full hover:bg-brand-orange/10 text-brand-orange/50">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
                     ) : (
                         <button
                             onClick={() => setIsAddingDietary(true)}
-                            className="px-5 py-2.5 rounded-full text-[10px] font-black transition-all border border-dashed border-slate-300 text-slate-400 hover:border-orange-400 hover:text-orange-500 uppercase tracking-widest flex items-center gap-2 group"
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all border border-dashed border-brand-slate/20 text-brand-slate/40 hover:border-brand-orange hover:text-brand-orange uppercase tracking-wider flex items-center gap-2 group"
                         >
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -433,4 +420,3 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
 };
 
 export default AccountDetails;
-

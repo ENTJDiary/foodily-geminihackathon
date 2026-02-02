@@ -52,7 +52,7 @@ const LandingNavbar: React.FC<LandingNavbarProps> = ({ isScrolled: externalScrol
                     <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-200">
                         F
                     </div>
-                    <span className="text-2xl font-black tracking-tight text-slate-900 hidden sm:block font-cormorant">
+                    <span className="text-2xl font-black tracking-tight text-slate-900 hidden sm:block font-sans">
                         Food.ily
                     </span>
                 </div>

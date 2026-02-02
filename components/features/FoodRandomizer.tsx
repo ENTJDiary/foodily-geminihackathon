@@ -225,7 +225,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
   };
 
   return (
-    <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-orange-50 space-y-10 relative overflow-hidden">
+    <div className="glass-panel p-8 md:p-10 rounded-3xl space-y-10 relative overflow-hidden transition-all duration-300 hover:shadow-lg">
       <div className="flex justify-between items-start">
         <div className="space-y-2">
           <h4 className="text-[11px] font-black text-orange-600 uppercase tracking-[0.3em] flex items-center gap-2">

@@ -211,9 +211,9 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center">
-      <div className="bg-white w-full max-w-[2560px] px-6 py-6 space-y-6 animate-in fade-in duration-500">
-        <div className="flex flex-col lg:flex-row gap-6">
+    <div className="min-h-screen flex justify-center pb-12">
+      <div className="w-full max-w-7xl px-4 py-8 space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <ProfileSidebar
             activeTab={activeTab}
@@ -222,7 +222,7 @@ const Profile: React.FC = () => {
           />
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div
               key={activeTab}
               className={isAnimating ? 'animate-macos-spring-out' : ''}
@@ -238,7 +238,7 @@ const Profile: React.FC = () => {
 
           {/* Save Status Notification */}
           {saveStatus === 'saved' && (
-            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest shadow-2xl animate-in fade-in slide-in-from-bottom-4 z-[100]">
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-brand-orange text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest shadow-2xl shadow-brand-orange/30 animate-in fade-in slide-in-from-bottom-4 z-[100]">
               Profile Updated
             </div>
           )}

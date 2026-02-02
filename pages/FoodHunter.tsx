@@ -148,62 +148,66 @@ const FoodHunter: React.FC = () => {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 max-w-4xl mx-auto">
-      <div className="text-center space-y-4">
-        <h2 className="text-4xl font-extrabold text-slate-900 uppercase tracking-tight">What are we craving for today?</h2>
-        <p className="text-slate-500 font-medium italic">Spicy ramen? Juicy burgers? Or maybe a fresh acai bowl? Let's find your perfect bite.</p>
+      <div className="text-center space-y-4 pt-4">
+        <h2 className="text-4xl md:text-5xl font-bold text-brand-black tracking-tight">
+          What are we craving <span className="text-brand-orange">today?</span>
+        </h2>
+        <p className="text-brand-slate/70 font-medium text-lg max-w-xl mx-auto">
+          Spicy ramen? Juicy burgers? Or maybe a fresh acai bowl? Let's find your perfect bite.
+        </p>
       </div>
 
       <div className="relative">
-        <form onSubmit={handleManualSearch} className="relative bg-white p-10 rounded-[2rem] shadow-sm border border-orange-50 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <form onSubmit={handleManualSearch} className="relative glass-panel p-8 md:p-10 rounded-3xl space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Craving</label>
+              <label className="text-xs font-bold text-brand-slate/60 uppercase tracking-widest ml-1">Craving</label>
               <input
                 type="text"
                 placeholder="e.g. Spicy Ramen"
                 value={dish}
                 onChange={(e) => setDish(e.target.value)}
-                className="w-full px-6 py-5 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-semibold text-lg outline-none"
+                className="w-full px-6 py-4 rounded-2xl bg-white/60 border border-white/20 focus:border-brand-orange focus:bg-white focus:ring-4 focus:ring-brand-orange/10 transition-all font-semibold text-lg outline-none text-brand-black placeholder:text-brand-slate/30"
               />
             </div>
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Location</label>
+              <label className="text-xs font-bold text-brand-slate/60 uppercase tracking-widest ml-1">Location</label>
               <input
                 type="text"
                 placeholder="e.g. New York, NY"
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
-                className="w-full px-6 py-5 rounded-xl bg-slate-50 border border-transparent focus:border-orange-500 focus:bg-white transition-all font-semibold text-lg outline-none"
+                className="w-full px-6 py-4 rounded-2xl bg-white/60 border border-white/20 focus:border-brand-orange focus:bg-white focus:ring-4 focus:ring-brand-orange/10 transition-all font-semibold text-lg outline-none text-brand-black placeholder:text-brand-slate/30"
               />
             </div>
           </div>
 
           {hasRestrictions && (
-            <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-orange-50">
+            <div className="flex items-center gap-3 bg-brand-orange/5 p-4 rounded-xl border border-brand-orange/10">
               <input
                 id="apply-dietary"
                 type="checkbox"
                 checked={applyFilters}
                 onChange={() => setApplyFilters(!applyFilters)}
-                className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                className="w-5 h-5 rounded-md text-brand-orange focus:ring-brand-orange border-brand-orange/30 cursor-pointer"
               />
-              <label htmlFor="apply-dietary" className="text-xs font-black text-slate-600 uppercase tracking-widest cursor-pointer select-none">
-                Filter by my dietary needs: <span className="text-orange-600">{profile.dietaryRestrictions.join(', ')}</span>
+              <label htmlFor="apply-dietary" className="text-xs font-bold text-brand-slate uppercase tracking-widest cursor-pointer select-none">
+                Filter by my dietary needs: <span className="text-brand-orange">{profile.dietaryRestrictions.join(', ')}</span>
               </label>
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <button
               disabled={loading}
               type="submit"
-              className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white font-bold py-5 rounded-xl transition-all shadow-md flex items-center justify-center gap-3 text-lg active:scale-[0.99]"
+              className="flex-1 bg-brand-orange hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-brand-orange/20 flex items-center justify-center gap-3 text-lg btn-bounce"
             >
               {loading ? (
                 <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   Find Restaurants
@@ -211,30 +215,28 @@ const FoodHunter: React.FC = () => {
               )}
             </button>
 
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsCluelesOpen(true)}
-                className="px-8 py-3 bg-white hover:bg-purple-600 text-purple-600 hover:text-white font-bold rounded-xl transition-all shadow-md border-2 border-purple-600 active:scale-[0.99] text-sm"
-              >
-                Clueless
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsCluelesOpen(true)}
+              className="px-6 py-4 bg-purple-50 hover:bg-purple-100 text-purple-600 font-bold rounded-2xl transition-all flex items-center justify-center gap-2 btn-bounce border border-purple-200"
+            >
+              <span className="text-sm uppercase tracking-wider">Clueless?</span>
+            </button>
           </div>
         </form>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-xl font-black text-slate-900 tracking-tight">
-          Trending & Weekly Picks
+      <div className="space-y-6">
+        <h3 className="text-2xl font-bold text-brand-black tracking-tight flex items-center gap-2">
+          <span>🔥</span> Trending & Weekly Picks
         </h3>
         <TrendingSlideshow />
       </div>
 
-      <div ref={resultsRef} className="scroll-mt-24">
+      <div ref={resultsRef} className="scroll-mt-32">
         {loading && (
-          <div className="animate-in fade-in duration-300">
-            <LoadingRecommendations message="Finding the best spots for you 🍽️" />
+          <div className="animate-in fade-in duration-300 py-12">
+            <LoadingRecommendations message="Finding the best spots for you..." />
           </div>
         )}
 

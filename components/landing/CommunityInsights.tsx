@@ -135,7 +135,7 @@ const CommunityInsights: React.FC = () => {
 
                 {/* Left Section - Text Content */}
                 <div className="flex flex-col space-y-8 max-w-lg lg:pl-12">
-                    <h2 className="text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] font-cormorant">
+                    <h2 className="text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] font-sans">
                         Built from<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400">Real</span><br />
                         Food Lovers.

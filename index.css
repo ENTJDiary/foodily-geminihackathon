@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --foodily-orange: #FF6B00;
+  --foodily-cream: #FFF9F2;
+}
+
+body {
+  background-color: var(--foodily-cream);
+  color: #121212;
+  font-family: 'Outfit', sans-serif; /* Switching to Outfit for a more modern, friendly look if available */
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.btn-bounce {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-bounce:active {
+  transform: scale(0.95);
+}

@@ -124,7 +124,7 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Headline */}
-                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight font-cormorant text-center">
+                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight font-sans text-center">
                   The World's Best <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400"> AI Food Companion</span>
                 </h1>
@@ -186,7 +186,7 @@ const Landing: React.FC = () => {
 
               {/* Left Column: Text Content */}
               <div className="flex flex-col items-start space-y-8 order-2 lg:order-1">
-                <h2 className="text-5xl lg:text-7xl font-cormorant font-black text-slate-900 leading-[1.1]">
+                <h2 className="text-5xl lg:text-7xl font-sans font-black text-slate-900 leading-[1.1]">
                   Reduce <br /> <span className="text-orange-500">Decision Fatigue</span>
                 </h2>
 
@@ -238,7 +238,7 @@ const Landing: React.FC = () => {
 
               {/* Section Header */}
               <div className="text-center mb-16">
-                <h2 className="text-5xl lg:text-6xl font-black text-slate-900 mb-4 font-cormorant">
+                <h2 className="text-5xl lg:text-6xl font-black text-slate-900 mb-4 font-sans">
                   Gamified Features
                 </h2>
                 <p className="text-xl text-slate-500 font-medium font-inter">
@@ -254,7 +254,7 @@ const Landing: React.FC = () => {
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-slate-200 mb-6 shadow-sm">
                     <img src={foodHunterPreview} alt="Food Hunter" className="w-full h-full object-cover" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-cormorant">Food Hunter</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">Food Hunter</h3>
                   <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
                     Search for what you're craving, not just keywords. Our AI understands your preferences to find the perfect dish.
                   </p>
@@ -272,7 +272,7 @@ const Landing: React.FC = () => {
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-slate-200 mb-6 shadow-sm flex items-center justify-center">
                     <img src={foodGachaIcon} alt="Food Gacha" className="w-full h-full object-cover" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-cormorant">Food Gacha</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">Food Gacha</h3>
                   <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
                     Feeling adventurous? Spin the Gourmet Slot and let fate decide your next meal. Discover hidden gems.
                   </p>
@@ -290,7 +290,7 @@ const Landing: React.FC = () => {
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-slate-200 mb-6 shadow-sm flex items-center justify-center p-8">
                     <img src={conciergeIcon} alt="Concierge" className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-cormorant">Concierge</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">Concierge</h3>
                   <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
                     Chat with our AI food concierge. Tell us your preferences, budget, and location for personalized picks.
                   </p>
@@ -317,7 +317,7 @@ const Landing: React.FC = () => {
         <section ref={visionRef} className="w-full h-[200vh] snap-start relative bg-zinc-50 shrink-0">
           <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
             <div className="max-w-5xl px-6 text-center relative z-10">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-cormorant font-medium text-slate-800 leading-tight">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-sans font-medium text-slate-800 leading-tight">
                 The more you use Foodily, <br className="hidden md:block" />
                 <span className="relative inline-block mx-2">
                   <span

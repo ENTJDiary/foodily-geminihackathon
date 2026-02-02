@@ -63,12 +63,12 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab
     return (
         <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
             {/* First Frame: Navigation Items */}
-            <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+            <div className="glass-panel overflow-hidden rounded-3xl">
                 {/* Back to Home */}
                 <div className="flex pl-5 pt-4">
                     <Link
                         to={`/FoodHunter/${userid}`}
-                        className="inline-flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-wider"
+                        className="inline-flex items-center gap-2 text-brand-slate/40 font-bold text-xs uppercase tracking-wider hover:text-brand-orange transition-colors"
                     >
                         <svg
                             className="w-4 h-4"
@@ -79,7 +79,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
+                                strokeWidth={2.5}
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
                             />
                         </svg>
@@ -103,15 +103,15 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab
                                 }
                                 setActiveTab(item.id);
                             }}
-                            className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${activeTab === item.id
-                                ? 'bg-orange-50 text-orange-600 border border-orange-200'
-                                : 'text-slate-500 hover:bg-slate-50 border border-transparent'
+                            className={`w-full flex items-start gap-3 px-4 py-4 rounded-2xl text-left transition-all ${activeTab === item.id
+                                ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                                : 'text-brand-slate/60 hover:bg-brand-orange/5 border border-transparent'
                                 }`}
                         >
-                            <span className={`flex-shrink-0 self-center ${activeTab === item.id ? 'text-orange-600' : 'text-slate-400'}`}>{item.icon}</span>
+                            <span className={`flex-shrink-0 self-center ${activeTab === item.id ? 'text-white' : 'text-brand-slate/40'}`}>{item.icon}</span>
                             <div className="flex-1">
-                                <div className="text-xs font-black uppercase tracking-wider">{item.label}</div>
-                                <div className="text-[10px] font-medium text-slate-400 mt-0.5">{item.description}</div>
+                                <div className="text-xs font-bold uppercase tracking-wider">{item.label}</div>
+                                <div className={`text-[10px] font-medium mt-0.5 ${activeTab === item.id ? 'text-white/80' : 'text-brand-slate/40'}`}>{item.description}</div>
                             </div>
                         </button>
                     ))}
@@ -119,25 +119,25 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setActiveTab
             </div>
 
             {/* Second Frame: Feedback & Help */}
-            <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+            <div className="glass-panel overflow-hidden rounded-3xl">
                 <div className="p-4 space-y-3">
-                    <p className="text-[10px] font-medium text-slate-500 leading-relaxed">
-                        Have a feature request, bug report, or a new idea?
+                    <p className="text-[10px] font-bold text-brand-slate/40 leading-relaxed uppercase tracking-wide">
+                        Support
                     </p>
 
                     <div className="space-y-2">
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-500 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-300">
-                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-brand-slate/60 hover:bg-brand-orange/5 transition-all border border-transparent">
+                            <svg className="w-5 h-5 text-brand-slate/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                             </svg>
-                            <span className="text-xs font-black uppercase tracking-wider">Send Feedback</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">Send Feedback</span>
                         </button>
 
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-500 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-300">
-                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-brand-slate/60 hover:bg-brand-orange/5 transition-all border border-transparent">
+                            <svg className="w-5 h-5 text-brand-slate/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span className="text-xs font-black uppercase tracking-wider">Help</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">Help centre</span>
                         </button>
                     </div>
                 </div>

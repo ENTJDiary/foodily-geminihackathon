@@ -221,7 +221,7 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
     // Empty State (Minimalist)
     if (options.length === 0) {
         return (
-            <div className="bg-white p-12 rounded-[2.5rem] border border-orange-100 shadow-[0_8px_30px_rgb(234,88,12,0.05)] space-y-8 text-center">
+            <div className="glass-panel p-12 rounded-3xl space-y-8 text-center">
                 <div className="flex flex-col items-center gap-6">
                     <div className="w-20 h-20 rounded-full bg-orange-50 flex items-center justify-center border border-orange-100">
                         <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -272,7 +272,7 @@ const FoodWheel: React.FC<FoodWheelProps> = ({ onSelectFood }) => {
     }
 
     return (
-        <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-orange-50 space-y-12 relative overflow-hidden">
+        <div className="glass-panel p-8 md:p-10 rounded-3xl space-y-12 relative overflow-hidden transition-all duration-300 hover:shadow-lg">
             <div className="flex justify-between items-center relative z-10">
                 <div className="space-y-1">
                     <h4 className="text-[11px] font-black text-orange-600 uppercase tracking-[0.3em] flex items-center gap-2">

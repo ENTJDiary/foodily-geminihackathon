@@ -29,7 +29,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({
 
                     {/* Text Content */}
                     <div className={`space-y-10 ${reverse ? 'lg:col-start-2' : ''}`}>
-                        <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight tracking-tight font-cormorant">
+                        <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight tracking-tight font-sans">
                             {title}
                         </h2>
 
