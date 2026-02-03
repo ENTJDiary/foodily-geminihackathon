@@ -9,7 +9,7 @@ import OnboardingPage3 from './onboarding/OnboardingPage3';
 
 const Onboarding: React.FC = () => {
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const { currentUser, refreshUserData } = useAuth();
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,6 +52,8 @@ const Onboarding: React.FC = () => {
 
         try {
             await saveOnboardingData(currentUser.uid, formData);
+            // Refresh user data to ensure context has the latest preferences
+            await refreshUserData();
             // Redirect to FoodHunter page
             navigate(`/FoodHunter/${currentUser.uid}`);
         } catch (err: any) {
@@ -149,10 +151,10 @@ const Onboarding: React.FC = () => {
                             <div
                                 key={page}
                                 className={`h-2 rounded-full transition-all duration-300 ${page === currentPage
-                                        ? 'w-8 bg-orange-600'
-                                        : page < currentPage
-                                            ? 'w-2 bg-orange-400'
-                                            : 'w-2 bg-slate-300'
+                                    ? 'w-8 bg-orange-600'
+                                    : page < currentPage
+                                        ? 'w-2 bg-orange-400'
+                                        : 'w-2 bg-slate-300'
                                     }`}
                             ></div>
                         ))}

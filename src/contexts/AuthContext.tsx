@@ -290,6 +290,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signOut,
         updateUserProfile: handleUpdateUserProfile,
         updateUserPreferences: handleUpdateUserPreferences,
+        refreshUserData: async () => {
+            if (currentUser) {
+                setLoading(true);
+                try {
+                    await fetchUserData(currentUser.uid);
+                } catch (err: any) {
+                    setError(err.userMessage || err.message);
+                    throw err;
+                } finally {
+                    setLoading(false);
+                }
+            }
+        },
         reauthenticate: async () => {
             const { reauthenticateUser } = await import('../firebase/authService');
             try {

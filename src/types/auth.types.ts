@@ -139,6 +139,7 @@ export interface AuthContextType {
     signOut: () => Promise<void>;
     updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
     updateUserPreferences: (updates: Partial<UserPreferences>) => Promise<void>;
+    refreshUserData: () => Promise<void>;
     reauthenticate: () => Promise<void>;
     updateEmail: (newEmail: string) => Promise<void>;
     deleteAccount: () => Promise<void>;
