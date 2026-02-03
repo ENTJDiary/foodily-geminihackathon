@@ -85,7 +85,7 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
 
         let totalDataPoints = 0;
 
-        // 1. Process Food Logs (40% weight)
+        // 1. Process Food Logs (50% weight - increased from 40)
         foodLogs.forEach((log) => {
             const cuisine = log.cuisine;
             const foodType = log.foodType;
@@ -95,7 +95,7 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
                 cuisineScores[cuisine] = { score: 0, frequency: 0 };
             }
             cuisineScores[cuisine].frequency += 1;
-            cuisineScores[cuisine].score += 40; // Base score from food log
+            cuisineScores[cuisine].score += 50; // Increased from 40
 
             // Track last eaten
             const logDate = new Date(log.date);
@@ -108,7 +108,7 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
                 foodTypeScores[foodType] = { score: 0, frequency: 0 };
             }
             foodTypeScores[foodType].frequency += 1;
-            foodTypeScores[foodType].score += 40;
+            foodTypeScores[foodType].score += 50; // Increased from 40
 
             // Time patterns
             const hour = logDate.getHours();
@@ -127,7 +127,7 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
             totalDataPoints++;
         });
 
-        // 2. Process Saved Restaurants (30% weight)
+        // 2. Process Saved Restaurants (30% weight - unchanged)
         savedRestaurants.forEach((restaurant) => {
             const restaurantId = restaurant.restaurantId;
 
@@ -154,7 +154,7 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
             totalDataPoints++;
         });
 
-        // 3. Process Liked Posts (20% weight)
+        // 3. Process Liked Posts (15% weight - reduced from 20)
         likedPosts.forEach((post: any) => {
             const restaurantId = post.restaurantId;
 
@@ -167,13 +167,14 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
                 };
             }
 
-            restaurantScores[restaurantId].score += 20;
+            restaurantScores[restaurantId].score += 15; // Reduced from 20
             totalDataPoints++;
         });
 
-        // 4. Process Restaurant Clicks (20% weight)
+        // 4. Process Restaurant Clicks (15% for view, 35% for explore)
         clicks.forEach((click: any) => {
             const restaurantId = click.id;
+            const clickType = click.clickType || 'view'; // Default to 'view' for backward compatibility
 
             if (!restaurantScores[restaurantId]) {
                 restaurantScores[restaurantId] = {
@@ -184,15 +185,18 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
                 };
             }
 
-            restaurantScores[restaurantId].score += 20;
+            // Apply different weights based on click type
+            const clickWeight = clickType === 'explore' ? 35 : 15;
+            restaurantScores[restaurantId].score += clickWeight;
             restaurantScores[restaurantId].visitCount += 1;
 
-            // Add cuisine scores from clicks
+            // Add cuisine scores from clicks (higher for explore)
+            const cuisineWeight = clickType === 'explore' ? 20 : 10;
             click.cuisineTypes?.forEach((cuisine: string) => {
                 if (!cuisineScores[cuisine]) {
                     cuisineScores[cuisine] = { score: 0, frequency: 0 };
                 }
-                cuisineScores[cuisine].score += 10;
+                cuisineScores[cuisine].score += cuisineWeight;
             });
 
             totalDataPoints++;
@@ -271,7 +275,23 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
         });
 
         // 8. Calculate confidence score (0-100 based on data volume)
-        const confidenceScore = Math.min(100, (totalDataPoints / 50) * 100);
+        const confidenceScore = Math.min(100, (totalDataPoints / 20) * 100);
+
+        // Check if profile just reached 100% confidence (for notifications)
+        let justCompletedProfile = false;
+        try {
+            const existingProfileDoc = await getDoc(doc(db, TASTE_PROFILES_COLLECTION, userId));
+            if (existingProfileDoc.exists()) {
+                const existingProfile = existingProfileDoc.data() as TasteProfile;
+                // Profile just completed if it was < 100% and now is 100%
+                if (existingProfile.confidenceScore < 100 && confidenceScore >= 100) {
+                    justCompletedProfile = true;
+                    console.log('🎉 [TasteProfile] Profile just reached 100% confidence!');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error checking profile completion status:', error);
+        }
 
         // 9. Build final profile
         const tasteProfile: TasteProfile = {
@@ -302,7 +322,13 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
             restaurants: Object.keys(restaurantScores).length,
             dataPoints: totalDataPoints,
             confidence: confidenceScore,
+            justCompleted: justCompletedProfile
         });
+
+        // Store completion flag in localStorage for UI notification
+        if (justCompletedProfile && typeof window !== 'undefined') {
+            localStorage.setItem(`tasteProfile_completed_${userId}`, 'true');
+        }
 
         return tasteProfile;
     } catch (error) {
@@ -314,13 +340,36 @@ export const computeTasteProfile = async (userId: string): Promise<TasteProfile>
 /**
  * Get taste profile (from cache or compute if needed)
  */
-export const getTasteProfile = async (userId: string): Promise<TasteProfile | null> => {
+export const getTasteProfile = async (userId: string, forceUpdate: boolean = false): Promise<TasteProfile | null> => {
     try {
+        console.log('🔍 [getTasteProfile] Called with userId:', userId);
+        console.log('🔍 [getTasteProfile] Collection:', TASTE_PROFILES_COLLECTION);
+
         const profileRef = doc(db, TASTE_PROFILES_COLLECTION, userId);
+        console.log('🔍 [getTasteProfile] Document path:', `${TASTE_PROFILES_COLLECTION}/${userId}`);
+
         const profileDoc = await getDoc(profileRef);
+        console.log('🔍 [getTasteProfile] Document exists:', profileDoc.exists());
 
         if (profileDoc.exists()) {
             const profile = profileDoc.data() as TasteProfile;
+            console.log('🔍 [getTasteProfile] Found profile for userId:', profile.userId);
+
+            // CRITICAL: Verify document userId matches requested userId
+            if (profile.userId !== userId) {
+                console.error('❌ [getTasteProfile] CRITICAL: Document userId mismatch!');
+                console.error('Requested userId:', userId);
+                console.error('Document userId:', profile.userId);
+                console.error('This should NEVER happen - document ID should match userId!');
+                // Recompute with correct userId
+                return await computeTasteProfile(userId);
+            }
+
+            // Force recomputation if explicitly requested (manual refresh)
+            if (forceUpdate) {
+                console.log('🔄 Manual refresh requested, recomputing profile...');
+                return await computeTasteProfile(userId);
+            }
 
             // Force recomputation if profile is empty (0 data points)
             // This handles cases where profile was created before user had any activity
@@ -329,20 +378,33 @@ export const getTasteProfile = async (userId: string): Promise<TasteProfile | nu
                 return await computeTasteProfile(userId);
             }
 
-            // Check if profile is stale (older than 6 hours)
+            // Confidence-based update logic:
+            // - If confidence < 100% (less than 20 data points): Always recompute to reflect new data
+            // - If confidence = 100% (20+ data points): Only recompute if stale (6 hours old)
+            const isProfileComplete = profile.confidenceScore >= 100;
+
+            if (!isProfileComplete) {
+                // Profile still building - always recompute to show latest data
+                console.log(`🔨 Profile building (${profile.confidenceScore}% confidence), recomputing...`);
+                return await computeTasteProfile(userId);
+            }
+
+            // Profile is complete (100% confidence) - check staleness
             const lastComputed = profile.lastComputed.toMillis();
             const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
 
             if (lastComputed < sixHoursAgo) {
-                console.log('⏰ Taste profile is stale, recomputing...');
+                console.log('⏰ Taste profile is stale (6+ hours old), recomputing...');
                 return await computeTasteProfile(userId);
             }
 
+            console.log(`✅ Using cached profile (${profile.confidenceScore}% confidence, ${profile.dataPoints} data points)`);
             return profile;
         }
 
         // No profile exists, compute new one
-        console.log('🆕 No taste profile found, computing...');
+        console.log('🆕 [getTasteProfile] No profile found for userId:', userId);
+        console.log('🆕 [getTasteProfile] Creating new profile...');
         return await computeTasteProfile(userId);
     } catch (error) {
         console.error('❌ Error getting taste profile:', error);
@@ -356,18 +418,32 @@ export const getTasteProfile = async (userId: string): Promise<TasteProfile | nu
  */
 const saveTasteProfile = async (userId: string, profile: TasteProfile): Promise<void> => {
     try {
-        console.log('💾 [TasteProfile] Attempting to save profile to Firestore...');
-        console.log('📍 [TasteProfile] Collection:', TASTE_PROFILES_COLLECTION, 'User ID:', userId);
-        console.log('📊 [TasteProfile] Profile data points:', profile.dataPoints);
+        console.log('💾 [saveTasteProfile] ========== SAVE OPERATION START ==========');
+        console.log('💾 [saveTasteProfile] Requested userId:', userId);
+        console.log('💾 [saveTasteProfile] Profile userId:', profile.userId);
+        console.log('💾 [saveTasteProfile] Collection:', TASTE_PROFILES_COLLECTION);
+        console.log('💾 [saveTasteProfile] Document path:', `${TASTE_PROFILES_COLLECTION}/${userId}`);
+        console.log('💾 [saveTasteProfile] Profile data points:', profile.dataPoints);
+        console.log('💾 [saveTasteProfile] Profile confidence:', profile.confidenceScore);
+
+        // CRITICAL: Verify userId consistency
+        if (profile.userId !== userId) {
+            console.error('❌ [saveTasteProfile] CRITICAL ERROR: userId mismatch!');
+            console.error('Document ID (userId param):', userId);
+            console.error('Profile userId field:', profile.userId);
+            throw new Error(`userId mismatch: document=${userId}, profile=${profile.userId}`);
+        }
 
         const profileRef = doc(db, TASTE_PROFILES_COLLECTION, userId);
         await setDoc(profileRef, profile);
 
-        console.log('✅ [TasteProfile] Profile saved successfully to Firestore!');
-        console.log('🔍 [TasteProfile] Check Firebase Emulator UI at http://localhost:4000');
+        console.log('✅ [saveTasteProfile] Profile saved successfully!');
+        console.log('✅ [saveTasteProfile] Saved to:', `${TASTE_PROFILES_COLLECTION}/${userId}`);
+        console.log('✅ [saveTasteProfile] Check Firebase Emulator UI at http://localhost:4000/firestore');
+        console.log('💾 [saveTasteProfile] ========== SAVE OPERATION END ==========');
     } catch (error) {
-        console.error('❌ [TasteProfile] Error saving taste profile:', error);
-        console.error('❌ [TasteProfile] Error details:', JSON.stringify(error, null, 2));
+        console.error('❌ [saveTasteProfile] Error saving taste profile:', error);
+        console.error('❌ [saveTasteProfile] Error details:', JSON.stringify(error, null, 2));
         throw error;
     }
 };

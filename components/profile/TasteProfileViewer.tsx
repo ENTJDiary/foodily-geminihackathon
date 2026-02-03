@@ -5,9 +5,20 @@ interface TasteProfileViewerProps {
     profile: TasteProfile | null;
     loading: boolean;
     onReset: () => void;
+    onRefresh?: () => void;
+    userId?: string; // NEW: For validation
 }
 
-const TasteProfileViewer: React.FC<TasteProfileViewerProps> = ({ profile, loading, onReset }) => {
+const TasteProfileViewer: React.FC<TasteProfileViewerProps> = ({ profile, loading, onReset, onRefresh, userId }) => {
+    // SECURITY: Validate profile belongs to current user
+    if (profile && userId && profile.userId !== userId) {
+        console.error('❌ [TasteProfileViewer] SECURITY: Profile userId mismatch!');
+        console.error('Expected:', userId);
+        console.error('Got:', profile.userId);
+        // Treat as no profile
+        profile = null;
+    }
+
     if (loading) {
         return (
             <div className="glass-panel p-6 md:p-8 rounded-3xl shadow-sm">
@@ -46,7 +57,7 @@ const TasteProfileViewer: React.FC<TasteProfileViewerProps> = ({ profile, loadin
     // Get top cuisines
     const topCuisines = Object.entries(profile.cuisineScores)
         .sort(([, a], [, b]) => (b as any).score - (a as any).score)
-        .slice(0, 5) as [string, { score: number; frequency: number; lastEaten?: Date; avgRating?: number }][];
+        .slice(0, 3) as [string, { score: number; frequency: number; lastEaten?: Date; avgRating?: number }][];
 
     // Calculate max score for bar chart scaling
     const maxScore = Math.max(...topCuisines.map(([, data]) => data.score), 1);
@@ -67,31 +78,42 @@ const TasteProfileViewer: React.FC<TasteProfileViewerProps> = ({ profile, loadin
                         Based on {profile.dataPoints} interactions
                     </p>
                 </div>
-                <button
-                    onClick={onReset}
-                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-brand-slate/60 hover:text-brand-orange transition-colors border border-brand-slate/20 hover:border-brand-orange/30 rounded-xl"
-                >
-                    Reset Profile
-                </button>
+                <div className="flex items-center gap-2">
+                    {/* Manual Refresh Button (only show when profile is complete) */}
+                    {profile.confidenceScore >= 100 && onRefresh && (
+                        <button
+                            onClick={onRefresh}
+                            className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-brand-orange hover:text-orange-600 transition-colors border border-brand-orange/30 hover:border-brand-orange/50 rounded-xl flex items-center gap-2"
+                            title="Manually refresh your taste profile"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Refresh
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {/* Confidence Score */}
-            <div className="bg-white/50 rounded-2xl p-4 border border-white/40">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-brand-slate/60 uppercase tracking-wider">
-                        Profile Confidence
-                    </span>
-                    <span className="text-sm font-black text-brand-orange">
-                        {Math.round(profile.confidenceScore)}%
-                    </span>
+            {/* Confidence Score - Hide when 100% */}
+            {profile.confidenceScore < 100 && (
+                <div className="bg-white/50 rounded-2xl p-4 border border-white/40">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-brand-slate/60 uppercase tracking-wider">
+                            Profile Confidence
+                        </span>
+                        <span className="text-sm font-black text-brand-orange">
+                            {Math.round(profile.confidenceScore)}%
+                        </span>
+                    </div>
+                    <div className="w-full bg-brand-slate/10 rounded-full h-2 overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-brand-orange to-orange-400 rounded-full transition-all duration-500"
+                            style={{ width: `${profile.confidenceScore}%` }}
+                        ></div>
+                    </div>
                 </div>
-                <div className="w-full bg-brand-slate/10 rounded-full h-2 overflow-hidden">
-                    <div
-                        className="h-full bg-gradient-to-r from-brand-orange to-orange-400 rounded-full transition-all duration-500"
-                        style={{ width: `${profile.confidenceScore}%` }}
-                    ></div>
-                </div>
-            </div>
+            )}
 
             {/* Top Cuisines */}
             {topCuisines.length > 0 && (
@@ -152,42 +174,6 @@ const TasteProfileViewer: React.FC<TasteProfileViewerProps> = ({ profile, loadin
                     </div>
                 </div>
             )}
-
-            {/* Budget Indicator */}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/50 rounded-2xl p-4 border border-white/40">
-                    <div className="flex items-center gap-2 mb-2">
-                        <svg className="w-4 h-4 text-brand-slate/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-xs font-bold text-brand-slate/50 uppercase tracking-wider">
-                            Avg Budget
-                        </span>
-                    </div>
-                    <p className="text-2xl font-black text-brand-black">
-                        {'$'.repeat(Math.round(profile.budgetPreference.avgPriceRating))}
-                        <span className="text-brand-slate/20">
-                            {'$'.repeat(4 - Math.round(profile.budgetPreference.avgPriceRating))}
-                        </span>
-                    </p>
-                </div>
-
-                <div className="bg-white/50 rounded-2xl p-4 border border-white/40">
-                    <div className="flex items-center gap-2 mb-2">
-                        <svg className="w-4 h-4 text-brand-slate/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="text-xs font-bold text-brand-slate/50 uppercase tracking-wider">
-                            Max Distance
-                        </span>
-                    </div>
-                    <p className="text-2xl font-black text-brand-black">
-                        {profile.locationPreference.maxDistance}
-                        <span className="text-sm font-medium text-brand-slate/60 ml-1">km</span>
-                    </p>
-                </div>
-            </div>
         </div>
     );
 };

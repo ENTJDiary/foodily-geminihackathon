@@ -1,20 +1,35 @@
-import { Unsubscribe } from 'firebase/firestore';
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    updateDoc,
+    onSnapshot,
+    orderBy,
+    serverTimestamp,
+    limit,
+    Timestamp,
+    Unsubscribe
+} from 'firebase/firestore';
+import { db } from '../src/firebase/config';
 
-const SAVED_RESTAURANTS_KEY = 'foodily_saved_restaurants_v2';
+const COLLECTION_NAME = 'savedRestaurants';
 
 /**
  * Interface for saved restaurant data
  */
 export interface SavedRestaurant {
-    saveId: string;                 // Generated locally
-    userId: string;                 // kept for compatibility
+    saveId: string;                 // Firestore Doc ID
+    userId: string;
     restaurantId: string;
     restaurantName: string;
     restaurantPhoto?: string;
     cuisineTypes: string[];
     notes?: string;
     tags: string[];
-    savedAt: any;                   // Mocked for compatibility
+    savedAt: any;                   // Firestore Timestamp
     lastVisited?: any;
     visitCount: number;
     rating?: number;
@@ -35,26 +50,6 @@ export interface SaveRestaurantInput {
     priceRating?: number;
 }
 
-// Local event for synchronization
-const listeners: ((restaurants: SavedRestaurant[]) => void)[] = [];
-
-const notifyListeners = () => {
-    const restaurants = getSavedRestaurantsSync();
-    listeners.forEach(cb => cb(restaurants));
-};
-
-const getSavedRestaurantsSync = (): SavedRestaurant[] => {
-    const data = localStorage.getItem(SAVED_RESTAURANTS_KEY);
-    if (!data) return [];
-    try {
-        const parsed = JSON.parse(data);
-        return parsed.sort((a: any, b: any) => b.timestamp - a.timestamp);
-    } catch (e) {
-        console.error('Error parsing saved restaurants from localStorage', e);
-        return [];
-    }
-};
-
 /**
  * Save a restaurant to user's saved list
  */
@@ -62,39 +57,45 @@ export const saveRestaurant = async (
     userId: string,
     restaurantData: SaveRestaurantInput
 ): Promise<SavedRestaurant> => {
-    const restaurants = getSavedRestaurantsSync();
+    try {
+        // Check if already saved
+        const isSaved = await isRestaurantSaved(userId, restaurantData.restaurantId);
+        if (isSaved) {
+            throw new Error('Restaurant is already saved');
+        }
 
-    // Check if already saved
-    if (restaurants.some(r => r.restaurantId === restaurantData.restaurantId)) {
-        throw new Error('Restaurant is already saved');
+        const newRestaurant = {
+            userId,
+            restaurantId: restaurantData.restaurantId,
+            restaurantName: restaurantData.restaurantName,
+            restaurantPhoto: restaurantData.restaurantPhoto || null,
+            cuisineTypes: restaurantData.cuisineTypes || [],
+            notes: restaurantData.notes || '',
+            tags: restaurantData.tags || [],
+            savedAt: serverTimestamp(),
+            lastVisited: null,
+            visitCount: 0,
+            rating: restaurantData.rating || null,
+            priceRating: restaurantData.priceRating || null,
+        };
+
+        const docRef = await addDoc(collection(db, COLLECTION_NAME), newRestaurant);
+        console.log('✅ Restaurant saved to Firestore:', docRef.id);
+
+        // Return the saved object with the new ID
+        // Note: savedAt will be null initially for serverTimestamp, so we mock it for immediate UI feedback
+        return {
+            ...newRestaurant,
+            saveId: docRef.id,
+            savedAt: Timestamp.now(),
+            restaurantPhoto: newRestaurant.restaurantPhoto || undefined,
+            rating: newRestaurant.rating || undefined,
+            priceRating: newRestaurant.priceRating || undefined,
+        };
+    } catch (error) {
+        console.error('❌ Error saving restaurant:', error);
+        throw error;
     }
-
-    const timestamp = Date.now();
-    const newSavedRestaurant: SavedRestaurant = {
-        saveId: Math.random().toString(36).substr(2, 9),
-        userId,
-        restaurantId: restaurantData.restaurantId,
-        restaurantName: restaurantData.restaurantName,
-        restaurantPhoto: restaurantData.restaurantPhoto || undefined,
-        cuisineTypes: restaurantData.cuisineTypes || [],
-        notes: restaurantData.notes || '',
-        tags: restaurantData.tags || [],
-        savedAt: { seconds: Math.floor(timestamp / 1000), nanoseconds: 0 },
-        lastVisited: null,
-        visitCount: 0,
-        rating: restaurantData.rating || undefined,
-        priceRating: restaurantData.priceRating || undefined,
-    };
-
-    const updated = [newSavedRestaurant, ...restaurants];
-    localStorage.setItem(SAVED_RESTAURANTS_KEY, JSON.stringify(updated.map(r => ({
-        ...r,
-        timestamp: r.savedAt.seconds * 1000 // Store timestamp for sorting
-    }))));
-
-    console.log('✅ Restaurant saved to localStorage');
-    notifyListeners();
-    return newSavedRestaurant;
 };
 
 /**
@@ -104,20 +105,29 @@ export const unsaveRestaurant = async (
     userId: string,
     restaurantId: string
 ): Promise<void> => {
-    const restaurants = getSavedRestaurantsSync();
-    const updated = restaurants.filter(r => r.restaurantId !== restaurantId);
+    try {
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where('userId', '==', userId),
+            where('restaurantId', '==', restaurantId)
+        );
 
-    if (updated.length === restaurants.length) {
-        throw new Error('Saved restaurant not found');
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            console.warn('⚠️ Restaurant not found to unsave');
+            return;
+        }
+
+        // Should only be one, but delete all duplicates if any
+        const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+
+        console.log('✅ Restaurant removed from Firestore');
+    } catch (error) {
+        console.error('❌ Error unsaving restaurant:', error);
+        throw error;
     }
-
-    localStorage.setItem(SAVED_RESTAURANTS_KEY, JSON.stringify(updated.map(r => ({
-        ...r,
-        timestamp: (r as any).timestamp || Date.now()
-    }))));
-
-    console.log('✅ Restaurant removed from localStorage');
-    notifyListeners();
 };
 
 /**
@@ -126,7 +136,23 @@ export const unsaveRestaurant = async (
 export const getSavedRestaurants = async (
     userId: string
 ): Promise<SavedRestaurant[]> => {
-    return getSavedRestaurantsSync();
+    try {
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where('userId', '==', userId),
+            orderBy('savedAt', 'desc')
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        return querySnapshot.docs.map(doc => ({
+            ...doc.data(),
+            saveId: doc.id
+        })) as SavedRestaurant[];
+    } catch (error) {
+        console.error('❌ Error getting saved restaurants:', error);
+        return [];
+    }
 };
 
 /**
@@ -136,8 +162,20 @@ export const isRestaurantSaved = async (
     userId: string,
     restaurantId: string
 ): Promise<boolean> => {
-    const restaurants = getSavedRestaurantsSync();
-    return restaurants.some(r => r.restaurantId === restaurantId);
+    try {
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where('userId', '==', userId),
+            where('restaurantId', '==', restaurantId),
+            limit(1)
+        );
+
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty;
+    } catch (error) {
+        console.error('❌ Error checking if restaurant saved:', error);
+        return false;
+    }
 };
 
 /**
@@ -147,19 +185,22 @@ export const subscribeSavedRestaurants = (
     userId: string,
     callback: (restaurants: SavedRestaurant[]) => void
 ): Unsubscribe => {
-    listeners.push(callback);
+    const q = query(
+        collection(db, COLLECTION_NAME),
+        where('userId', '==', userId),
+        orderBy('savedAt', 'desc')
+    );
 
-    // Initial call
-    callback(getSavedRestaurantsSync());
+    return onSnapshot(q, (querySnapshot) => {
+        const restaurants = querySnapshot.docs.map(doc => ({
+            ...doc.data(),
+            saveId: doc.id
+        })) as SavedRestaurant[];
 
-    const unsubscribe = () => {
-        const index = listeners.indexOf(callback);
-        if (index !== -1) {
-            listeners.splice(index, 1);
-        }
-    };
-
-    return unsubscribe as Unsubscribe;
+        callback(restaurants);
+    }, (error) => {
+        console.error('❌ Error subscribing to saved restaurants:', error);
+    });
 };
 
 /**
@@ -181,21 +222,32 @@ export const toggleSaveRestaurant = async (
 };
 
 /**
- * Update notes or tags for a saved restaurant (Legacy support)
+ * Update notes or tags for a saved restaurant
  */
 export const updateSavedRestaurant = async (
     userId: string,
     restaurantId: string,
     updates: any
 ): Promise<void> => {
-    const restaurants = getSavedRestaurantsSync();
-    const index = restaurants.findIndex(r => r.restaurantId === restaurantId);
+    try {
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where('userId', '==', userId),
+            where('restaurantId', '==', restaurantId),
+            limit(1)
+        );
 
-    if (index === -1) {
-        throw new Error('Saved restaurant not found');
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docRef = querySnapshot.docs[0].ref;
+            await updateDoc(docRef, updates);
+            console.log('✅ Restaurant updated in Firestore');
+        } else {
+            console.warn('⚠️ Restaurant not found to update');
+            throw new Error('Saved restaurant not found');
+        }
+    } catch (error) {
+        console.error('❌ Error updating saved restaurant:', error);
+        throw error;
     }
-
-    restaurants[index] = { ...restaurants[index], ...updates };
-    localStorage.setItem(SAVED_RESTAURANTS_KEY, JSON.stringify(restaurants));
-    notifyListeners();
 };

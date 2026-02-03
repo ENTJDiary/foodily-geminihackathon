@@ -15,6 +15,7 @@ import { autoLogFoodSearch } from '../services/foodLogsService';
 import { getTasteProfile } from '../services/tasteProfileService';
 import { TasteProfile } from '../src/types/auth.types';
 import { generateRestaurantId } from '../utils/restaurantIdUtils';
+import { extractCuisineFromSearch } from '../services/cuisineExtractionService';
 
 
 const FoodHunter: React.FC = () => {
@@ -102,11 +103,15 @@ const FoodHunter: React.FC = () => {
 
       setResults(response);
 
-      // Log food search with actual dish name as cuisine (if dish is provided)
+      // Log food search with extracted cuisine and food type (if dish is provided)
       if (dish && currentUser) {
-        // Use the dish name as the cuisine - this is more accurate than "Search"
-        // The taste profile will aggregate similar dishes over time
-        autoLogFoodSearch(currentUser.uid, dish, dish);
+        try {
+          const { cuisine, foodType } = await extractCuisineFromSearch(dish);
+          await autoLogFoodSearch(currentUser.uid, cuisine, foodType);
+          console.log(`✅ [FoodHunter] Logged search: "${dish}" → Cuisine: "${cuisine}", FoodType: "${foodType}"`);
+        } catch (error) {
+          console.error('❌ [FoodHunter] Failed to log search:', error);
+        }
       }
       // Skip logging for location-only searches - no cuisine info to extract
 
@@ -266,8 +271,9 @@ const FoodHunter: React.FC = () => {
               maxInitialPicks={5}
               onRestaurantClick={(name) => {
                 console.log('🍽️ [FoodHunter] Restaurant clicked:', name);
+                const rID = generateRestaurantId(name);
                 setSelectedRestaurant({
-                  id: name,
+                  id: rID,
                   name: name,
                   searchedDish: dish
                 });

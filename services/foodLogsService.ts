@@ -11,7 +11,8 @@ import {
     serverTimestamp,
     Timestamp,
     onSnapshot,
-    Unsubscribe
+    Unsubscribe,
+    limit
 } from 'firebase/firestore';
 import { db } from '../src/firebase/config';
 import { HistoryEntry, HistoryLogItem } from '../types';
@@ -79,6 +80,14 @@ export const createFoodLog = async (
         const docRef = await addDoc(foodLogsRef, newFoodLog);
 
         console.log('✅ Food log created successfully:', docRef.id);
+
+        // Trigger taste profile update in background (don't await to avoid blocking)
+        // This ensures the profile reflects new data immediately when confidence < 100%
+        import('../services/tasteProfileService').then(({ getTasteProfile }) => {
+            getTasteProfile(userId).catch(err =>
+                console.error('❌ Background profile update failed:', err)
+            );
+        });
 
         return {
             logId: docRef.id,
@@ -269,13 +278,51 @@ export const autoLogFoodSearch = async (
         const day = String(today.getDate()).padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
 
-        await createFoodLog(userId, {
-            date: dateStr,
-            cuisine: cuisine || 'General',
-            foodType: foodType || 'Exploring',
-            restaurantName: restaurantName || ''
-        });
-        console.log('✅ Auto-logged search to Weekly Food Hunt');
+        // Get the latest log for the user for TODAY
+        const foodLogsRef = collection(db, FOOD_LOGS_COLLECTION);
+
+        // Query for the most recent log of the current day
+        const q = query(
+            foodLogsRef,
+            where('userId', '==', userId),
+            where('date', '==', dateStr),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const latestLog = querySnapshot.docs[0];
+
+        let shouldUpdate = false;
+        if (latestLog) {
+            const data = latestLog.data() as FoodLog;
+            const logTime = data.createdAt?.toMillis() || 0;
+            const now = Date.now();
+            const oneHour = 60 * 60 * 1000;
+
+            // If the latest log is within the last hour, update it
+            if (logTime > 0 && (now - logTime < oneHour)) {
+                shouldUpdate = true;
+
+                await updateFoodLog(userId, latestLog.id, {
+                    date: dateStr,
+                    cuisine: cuisine || 'General',
+                    foodType: foodType || 'Exploring',
+                    restaurantName: restaurantName || ''
+                });
+                console.log('✅ Auto-updated existing food log (within 1 hour)');
+            }
+        }
+
+        if (!shouldUpdate) {
+            await createFoodLog(userId, {
+                date: dateStr,
+                cuisine: cuisine || 'General',
+                foodType: foodType || 'Exploring',
+                restaurantName: restaurantName || ''
+            });
+            console.log('✅ Auto-logged new search to Weekly Food Hunt');
+        }
     } catch (error) {
         console.error('❌ Error auto-logging food search:', error);
     }

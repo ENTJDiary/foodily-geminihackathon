@@ -10,6 +10,8 @@ import MenuItemDetailModal from '../../components/restaurant/modals/MenuItemDeta
 import RestaurantModal from '../../components/common/RestaurantModal';
 import { Review, MenuItem } from '../../types';
 
+const INITIAL_DISPLAY_COUNT = 6;
+
 const ActivitySection: React.FC = () => {
     const { currentUser } = useAuth();
     const [clickedRestaurants, setClickedRestaurants] = useState<{
@@ -26,6 +28,7 @@ const ActivitySection: React.FC = () => {
     const [selectedInsight, setSelectedInsight] = useState<Review | null>(null);
     const [selectedLikedPost, setSelectedLikedPost] = useState<MenuItem | null>(null);
     const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         if (!currentUser) {
@@ -81,6 +84,8 @@ const ActivitySection: React.FC = () => {
         );
     }
 
+    const displayedRestaurants = isExpanded ? clickedRestaurants : clickedRestaurants.slice(0, INITIAL_DISPLAY_COUNT);
+
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Weekly Food Hunt */}
@@ -94,47 +99,69 @@ const ActivitySection: React.FC = () => {
                         <p className="text-sm text-slate-400 font-medium">No restaurants explored yet</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {clickedRestaurants.map((restaurant, idx) => (
-                            <div
-                                key={`${restaurant.id}-${idx}`}
-                                onClick={() => setSelectedRestaurant({ id: restaurant.id, name: restaurant.name })}
-                                className="group relative bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-5 hover:border-orange-300 hover:shadow-lg transition-all cursor-pointer"
-                            >
-                                {restaurant.photo && (
-                                    <div className="mb-3 aspect-video rounded-xl overflow-hidden bg-slate-100">
-                                        <img
-                                            src={restaurant.photo}
-                                            alt={restaurant.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                    </div>
-                                )}
-                                <div className="flex flex-col gap-2">
-                                    <h4 className="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors">
-                                        {restaurant.name}
-                                    </h4>
-                                    {restaurant.cuisineTypes && restaurant.cuisineTypes.length > 0 && (
-                                        <div className="flex flex-wrap gap-1">
-                                            {restaurant.cuisineTypes.slice(0, 2).map((cuisine, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-[9px] font-black uppercase tracking-wider"
-                                                >
-                                                    {cuisine}
-                                                </span>
-                                            ))}
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {displayedRestaurants.map((restaurant, idx) => (
+                                <div
+                                    key={`${restaurant.id}-${idx}`}
+                                    onClick={() => setSelectedRestaurant({ id: restaurant.id, name: restaurant.name })}
+                                    className="group relative bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-5 hover:border-orange-300 hover:shadow-lg transition-all cursor-pointer"
+                                >
+                                    {restaurant.photo && (
+                                        <div className="mb-3 aspect-video rounded-xl overflow-hidden bg-slate-100">
+                                            <img
+                                                src={restaurant.photo}
+                                                alt={restaurant.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
                                         </div>
                                     )}
+                                    <div className="flex flex-col gap-2">
+                                        <h4 className="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors">
+                                            {restaurant.name}
+                                        </h4>
+                                        {restaurant.cuisineTypes && restaurant.cuisineTypes.length > 0 && (
+                                            <div className="flex flex-wrap gap-1">
+                                                {restaurant.cuisineTypes.slice(0, 2).map((cuisine, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-[9px] font-black uppercase tracking-wider"
+                                                    >
+                                                        {cuisine}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Checkmark icon */}
+                                    <div className="absolute top-4 right-4 w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center">
+                                        <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
                                 </div>
-                                {/* Checkmark icon */}
-                                <div className="absolute top-4 right-4 w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center">
-                                    <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            ))}
+                        </div>
+
+                        {/* See More Button */}
+                        {clickedRestaurants.length > INITIAL_DISPLAY_COUNT && (
+                            <div className="flex justify-center pt-2">
+                                <button
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="flex items-center gap-2 px-4 py-2 text-xs font-black text-slate-500 uppercase tracking-wider hover:text-orange-600 transition-colors"
+                                >
+                                    <span>{isExpanded ? 'See Less' : 'See More'}</span>
+                                    <svg
+                                        className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
-                                </div>
+                                </button>
                             </div>
-                        ))}
+                        )}
                     </div>
                 )}
             </div>

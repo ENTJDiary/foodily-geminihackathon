@@ -234,6 +234,22 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
   const handleExploreClick = () => {
     const mapsUrl = getGoogleMapsUrl(restaurantName, placeDetails);
     window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+
+    // Track explore click (higher intent signal than regular click)
+    if (user) {
+      const cuisineTypes = details ? extractCuisineTypes(details.text, restaurantName) : [];
+
+      import('../../services/restaurantClicksService').then(({ trackRestaurantClick }) => {
+        trackRestaurantClick(user.uid, {
+          restaurantId,
+          restaurantName,
+          restaurantPhoto: menuItems[0]?.image || menuItems[0]?.images?.[0],
+          cuisineTypes,
+          source: 'food_hunter', // Could be dynamic based on where modal was opened
+          clickType: 'explore'
+        }).catch(err => console.error('❌ Failed to track explore click:', err));
+      });
+    }
   };
 
   const handleToggleSave = async () => {

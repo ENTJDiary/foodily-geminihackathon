@@ -148,12 +148,14 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         const fetchTasteProfile = async () => {
             console.log('🔄 [AccountDetails] Starting taste profile fetch...');
             if (!currentUser) {
-                console.log('⚠️ [AccountDetails] No current user, skipping fetch');
+                console.log('⚠️ [AccountDetails] No current user, clearing profile state');
+                setTasteProfile(null);
                 setLoadingTasteProfile(false);
                 return;
             }
 
             console.log('👤 [AccountDetails] Fetching for user:', currentUser.uid);
+            setLoadingTasteProfile(true);
             try {
                 // Clean up invalid cuisines first (one-time cleanup)
                 const { cleanupInvalidCuisines } = await import('../../services/tasteProfileCleanup');
@@ -162,9 +164,19 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                 // Then fetch the cleaned profile
                 const profile = await getTasteProfile(currentUser.uid);
                 console.log('✅ [AccountDetails] Taste profile fetched:', profile ? 'Found' : 'Null', profile);
-                setTasteProfile(profile);
+
+                // CRITICAL: Validate that the profile belongs to the current user
+                if (profile && profile.userId !== currentUser.uid) {
+                    console.error('❌ [AccountDetails] SECURITY: Profile userId mismatch!');
+                    console.error('Expected:', currentUser.uid);
+                    console.error('Got:', profile.userId);
+                    setTasteProfile(null);
+                } else {
+                    setTasteProfile(profile);
+                }
             } catch (error) {
                 console.error('❌ [AccountDetails] Error fetching taste profile:', error);
+                setTasteProfile(null);
             } finally {
                 setLoadingTasteProfile(false);
             }
@@ -195,6 +207,39 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
             setLoadingTasteProfile(false);
         }
     };
+
+    // Handle manual taste profile refresh
+    const handleRefreshTasteProfile = async () => {
+        if (!currentUser) return;
+
+        try {
+            setLoadingTasteProfile(true);
+            const newProfile = await getTasteProfile(currentUser.uid, true); // Force update
+            setTasteProfile(newProfile);
+        } catch (error) {
+            console.error('Error refreshing taste profile:', error);
+            alert('Failed to refresh taste profile. Please try again.');
+        } finally {
+            setLoadingTasteProfile(false);
+        }
+    };
+
+    // Check for profile completion notification
+    useEffect(() => {
+        if (!currentUser || !tasteProfile) return;
+
+        const completionKey = `tasteProfile_completed_${currentUser.uid}`;
+        const hasShownNotification = localStorage.getItem(completionKey);
+
+        if (hasShownNotification === 'true' && tasteProfile.confidenceScore >= 100) {
+            // Show completion notification
+            alert('🎉 Congratulations! Your taste profile is now complete!\n\nWith 50+ interactions, we now have a comprehensive understanding of your food preferences. Your recommendations will continue to improve over time.');
+
+            // Clear the flag so we don't show it again
+            localStorage.removeItem(completionKey);
+        }
+    }, [currentUser, tasteProfile]);
+
 
     const handleProfilePictureClick = () => {
         fileInputRef.current?.click();
@@ -417,6 +462,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                 profile={tasteProfile}
                 loading={loadingTasteProfile}
                 onReset={handleResetTasteProfile}
+                onRefresh={handleRefreshTasteProfile}
+                userId={currentUser?.uid}
             />
 
             {/* Your Posts */}

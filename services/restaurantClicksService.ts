@@ -28,6 +28,7 @@ export interface RestaurantClick {
     cuisineTypes?: string[];        // Cuisine types
     clickedAt: Timestamp;           // Click timestamp
     source: 'food_hunter' | 'food_gacha' | 'concierge' | 'search' | 'other';
+    clickType?: 'view' | 'explore'; // Type of click: view (modal open) or explore (Google Maps)
 }
 
 /**
@@ -39,6 +40,7 @@ export interface TrackRestaurantClickInput {
     restaurantPhoto?: string;
     cuisineTypes?: string[];
     source: 'food_hunter' | 'food_gacha' | 'concierge' | 'search' | 'other';
+    clickType?: 'view' | 'explore'; // Defaults to 'view' if not specified
 }
 
 /**
@@ -58,12 +60,21 @@ export const trackRestaurantClick = async (
             restaurantPhoto: clickData.restaurantPhoto || null,
             cuisineTypes: clickData.cuisineTypes || [],
             source: clickData.source,
+            clickType: clickData.clickType || 'view', // Default to 'view' if not specified
             clickedAt: serverTimestamp(),
         };
 
         const docRef = await addDoc(clicksRef, newClick);
 
         console.log('✅ Restaurant click tracked:', docRef.id);
+
+        // Trigger taste profile update in background (don't await to avoid blocking)
+        // This ensures the profile reflects new data immediately when confidence < 100%
+        import('./tasteProfileService').then(({ getTasteProfile }) => {
+            getTasteProfile(userId).catch(err =>
+                console.error('❌ Background profile update failed:', err)
+            );
+        });
 
         return {
             clickId: docRef.id,
@@ -87,6 +98,7 @@ export const getClickedRestaurants = async (userId: string): Promise<{
     cuisineTypes?: string[];
     timestamp: number;
     source: string;
+    clickType?: 'view' | 'explore';
 }[]> => {
     try {
         const clicksRef = collection(db, RESTAURANT_CLICKS_COLLECTION);
@@ -106,6 +118,7 @@ export const getClickedRestaurants = async (userId: string): Promise<{
             cuisineTypes?: string[];
             timestamp: number;
             source: string;
+            clickType?: 'view' | 'explore';
         }>();
 
         querySnapshot.forEach((doc) => {
@@ -121,6 +134,7 @@ export const getClickedRestaurants = async (userId: string): Promise<{
                     cuisineTypes: data.cuisineTypes,
                     timestamp: data.clickedAt?.toMillis() || Date.now(),
                     source: data.source,
+                    clickType: data.clickType,
                 });
             }
         });
@@ -144,6 +158,7 @@ export const subscribeClickedRestaurants = (
         cuisineTypes?: string[];
         timestamp: number;
         source: string;
+        clickType?: 'view' | 'explore';
     }[]) => void
 ): Unsubscribe => {
     const clicksRef = collection(db, RESTAURANT_CLICKS_COLLECTION);
@@ -162,6 +177,7 @@ export const subscribeClickedRestaurants = (
             cuisineTypes?: string[];
             timestamp: number;
             source: string;
+            clickType?: 'view' | 'explore';
         }>();
 
         querySnapshot.forEach((doc) => {
@@ -177,6 +193,7 @@ export const subscribeClickedRestaurants = (
                     cuisineTypes: data.cuisineTypes,
                     timestamp: data.clickedAt?.toMillis() || Date.now(),
                     source: data.source,
+                    clickType: data.clickType,
                 });
             }
         });

@@ -13,6 +13,7 @@ import { autoLogFoodSearch } from '../services/foodLogsService';
 import { getTasteProfile } from '../services/tasteProfileService';
 import { TasteProfile } from '../src/types/auth.types';
 import { generateRestaurantId } from '../utils/restaurantIdUtils';
+import { extractCuisineFromSearch } from '../services/cuisineExtractionService';
 
 
 const Concierge: React.FC = () => {
@@ -71,8 +72,15 @@ const Concierge: React.FC = () => {
       const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords, tasteProfile);
       setResult(response);
 
+      // Log food search with extracted cuisine from occasion
       if (currentUser) {
-        autoLogFoodSearch(currentUser.uid, 'Concierge', occasion);
+        try {
+          const { cuisine, foodType } = await extractCuisineFromSearch(occasion);
+          await autoLogFoodSearch(currentUser.uid, cuisine, foodType);
+          console.log(`✅ [Concierge] Logged search: "${occasion}" → Cuisine: "${cuisine}", FoodType: "${foodType}"`);
+        } catch (error) {
+          console.error('❌ [Concierge] Failed to log search:', error);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -297,8 +305,9 @@ const Concierge: React.FC = () => {
             text={result.text}
             maxInitialPicks={5}
             onRestaurantClick={(name) => {
+              const rID = generateRestaurantId(name);
               setSelectedRestaurant({
-                id: name,
+                id: rID,
                 name: name
               });
               // Track restaurant click
