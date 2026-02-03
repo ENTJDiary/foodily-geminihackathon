@@ -9,12 +9,15 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const profile = getUserProfile();
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Get display name with fallback
+  const displayName = userProfile?.displayName || currentUser?.displayName || "Gourmet Explorer";
+  const displayInitial = displayName.charAt(0).toUpperCase();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -88,9 +91,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-white/40 transition-colors border border-transparent hover:border-white/40"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-orange to-orange-400 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                    {profile.name.charAt(0).toUpperCase()}
+                    {displayInitial}
                   </div>
-                  <span className="text-sm font-medium text-brand-slate hidden sm:block">{profile.name}</span>
+                  <div className="hidden sm:block w-32 text-left">
+                    <span className="text-sm font-medium text-brand-slate truncate block">
+                      {displayName}
+                    </span>
+                  </div>
                   <svg className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -158,7 +165,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${isActive('/Profile') ? 'text-brand-orange bg-brand-orange/10' : 'text-gray-400'}`}
         >
           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${isActive('/Profile') ? 'border-brand-orange bg-brand-orange text-white' : 'border-gray-300 bg-gray-100 text-gray-500'}`}>
-            {profile.name.charAt(0).toUpperCase()}
+            {displayInitial}
           </div>
           <span className="text-[10px] font-bold">Profile</span>
         </button>

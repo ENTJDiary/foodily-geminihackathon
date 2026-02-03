@@ -7,6 +7,7 @@ import { communityPostToMenuItem } from '../../services/communityPostsService';
 import WeeklyFoodHunt from '../../components/features/WeeklyFoodHunt';
 import InsightDetailModal from '../../components/restaurant/modals/InsightDetailModal';
 import MenuItemDetailModal from '../../components/restaurant/modals/MenuItemDetailModal';
+import RestaurantModal from '../../components/common/RestaurantModal';
 import { Review, MenuItem } from '../../types';
 
 const ActivitySection: React.FC = () => {
@@ -24,6 +25,7 @@ const ActivitySection: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [selectedInsight, setSelectedInsight] = useState<Review | null>(null);
     const [selectedLikedPost, setSelectedLikedPost] = useState<MenuItem | null>(null);
+    const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (!currentUser) {
@@ -96,6 +98,7 @@ const ActivitySection: React.FC = () => {
                         {clickedRestaurants.map((restaurant, idx) => (
                             <div
                                 key={`${restaurant.id}-${idx}`}
+                                onClick={() => setSelectedRestaurant({ id: restaurant.id, name: restaurant.name })}
                                 className="group relative bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-5 hover:border-orange-300 hover:shadow-lg transition-all cursor-pointer"
                             >
                                 {restaurant.photo && (
@@ -250,6 +253,14 @@ const ActivitySection: React.FC = () => {
                     menuItem={selectedLikedPost}
                     restaurantId={selectedLikedPost.restaurantId}
                     onClose={() => setSelectedLikedPost(null)}
+                />
+            )}
+
+            {selectedRestaurant && (
+                <RestaurantModal
+                    restaurantId={selectedRestaurant.id}
+                    restaurantName={selectedRestaurant.name}
+                    onClose={() => setSelectedRestaurant(null)}
                 />
             )}
         </div>

@@ -258,13 +258,19 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                         <div className="flex items-center gap-3">
                             {isEditingName ? (
                                 <div className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={tempName}
-                                        onChange={(e) => setTempName(e.target.value)}
-                                        className="text-2xl font-bold text-brand-black tracking-tight bg-white/50 border border-brand-slate/20 rounded-lg px-2 py-1 focus:outline-none focus:border-brand-orange"
-                                        autoFocus
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={tempName}
+                                            onChange={(e) => setTempName(e.target.value)}
+                                            maxLength={16}
+                                            className="text-2xl font-bold text-brand-black tracking-tight bg-white/50 border border-brand-slate/20 rounded-lg pl-2 pr-12 py-1 focus:outline-none focus:border-brand-orange w-full"
+                                            autoFocus
+                                        />
+                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 tracking-widest pointer-events-none">
+                                            {tempName.length}/16
+                                        </span>
+                                    </div>
                                     <button onClick={handleSaveName} className="p-1 text-green-500 hover:bg-green-50 rounded-full">
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
