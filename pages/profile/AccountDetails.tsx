@@ -7,6 +7,7 @@ import { MenuItem } from '../../types';
 import TasteProfileViewer from '../../components/profile/TasteProfileViewer';
 import { getTasteProfile, resetTasteProfile } from '../../services/tasteProfileService';
 import { TasteProfile } from '../../src/types/auth.types';
+import SettingsModal from './SettingsModal';
 
 interface LegacyUserProfile {
     name: string;
@@ -75,6 +76,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     const [localDietary, setLocalDietary] = useState<string[]>(profile.dietaryRestrictions);
     const cuisineTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const dietaryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Settings Modal State
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Sync local state with props when props change
     useEffect(() => {
@@ -264,7 +268,16 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* User Profile Card */}
-            <div className="glass-panel p-6 md:p-8 rounded-3xl shadow-sm">
+            <div className="glass-panel p-6 md:p-8 rounded-3xl shadow-sm relative group/card">
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="absolute top-6 right-6 p-2 text-brand-slate/30 hover:text-brand-orange hover:bg-brand-orange/5 rounded-full transition-all group"
+                >
+                    <svg className="w-6 h-6 group-hover:animate-[spin_0.4s_linear_3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
                 <div className="flex items-start gap-6">
                     {/* Avatar */}
                     <div
@@ -533,6 +546,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                     onClose={() => setSelectedPost(null)}
                 />
             )}
+
+            {/* Settings Modal */}
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
         </div>
     );
 };

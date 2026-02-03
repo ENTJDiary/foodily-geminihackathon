@@ -37,6 +37,7 @@ export interface UserPreferences {
     sex: 'Male' | 'Female' | 'Prefer not to say';
     termsAccepted: boolean;
     onboardingCompletedAt?: Timestamp;
+    language?: string; // e.g. 'en', 'es'
 
     // Cuisine & Dietary Preferences
     cuisinePreferences: string[];
@@ -138,6 +139,9 @@ export interface AuthContextType {
     signOut: () => Promise<void>;
     updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
     updateUserPreferences: (updates: Partial<UserPreferences>) => Promise<void>;
+    reauthenticate: () => Promise<void>;
+    updateEmail: (newEmail: string) => Promise<void>;
+    deleteAccount: () => Promise<void>;
     error: string | null;
 }
 

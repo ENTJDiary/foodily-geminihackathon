@@ -290,6 +290,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signOut,
         updateUserProfile: handleUpdateUserProfile,
         updateUserPreferences: handleUpdateUserPreferences,
+        reauthenticate: async () => {
+            const { reauthenticateUser } = await import('../firebase/authService');
+            try {
+                setLoading(true);
+                await reauthenticateUser();
+            } catch (err: any) {
+                setError(err.userMessage || err.message);
+                throw err;
+            } finally {
+                setLoading(false);
+            }
+        },
+        updateEmail: async (newEmail: string) => {
+            const { updateUserEmail } = await import('../firebase/authService');
+            try {
+                setLoading(true);
+                await updateUserEmail(newEmail);
+                // Also update the UserProfile in Firestore
+                await updateProfile(currentUser!.uid, { email: newEmail });
+                if (userProfile) {
+                    setUserProfile({ ...userProfile, email: newEmail });
+                }
+            } catch (err: any) {
+                setError(err.userMessage || err.message);
+                throw err;
+            } finally {
+                setLoading(false);
+            }
+        },
+        deleteAccount: async () => {
+            const { deleteUserAccount } = await import('../firebase/authService');
+            try {
+                setLoading(true);
+                // Delete from Firebase Auth
+                await deleteUserAccount();
+
+                // Clear local state
+                setCurrentUser(null);
+                setUserProfile(null);
+                setUserPreferences(null);
+                clearCachedUserProfile();
+            } catch (err: any) {
+                setError(err.userMessage || err.message);
+                throw err;
+            } finally {
+                setLoading(false);
+            }
+        },
         error,
     };
 

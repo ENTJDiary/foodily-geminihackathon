@@ -204,9 +204,72 @@ export const getCurrentUser = (): User | null => {
     return auth.currentUser;
 };
 
+
 /**
  * Check if user is authenticated
  */
 export const isAuthenticated = (): boolean => {
     return auth.currentUser !== null;
+};
+
+/**
+ * Re-authenticate user with Google
+ * Required for sensitive operations like deleting account or changing email
+ */
+export const reauthenticateUser = async (): Promise<void> => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user logged in');
+
+        // Force re-authentication with Google
+        await signInWithPopup(auth, googleProvider);
+    } catch (error: any) {
+        throw handleAuthError(error);
+    }
+};
+
+/**
+ * Update user email
+ * Note: Requires recent login/re-authentication
+ */
+export const updateUserEmail = async (newEmail: string): Promise<void> => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user logged in');
+
+        const { updateEmail, sendEmailVerification } = await import('firebase/auth');
+
+        // 1. Update the email
+        await updateEmail(user, newEmail);
+
+        // 2. Send verification email to the new address
+        await sendEmailVerification(user);
+
+        console.log('✅ Email updated and verification sent to:', newEmail);
+    } catch (error: any) {
+        // If error is 'auth/requires-recent-login', the UI should trigger re-auth
+        throw handleAuthError(error);
+    }
+};
+
+/**
+ * Delete user account
+ * Note: Requires recent login/re-authentication
+ */
+export const deleteUserAccount = async (): Promise<void> => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user logged in');
+
+        const { deleteUser } = await import('firebase/auth');
+
+        // Delete the user from Firebase Auth
+        // Note: Firestore data cleanup should be handled by a Cloud Function trigger on user deletion
+        await deleteUser(user);
+
+        console.log('✅ User account deleted');
+    } catch (error: any) {
+        // If error is 'auth/requires-recent-login', the UI should trigger re-auth
+        throw handleAuthError(error);
+    }
 };
