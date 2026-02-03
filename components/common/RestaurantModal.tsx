@@ -9,6 +9,7 @@ import PriceRating from './PriceRating';
 import GourmetBriefPage from '../restaurant/pages/GourmetBriefPage';
 import CommunityInsightsPage from '../restaurant/pages/CommunityInsightsPage';
 import CommunityMenuPage from '../restaurant/pages/CommunityMenuPage';
+import { trackRestaurantView, trackQuickExit } from '../../services/activityTrackingService';
 
 interface RestaurantModalProps {
   restaurantId: string;
@@ -83,6 +84,43 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
       console.error('Failed to fetch place details:', error);
     });
   }, [restaurantId, restaurantName]);
+
+  // Track restaurant view activity
+  useEffect(() => {
+    const startTime = Date.now();
+    console.log('👁️ [RestaurantModal] Tracking view start for:', restaurantName);
+
+    return () => {
+      const timeSpent = Date.now() - startTime;
+      const timeSpentSeconds = Math.floor(timeSpent / 1000);
+
+      if (!user) {
+        console.log('⚠️ [RestaurantModal] No user, skipping activity tracking');
+        return;
+      }
+
+      // Track quick exit (<10 seconds)
+      if (timeSpentSeconds < 10) {
+        console.log(`❌ [RestaurantModal] Quick exit detected: ${timeSpentSeconds}s`);
+        trackQuickExit(
+          user.uid,
+          restaurantId,
+          restaurantName,
+          timeSpent
+        ).catch(err => console.error('Failed to track quick exit:', err));
+      } else {
+        // Track normal view with duration
+        console.log(`✅ [RestaurantModal] Normal view: ${timeSpentSeconds}s`);
+        trackRestaurantView(
+          user.uid,
+          restaurantId,
+          restaurantName,
+          [], // TODO: Extract cuisine types from details
+          timeSpent
+        ).catch(err => console.error('Failed to track view:', err));
+      }
+    };
+  }, [user, restaurantId, restaurantName]);
 
   // Handlers for Community Insights
   const handleSubmitInsight = (data: { userName: string; rating: number; comment: string }) => {

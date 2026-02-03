@@ -10,6 +10,8 @@ import LoadingRecommendations from '../components/common/LoadingRecommendations'
 import { trackRestaurantClick } from '../services/restaurantClicksService';
 import { useAuth } from '../src/contexts/AuthContext';
 import { autoLogFoodSearch } from '../services/foodLogsService';
+import { getTasteProfile } from '../services/tasteProfileService';
+import { TasteProfile } from '../src/types/auth.types';
 
 const Concierge: React.FC = () => {
   const { currentUser } = useAuth();
@@ -32,6 +34,7 @@ const Concierge: React.FC = () => {
     budget?: number;
     locationCoords?: { latitude: number; longitude: number };
   } | null>(null);
+  const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +66,7 @@ const Concierge: React.FC = () => {
         locationCoords: coords
       });
 
-      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords);
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords, tasteProfile);
       setResult(response);
 
       if (currentUser) {
@@ -89,7 +92,8 @@ const Concierge: React.FC = () => {
         currentSearch.location,
         currentSearch.budget,
         pickedRestaurants,
-        currentSearch.locationCoords
+        currentSearch.locationCoords,
+        tasteProfile
       );
 
       setResult(prev => prev ? {
@@ -108,6 +112,18 @@ const Concierge: React.FC = () => {
       resultRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [result, loading]);
+
+  // Fetch taste profile
+  useEffect(() => {
+    if (currentUser) {
+      getTasteProfile(currentUser.uid).then(profile => {
+        setTasteProfile(profile);
+        console.log('🧠 [Concierge] Taste profile loaded:', profile?.dataPoints || 0, 'data points');
+      }).catch(error => {
+        console.error('❌ [Concierge] Failed to load taste profile:', error);
+      });
+    }
+  }, [currentUser]);
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500 max-w-4xl mx-auto pb-12">

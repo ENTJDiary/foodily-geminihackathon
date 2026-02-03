@@ -159,3 +159,122 @@ export interface OTPState {
     codeSent: boolean;
     resendAvailable: boolean;
 }
+
+/**
+ * Taste Profile - User preference learning system
+ * Stored in Firestore tasteProfiles/{uid} collection
+ * Aggregates user behavior to power personalized recommendations
+ */
+export interface TasteProfile {
+    userId: string;
+
+    // Cuisine Preferences (scored 0-100)
+    cuisineScores: {
+        [cuisineName: string]: {
+            score: number;
+            frequency: number;
+            lastEaten?: Date;
+            avgRating?: number;
+        };
+    };
+
+    // Food Type Preferences
+    foodTypeScores: {
+        [foodType: string]: {
+            score: number;
+            frequency: number;
+        };
+    };
+
+    // Restaurant Preferences
+    restaurantScores: {
+        [restaurantId: string]: {
+            score: number;
+            visitCount: number;
+            avgTimeSpent: number;
+            saved: boolean;
+        };
+    };
+
+    // Time-Based Patterns
+    timePatterns: {
+        hourOfDay: { [hour: number]: string[] }; // hour -> preferred cuisines
+        dayOfWeek: { [day: number]: string[] };  // day -> preferred cuisines
+    };
+
+    // Context Preferences
+    budgetPreference: {
+        avgPriceRating: number; // 1-4
+        range: [number, number];
+    };
+
+    locationPreference: {
+        maxDistance: number; // km
+        preferredAreas: string[];
+    };
+
+    // Negative Signals
+    negativeSignals: {
+        quickExits: { [restaurantId: string]: number };
+        repeatedSearchNoClick: { [searchQuery: string]: number };
+    };
+
+    // Metadata
+    lastComputed: Timestamp;
+    dataPoints: number; // Total interactions analyzed
+    confidenceScore: number; // 0-100, based on data volume
+}
+
+/**
+ * User Activity - Real-time interaction tracking
+ * Stored in Firestore userActivity/{activityId} collection
+ * Used to compute taste profiles
+ */
+export interface UserActivity {
+    activityId: string;
+    userId: string;
+    activityType: 'restaurant_view' | 'quick_exit' | 'search_no_click';
+    restaurantId?: string;
+    restaurantName?: string;
+    cuisineTypes?: string[];
+    searchQuery?: string;
+    timeSpent?: number; // milliseconds
+    timestamp: Timestamp;
+    context: {
+        timeOfDay: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+        dayOfWeek: number; // 0-6
+        location?: {
+            latitude: number;
+            longitude: number;
+        };
+    };
+}
+
+/**
+ * Cuisine Score Detail - Component of TasteProfile
+ */
+export interface CuisineScore {
+    score: number;
+    frequency: number;
+    lastEaten?: Date;
+    avgRating?: number;
+}
+
+/**
+ * Food Type Score Detail - Component of TasteProfile
+ */
+export interface FoodTypeScore {
+    score: number;
+    frequency: number;
+}
+
+/**
+ * Restaurant Score Detail - Component of TasteProfile
+ */
+export interface RestaurantScore {
+    score: number;
+    visitCount: number;
+    avgTimeSpent: number;
+    saved: boolean;
+}
+

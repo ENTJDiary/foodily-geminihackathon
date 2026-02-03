@@ -4,6 +4,9 @@ import { uploadProfilePicture, formatDateOfBirth, calculateAge } from '../../ser
 import { getUserPosts, CommunityPost, communityPostToMenuItem } from '../../services/communityPostsService';
 import MenuItemDetailModal from '../../components/restaurant/modals/MenuItemDetailModal';
 import { MenuItem } from '../../types';
+import TasteProfileViewer from '../../components/profile/TasteProfileViewer';
+import { getTasteProfile, resetTasteProfile } from '../../services/tasteProfileService';
+import { TasteProfile } from '../../src/types/auth.types';
 
 interface LegacyUserProfile {
     name: string;
@@ -64,6 +67,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [selectedPost, setSelectedPost] = useState<MenuItem | null>(null);
+    const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
+    const [loadingTasteProfile, setLoadingTasteProfile] = useState(true);
 
     // Local state for debouncing
     const [localCuisines, setLocalCuisines] = useState<string[]>(profile.favoriteCuisines);
@@ -137,6 +142,59 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
 
         fetchUserPosts();
     }, [currentUser]);
+
+    // Fetch taste profile
+    useEffect(() => {
+        const fetchTasteProfile = async () => {
+            console.log('🔄 [AccountDetails] Starting taste profile fetch...');
+            if (!currentUser) {
+                console.log('⚠️ [AccountDetails] No current user, skipping fetch');
+                setLoadingTasteProfile(false);
+                return;
+            }
+
+            console.log('👤 [AccountDetails] Fetching for user:', currentUser.uid);
+            try {
+                // Clean up invalid cuisines first (one-time cleanup)
+                const { cleanupInvalidCuisines } = await import('../../services/tasteProfileCleanup');
+                await cleanupInvalidCuisines(currentUser.uid);
+
+                // Then fetch the cleaned profile
+                const profile = await getTasteProfile(currentUser.uid);
+                console.log('✅ [AccountDetails] Taste profile fetched:', profile ? 'Found' : 'Null', profile);
+                setTasteProfile(profile);
+            } catch (error) {
+                console.error('❌ [AccountDetails] Error fetching taste profile:', error);
+            } finally {
+                setLoadingTasteProfile(false);
+            }
+        };
+
+        fetchTasteProfile();
+    }, [currentUser]);
+
+    // Handle taste profile reset
+    const handleResetTasteProfile = async () => {
+        if (!currentUser) return;
+
+        const confirmed = window.confirm(
+            'Are you sure you want to reset your taste profile? This will clear all your preference data and start fresh.'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            setLoadingTasteProfile(true);
+            await resetTasteProfile(currentUser.uid);
+            const newProfile = await getTasteProfile(currentUser.uid);
+            setTasteProfile(newProfile);
+        } catch (error) {
+            console.error('Error resetting taste profile:', error);
+            alert('Failed to reset taste profile. Please try again.');
+        } finally {
+            setLoadingTasteProfile(false);
+        }
+    };
 
     const handleProfilePictureClick = () => {
         fileInputRef.current?.click();
@@ -347,6 +405,13 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* Taste Profile */}
+            <TasteProfileViewer
+                profile={tasteProfile}
+                loading={loadingTasteProfile}
+                onReset={handleResetTasteProfile}
+            />
 
             {/* Your Posts */}
             <div className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">

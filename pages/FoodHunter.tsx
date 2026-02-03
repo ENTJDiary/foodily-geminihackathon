@@ -12,6 +12,8 @@ import LoadingRecommendations from '../components/common/LoadingRecommendations'
 import { trackRestaurantClick } from '../services/restaurantClicksService';
 import { useAuth } from '../src/contexts/AuthContext';
 import { autoLogFoodSearch } from '../services/foodLogsService';
+import { getTasteProfile } from '../services/tasteProfileService';
+import { TasteProfile } from '../src/types/auth.types';
 
 const FoodHunter: React.FC = () => {
   const { currentUser } = useAuth();
@@ -25,6 +27,7 @@ const FoodHunter: React.FC = () => {
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
   const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
   const [isCluelesOpen, setIsCluelesOpen] = useState(false);
+  const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
   const resultsRef = React.useRef<HTMLDivElement | null>(null);
 
   const profile = getUserProfile();
@@ -46,7 +49,17 @@ const FoodHunter: React.FC = () => {
     }).catch(error => {
       console.error('💥 [FoodHunter] Unexpected error in location request:', error);
     });
-  }, []);
+
+    // Fetch taste profile
+    if (currentUser) {
+      getTasteProfile(currentUser.uid).then(profile => {
+        setTasteProfile(profile);
+        console.log('🧠 [FoodHunter] Taste profile loaded:', profile?.dataPoints || 0, 'data points');
+      }).catch(error => {
+        console.error('❌ [FoodHunter] Failed to load taste profile:', error);
+      });
+    }
+  }, [currentUser]);
 
   const triggerSearch = async () => {
     if (!dish && !locationName) return;
@@ -81,16 +94,19 @@ const FoodHunter: React.FC = () => {
         prompt,
         locationName ? undefined : (currentCoords || undefined),
         restrictions,
-        [] // Initial search has no exclusions
+        [], // Initial search has no exclusions
+        tasteProfile // Pass taste profile for personalization
       );
 
       setResults(response);
 
+      // Log food search with actual dish name as cuisine (if dish is provided)
       if (dish && currentUser) {
-        autoLogFoodSearch(currentUser.uid, 'Search', dish);
-      } else if (locationName && currentUser) {
-        autoLogFoodSearch(currentUser.uid, 'Local Hunt', locationName);
+        // Use the dish name as the cuisine - this is more accurate than "Search"
+        // The taste profile will aggregate similar dishes over time
+        autoLogFoodSearch(currentUser.uid, dish, dish);
       }
+      // Skip logging for location-only searches - no cuisine info to extract
 
       if (dish) {
         saveSearchToHistory('', dish);
@@ -126,7 +142,8 @@ const FoodHunter: React.FC = () => {
         prompt,
         locationName ? undefined : (currentCoords || undefined),
         restrictions,
-        pickedRestaurants
+        pickedRestaurants,
+        tasteProfile // Pass taste profile for personalization
       );
 
       setResults(prev => prev ? {

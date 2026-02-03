@@ -14,6 +14,8 @@ import LoadingRecommendations from '../components/common/LoadingRecommendations'
 import { trackRestaurantClick } from '../services/restaurantClicksService';
 import { useAuth } from '../src/contexts/AuthContext';
 import { autoLogFoodSearch } from '../services/foodLogsService';
+import { getTasteProfile } from '../services/tasteProfileService';
+import { TasteProfile } from '../src/types/auth.types';
 
 
 const FoodGatcha: React.FC = () => {
@@ -27,6 +29,7 @@ const FoodGatcha: React.FC = () => {
   const [pickedRestaurants, setPickedRestaurants] = useState<string[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [loadingMore, setLoadingMore] = useState(false);
+  const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const profile = getUserProfile();
@@ -48,7 +51,17 @@ const FoodGatcha: React.FC = () => {
         setCurrentCoords(location);
       }
     });
-  }, []);
+
+    // Fetch taste profile
+    if (currentUser) {
+      getTasteProfile(currentUser.uid).then(profile => {
+        setTasteProfile(profile);
+        console.log('🧠 [FoodGatcha] Taste profile loaded:', profile?.dataPoints || 0, 'data points');
+      }).catch(error => {
+        console.error('❌ [FoodGatcha] Failed to load taste profile:', error);
+      });
+    }
+  }, [currentUser]);
 
   const handleRandomSelection = async (cuisine: string, foodType: string, lockedCuisine: boolean, lockedFood: boolean) => {
     // Smart search based on lock state
@@ -72,7 +85,7 @@ const FoodGatcha: React.FC = () => {
       const prompt = `Suggest top-tier restaurants for ${query} near me.`;
       setCurrentPrompt(prompt);
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
-      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, []);
+      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, [], tasteProfile);
       setResults(response);
 
       if (currentUser) {
@@ -95,7 +108,7 @@ const FoodGatcha: React.FC = () => {
       const prompt = `Suggest top-tier restaurants for ${foodName} near me.`;
       setCurrentPrompt(prompt);
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
-      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, []);
+      const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, [], tasteProfile);
       setResults(response);
 
       if (currentUser) {
@@ -118,7 +131,7 @@ const FoodGatcha: React.FC = () => {
     setLoadingMore(true);
     try {
       const restrictions = applyFilters ? profile.dietaryRestrictions : [];
-      const response = await searchRestaurantsByMaps(currentPrompt, currentCoords || undefined, restrictions, pickedRestaurants);
+      const response = await searchRestaurantsByMaps(currentPrompt, currentCoords || undefined, restrictions, pickedRestaurants, tasteProfile);
 
       setResults(prev => prev ? {
         text: prev.text + '\n' + response.text,

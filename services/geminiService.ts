@@ -1,13 +1,16 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { Location, SearchResult, HistoryEntry, GroundingChunk } from "../types";
+import { TasteProfile } from "../src/types/auth.types";
+import { getCuisinePreferenceSummary } from "./tasteProfileService";
 
 // Always initialize client with the API key from process.env.API_KEY
 export const searchRestaurantsByMaps = async (
   query: string,
   location?: Location,
   dietaryRestrictions: string[] = [],
-  excludeNames: string[] = []
+  excludeNames: string[] = [],
+  tasteProfile?: TasteProfile | null
 ): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -33,6 +36,25 @@ export const searchRestaurantsByMaps = async (
 
   if (excludeNames.length > 0) {
     enhancedQuery += ` Do NOT include these restaurants: ${excludeNames.join(', ')}.`;
+  }
+
+  // Add taste profile context
+  if (tasteProfile && tasteProfile.dataPoints > 5) {
+    const cuisineSummary = getCuisinePreferenceSummary(tasteProfile);
+    if (cuisineSummary) {
+      enhancedQuery += ` User's taste profile: ${cuisineSummary}. `;
+    }
+
+    // Add time-based context
+    const currentHour = new Date().getHours();
+    const timePrefs = tasteProfile.timePatterns.hourOfDay[currentHour];
+    if (timePrefs && timePrefs.length > 0) {
+      enhancedQuery += `At this time, user typically enjoys: ${timePrefs.slice(0, 3).join(', ')}. `;
+    }
+
+    // Add budget context
+    const avgBudget = tasteProfile.budgetPreference.avgPriceRating;
+    enhancedQuery += `User's average budget preference: ${avgBudget}/4. `;
   }
 
   // Format prompt to match conciergeChat style for consistent UI display
@@ -214,7 +236,7 @@ export const chatWithGemini = async (message: string) => {
   return result.text;
 };
 
-export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = [], locationCoords?: Location): Promise<SearchResult> => {
+export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = [], locationCoords?: Location, tasteProfile?: TasteProfile | null): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const toolConfig = locationCoords ? {
@@ -240,6 +262,14 @@ export const conciergeChat = async (occasion: string, people: string, request: s
 
   if (excludeNames.length > 0) {
     detailedPrompt += ` Do NOT include these restaurants: ${excludeNames.join(', ')}.`;
+  }
+
+  // Add taste profile context
+  if (tasteProfile && tasteProfile.dataPoints > 5) {
+    const cuisineSummary = getCuisinePreferenceSummary(tasteProfile);
+    if (cuisineSummary) {
+      detailedPrompt += ` User's taste profile: ${cuisineSummary}. Consider these preferences when making recommendations.`;
+    }
   }
 
   const prompt = `${detailedPrompt} 
