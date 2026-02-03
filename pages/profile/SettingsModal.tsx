@@ -30,7 +30,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     } = useAuth();
 
     // UI Local State
-    const [activeSection, setActiveSection] = useState<'account' | 'preferences' | 'help'>('account');
     const [isLoading, setIsLoading] = useState(false);
 
     // Edit States
@@ -38,7 +37,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     const [isEditingDOB, setIsEditingDOB] = useState(false);
     const [newEmail, setNewEmail] = useState(userProfile?.email || '');
     const [newDOB, setNewDOB] = useState(userPreferences?.dateOfBirth || '');
-    const [emailPassword, setEmailPassword] = useState(''); // Only used if using EmailAuthProvider directly in future
 
     // Delete Confirmation State
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
