@@ -38,11 +38,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeUserData = void 0;
+exports.decrementPostLikeCount = exports.updatePostLikeCount = exports.decrementReviewLikeCount = exports.updateReviewLikeCount = exports.initializeUserData = void 0;
 const v2_1 = require("firebase-functions/v2");
 const https_1 = require("firebase-functions/v2/https");
+const firestore_1 = require("firebase-functions/v2/firestore");
 const admin = __importStar(require("firebase-admin"));
-const firestore_1 = require("firebase-admin/firestore");
+const firestore_2 = require("firebase-admin/firestore");
 const logger = __importStar(require("firebase-functions/logger"));
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -56,7 +57,7 @@ admin.initializeApp();
  * This is called from the client after successful authentication
  * Creates the complete essential Firestore schema for new users
  */
-exports.initializeUserData = (0, https_1.onCall)(async (request) => {
+exports.initializeUserData = (0, https_1.onCall)({ cors: true }, async (request) => {
     // Verify the user is authenticated
     if (!request.auth) {
         throw new https_1.HttpsError("unauthenticated", "User must be authenticated");
@@ -111,9 +112,9 @@ exports.initializeUserData = (0, https_1.onCall)(async (request) => {
             phoneNumber: null,
             authProvider: providerType,
             emailVerified: emailVerified,
-            createdAt: firestore_1.FieldValue.serverTimestamp(),
-            updatedAt: firestore_1.FieldValue.serverTimestamp(),
-            lastLoginAt: firestore_1.FieldValue.serverTimestamp(),
+            createdAt: firestore_2.FieldValue.serverTimestamp(),
+            updatedAt: firestore_2.FieldValue.serverTimestamp(),
+            lastLoginAt: firestore_2.FieldValue.serverTimestamp(),
         });
         logger.info("User profile document prepared", { uid });
         // Create user preferences document with complete schema
@@ -138,8 +139,8 @@ exports.initializeUserData = (0, https_1.onCall)(async (request) => {
             // Food Wheel Options
             wheelOptions: [],
             // Metadata
-            createdAt: firestore_1.FieldValue.serverTimestamp(),
-            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            createdAt: firestore_2.FieldValue.serverTimestamp(),
+            updatedAt: firestore_2.FieldValue.serverTimestamp(),
         });
         logger.info("User preferences document prepared", { uid });
         // Create user stats document with initial values
@@ -181,9 +182,9 @@ exports.initializeUserData = (0, https_1.onCall)(async (request) => {
             totalReviewsWritten: 0,
             totalMenuItemsPosted: 0,
             totalLikesReceived: 0,
-            lastCalculatedAt: firestore_1.FieldValue.serverTimestamp(),
+            lastCalculatedAt: firestore_2.FieldValue.serverTimestamp(),
             calculationMethod: "realtime",
-            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_2.FieldValue.serverTimestamp(),
         });
         logger.info("User stats document prepared", { uid });
         // Commit the batch write atomically
@@ -196,8 +197,84 @@ exports.initializeUserData = (0, https_1.onCall)(async (request) => {
         };
     }
     catch (error) {
-        logger.error("Error creating user data:", error);
+        logger.error("Error in initializeUserData:", error);
         throw new https_1.HttpsError("internal", "Failed to initialize user data");
+    }
+});
+/**
+ * Cloud Function: Update review like count
+ * Triggers when a reviewLike document is created or deleted
+ */
+exports.updateReviewLikeCount = (0, firestore_1.onDocumentCreated)("reviewLikes/{likeId}", async (event) => {
+    var _a;
+    const likeData = (_a = event.data) === null || _a === void 0 ? void 0 : _a.data();
+    if (!likeData)
+        return;
+    const reviewId = likeData.reviewId;
+    const reviewRef = admin.firestore().collection("reviews").doc(reviewId);
+    try {
+        await reviewRef.update({
+            likes: firestore_2.FieldValue.increment(1),
+        });
+        logger.info(`Incremented like count for review ${reviewId}`);
+    }
+    catch (error) {
+        logger.error(`Error incrementing like count for review ${reviewId}:`, error);
+    }
+});
+exports.decrementReviewLikeCount = (0, firestore_1.onDocumentDeleted)("reviewLikes/{likeId}", async (event) => {
+    var _a;
+    const likeData = (_a = event.data) === null || _a === void 0 ? void 0 : _a.data();
+    if (!likeData)
+        return;
+    const reviewId = likeData.reviewId;
+    const reviewRef = admin.firestore().collection("reviews").doc(reviewId);
+    try {
+        await reviewRef.update({
+            likes: firestore_2.FieldValue.increment(-1),
+        });
+        logger.info(`Decremented like count for review ${reviewId}`);
+    }
+    catch (error) {
+        logger.error(`Error decrementing like count for review ${reviewId}:`, error);
+    }
+});
+/**
+ * Cloud Function: Update post like count
+ * Triggers when a postLike document is created or deleted
+ */
+exports.updatePostLikeCount = (0, firestore_1.onDocumentCreated)("postLikes/{likeId}", async (event) => {
+    var _a;
+    const likeData = (_a = event.data) === null || _a === void 0 ? void 0 : _a.data();
+    if (!likeData)
+        return;
+    const postId = likeData.postId;
+    const postRef = admin.firestore().collection("communityPosts").doc(postId);
+    try {
+        await postRef.update({
+            likes: firestore_2.FieldValue.increment(1),
+        });
+        logger.info(`Incremented like count for post ${postId}`);
+    }
+    catch (error) {
+        logger.error(`Error incrementing like count for post ${postId}:`, error);
+    }
+});
+exports.decrementPostLikeCount = (0, firestore_1.onDocumentDeleted)("postLikes/{likeId}", async (event) => {
+    var _a;
+    const likeData = (_a = event.data) === null || _a === void 0 ? void 0 : _a.data();
+    if (!likeData)
+        return;
+    const postId = likeData.postId;
+    const postRef = admin.firestore().collection("communityPosts").doc(postId);
+    try {
+        await postRef.update({
+            likes: firestore_2.FieldValue.increment(-1),
+        });
+        logger.info(`Decremented like count for post ${postId}`);
+    }
+    catch (error) {
+        logger.error(`Error decrementing like count for post ${postId}:`, error);
     }
 });
 //# sourceMappingURL=index.js.map

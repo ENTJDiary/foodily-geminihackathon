@@ -68,8 +68,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <nav className="hidden lg:flex items-center gap-2 bg-white/50 p-1 rounded-xl border border-white/40">
               {[
                 { path: '/FoodHunter', label: 'Discovery' },
-                { path: '/FoodGatcha', label: 'Food Gacha' },
-                { path: '/Concierge', label: 'Planner' },
+                { path: '/FoodGatcha', label: 'FoodGacha' },
+                { path: '/Concierge', label: 'Concierge' },
               ].map((item) => (
                 <button
                   key={item.path}

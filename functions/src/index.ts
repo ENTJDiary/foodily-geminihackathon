@@ -25,7 +25,7 @@ setGlobalOptions({
  * This is called from the client after successful authentication
  * Creates the complete essential Firestore schema for new users
  */
-export const initializeUserData = onCall(async (request) => {
+export const initializeUserData = onCall({ cors: true }, async (request) => {
     // Verify the user is authenticated
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be authenticated");

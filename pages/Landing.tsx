@@ -272,7 +272,7 @@ const Landing: React.FC = () => {
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-slate-200 mb-6 shadow-sm flex items-center justify-center">
                     <img src={foodGachaIcon} alt="Food Gacha" className="w-full h-full object-cover" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">Food Gacha</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">FoodGacha</h3>
                   <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
                     Feeling adventurous? Spin the Gourmet Slot and let fate decide your next meal. Discover hidden gems.
                   </p>

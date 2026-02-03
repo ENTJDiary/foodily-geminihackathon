@@ -223,7 +223,7 @@ const Concierge: React.FC = () => {
                       step="1"
                       value={budget}
                       onChange={(e) => setBudget(parseInt(e.target.value))}
-                      className="w-full h-2 bg-brand-slate/10 rounded-lg appearance-none cursor-pointer relative z-10 accent-brand-orange"
+                      className="w-full h-2 bg-brand-slate/10 rounded-lg appearance-none cursor-pointer relative z-10 accent-brand-orange [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-orange [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white hover:[&::-webkit-slider-thumb]:scale-110 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand-orange [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white"
                       style={{
                         background: `linear-gradient(to right, #ea580c 0%, #ea580c ${(budget / 100) * 100}%, #e2e8f0 ${(budget / 100) * 100}%, #e2e8f0 100%)`
                       }}
