@@ -102,8 +102,10 @@ const FoodHunter: React.FC = () => {
       );
 
       setResults(response);
+      setLoading(false); // Stop loading immediately after getting results
 
       // Log food search with extracted cuisine and food type (if dish is provided)
+      // This is done after setting loading to false so user sees results immediately
       if (dish && currentUser) {
         try {
           const { cuisine, foodType } = await extractCuisineFromSearch(dish);

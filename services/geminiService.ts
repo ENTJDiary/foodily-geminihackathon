@@ -62,6 +62,8 @@ export const searchRestaurantsByMaps = async (
 
 Provide a brief introduction paragraph explaining the search results, then list 5 restaurant recommendations.
 
+IMPORTANT: If the user's query appears to be searching for a SPECIFIC restaurant name (e.g. "Nobu", "McDonalds", "Carbone"), you MUST list that specific restaurant as the FIRST recommendation if it exists in the target location.
+
 Format each restaurant as a SINGLE bullet point with this structure:
 * **Restaurant Name** - Brief description including why it fits, key vibe/atmosphere, and what makes it special (2-3 sentences max).
 
