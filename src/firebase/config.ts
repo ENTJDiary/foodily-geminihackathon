@@ -28,7 +28,8 @@ const functions = getFunctions(app);
 
 // Connect to emulators if in development mode
 // IMPORTANT: This must happen BEFORE any auth operations
-const useEmulators = import.meta.env.VITE_USE_EMULATORS === 'true';
+// Only use emulators if VITE_USE_EMULATORS is true AND we are in DEV mode (not production build)
+const useEmulators = import.meta.env.VITE_USE_EMULATORS === 'true' && !import.meta.env.PROD;
 
 if (useEmulators) {
     console.log('🔧 Connecting to Firebase Emulators...');

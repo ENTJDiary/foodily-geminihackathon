@@ -8,6 +8,7 @@ import {
     ConfirmationResult,
     PhoneAuthProvider,
     signInWithCredential,
+    signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { auth } from './config';
 import { AuthError } from '../types/auth.types';
@@ -26,6 +27,18 @@ googleProvider.setCustomParameters({
 export const signInWithGoogle = async (): Promise<User> => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
+        return result.user;
+    } catch (error: any) {
+        throw handleAuthError(error);
+    }
+};
+
+/**
+ * Sign in with Email and Password
+ */
+export const signInWithEmailPassword = async (email: string, password: string): Promise<User> => {
+    try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
         return result.user;
     } catch (error: any) {
         throw handleAuthError(error);

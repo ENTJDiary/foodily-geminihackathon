@@ -134,6 +134,7 @@ export interface AuthContextType {
     userPreferences: UserPreferences | null;
     loading: boolean;
     signInWithGoogle: () => Promise<void>;
+    signInWithEmailPassword: (email: string, password: string) => Promise<void>;
     signInWithEmailOTP: (email: string) => Promise<string>; // Returns confirmation result
     verifyOTP: (verificationId: string, code: string) => Promise<void>;
     signOut: () => Promise<void>;

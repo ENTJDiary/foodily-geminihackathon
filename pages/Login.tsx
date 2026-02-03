@@ -7,26 +7,41 @@ import { requestLocationPermission } from '../services/locationService';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
-    const { signInWithGoogle, signInWithEmailOTP, error: authError } = useAuth();
+    const { signInWithGoogle, signInWithEmailOTP, signInWithEmailPassword, error: authError } = useAuth();
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isPasswordLogin, setIsPasswordLogin] = useState(true);
     const [otpCode, setOtpCode] = useState('');
     const [verificationId, setVerificationId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    const handleEmailLogin = async (e: React.FormEvent) => {
+    const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
         setLoading(true);
 
         try {
-            const verifyId = await signInWithEmailOTP(email);
-            setVerificationId(verifyId);
-            setSuccess('Code sent! Please check your email.');
+            if (isPasswordLogin) {
+                // Password Login
+                await signInWithEmailPassword(email, password);
+                // Auth state listener in AuthContext will handle redirect
+                // But we can explicit redirect here as well if needed, though useAuth listens.
+                // Assuming AuthContext listener redirects or we wait for currentUser change.
+                // The Google login has an explicit navigate, let's copy that pattern.
+                // But wait, Google login redirects to /initializing.
+                // signInWithEmailPassword in context doesn't return anything but it throws on error.
+                navigate('/initializing');
+            } else {
+                // OTP Login
+                const verifyId = await signInWithEmailOTP(email);
+                setVerificationId(verifyId);
+                setSuccess('Code sent! Please check your email.');
+            }
         } catch (err: any) {
-            setError(err.userMessage || 'Failed to send code. Please try again.');
+            setError(err.userMessage || 'Failed to sign in. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -180,9 +195,9 @@ const Login: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Email OTP Form */}
+                        {/* Email/Password Form */}
                         {!verificationId ? (
-                            <form onSubmit={handleEmailLogin} className="space-y-6">
+                            <form onSubmit={handleLoginSubmit} className="space-y-6">
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">
                                         Email Address
@@ -198,12 +213,43 @@ const Login: React.FC = () => {
                                         disabled={loading}
                                     />
                                 </div>
+
+                                {isPasswordLogin && (
+                                    <div>
+                                        <label htmlFor="password" className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">
+                                            Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            id="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:border-transparent transition-all font-medium hover:border-orange-300"
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                )}
+
                                 <button
                                     type="submit"
                                     disabled={loading}
                                     className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-xl transition-all duration-300 text-sm uppercase tracking-widest shadow-xl shadow-orange-200 hover:shadow-2xl hover:shadow-orange-300 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? 'Sending...' : 'Send Code'}
+                                    {loading ? (isPasswordLogin ? 'Signing In...' : 'Sending...') : (isPasswordLogin ? 'Log In' : 'Send Code')}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPasswordLogin(!isPasswordLogin);
+                                        setError(null);
+                                        setSuccess(null);
+                                    }}
+                                    className="w-full text-slate-600 hover:text-orange-600 font-medium text-sm transition-colors mt-4"
+                                >
+                                    {isPasswordLogin ? 'Send code instead' : 'Use password instead'}
                                 </button>
                             </form>
                         ) : (
