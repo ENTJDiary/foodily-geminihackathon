@@ -12,6 +12,8 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { autoLogFoodSearch } from '../services/foodLogsService';
 import { getTasteProfile } from '../services/tasteProfileService';
 import { TasteProfile } from '../src/types/auth.types';
+import { generateRestaurantId } from '../utils/restaurantIdUtils';
+
 
 const Concierge: React.FC = () => {
   const { currentUser } = useAuth();
@@ -302,11 +304,12 @@ const Concierge: React.FC = () => {
               // Track restaurant click
               if (currentUser) {
                 trackRestaurantClick(currentUser.uid, {
-                  restaurantId: name,
+                  restaurantId: generateRestaurantId(name),
                   restaurantName: name,
                   source: 'concierge'
                 }).catch(err => console.error('Failed to track click:', err));
               }
+
             }}
             onPicksExtracted={setPickedRestaurants}
             onLoadMore={handleLoadMore}

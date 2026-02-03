@@ -14,6 +14,8 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { autoLogFoodSearch } from '../services/foodLogsService';
 import { getTasteProfile } from '../services/tasteProfileService';
 import { TasteProfile } from '../src/types/auth.types';
+import { generateRestaurantId } from '../utils/restaurantIdUtils';
+
 
 const FoodHunter: React.FC = () => {
   const { currentUser } = useAuth();
@@ -273,12 +275,13 @@ const FoodHunter: React.FC = () => {
                 if (currentUser) {
                   console.log('📊 [FoodHunter] Tracking click for user:', currentUser.uid);
                   trackRestaurantClick(currentUser.uid, {
-                    restaurantId: name,
+                    restaurantId: generateRestaurantId(name),
                     restaurantName: name,
                     source: 'food_hunter'
                   })
                     .then(() => console.log('✅ [FoodHunter] Click tracked successfully'))
                     .catch(err => console.error('❌ [FoodHunter] Failed to track click:', err));
+
                 } else {
                   console.warn('⚠️ [FoodHunter] No user found, cannot track click');
                 }

@@ -10,6 +10,8 @@ import GourmetBriefPage from '../restaurant/pages/GourmetBriefPage';
 import CommunityInsightsPage from '../restaurant/pages/CommunityInsightsPage';
 import CommunityMenuPage from '../restaurant/pages/CommunityMenuPage';
 import { trackRestaurantView, trackQuickExit } from '../../services/activityTrackingService';
+import { extractCuisineTypes } from '../../utils/cuisineExtractor';
+
 
 interface RestaurantModalProps {
   restaurantId: string;
@@ -111,14 +113,19 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
       } else {
         // Track normal view with duration
         console.log(`✅ [RestaurantModal] Normal view: ${timeSpentSeconds}s`);
+
+        // Extract cuisine types from details
+        const cuisineTypes = details ? extractCuisineTypes(details.text, restaurantName) : [];
+
         trackRestaurantView(
           user.uid,
           restaurantId,
           restaurantName,
-          [], // TODO: Extract cuisine types from details
+          cuisineTypes,
           timeSpent
         ).catch(err => console.error('Failed to track view:', err));
       }
+
     };
   }, [user, restaurantId, restaurantName]);
 
@@ -236,15 +243,19 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     }
 
     try {
+      // Extract cuisine types from details
+      const cuisineTypes = details ? extractCuisineTypes(details.text, restaurantName) : [];
+
       const saved = await toggleSaveRestaurant(user.uid, {
         restaurantId,
         restaurantName,
         restaurantPhoto: menuItems[0]?.image || menuItems[0]?.images?.[0] || null,
-        cuisineTypes: [], // TODO: Extract from details or implement cuisine detection
+        cuisineTypes,
         rating: avgRating,
         priceRating: priceRating,
       });
       setIsSaved(saved);
+
     } catch (error) {
       console.error("Error toggling save:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";

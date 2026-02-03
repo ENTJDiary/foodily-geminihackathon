@@ -322,6 +322,13 @@ export const getTasteProfile = async (userId: string): Promise<TasteProfile | nu
         if (profileDoc.exists()) {
             const profile = profileDoc.data() as TasteProfile;
 
+            // Force recomputation if profile is empty (0 data points)
+            // This handles cases where profile was created before user had any activity
+            if (profile.dataPoints === 0) {
+                console.log('📊 Profile has 0 data points, checking for new activity...');
+                return await computeTasteProfile(userId);
+            }
+
             // Check if profile is stale (older than 6 hours)
             const lastComputed = profile.lastComputed.toMillis();
             const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
@@ -342,6 +349,7 @@ export const getTasteProfile = async (userId: string): Promise<TasteProfile | nu
         return null;
     }
 };
+
 
 /**
  * Save taste profile to Firestore

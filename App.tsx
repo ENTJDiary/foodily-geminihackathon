@@ -12,6 +12,8 @@ import Signup from './pages/Signup';
 import Login from './pages/Login';
 import InitializingUser from './pages/InitializingUser';
 import Onboarding from './pages/Onboarding';
+import CleanupProfiles from './pages/CleanupProfiles';
+
 
 const App: React.FC = () => {
   return (
@@ -36,6 +38,14 @@ const App: React.FC = () => {
               <Onboarding />
             </ProtectedRoute>
           } />
+
+          {/* Admin Utility Routes */}
+          <Route path="/cleanup-profiles" element={
+            <ProtectedRoute>
+              <CleanupProfiles />
+            </ProtectedRoute>
+          } />
+
 
           {/* Protected Routes with User ID */}
           <Route path="/FoodHunter/:userid" element={
