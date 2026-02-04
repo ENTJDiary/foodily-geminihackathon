@@ -355,15 +355,15 @@ const StatsSection: React.FC = () => {
                             let tooltipY = labelPos.y;
 
                             if (stat.angle === 0) { // Top (Health Level)
-                                tooltipY = labelPos.y - 110;
+                                tooltipY = labelPos.y - 80;
                             } else if (stat.angle === 180) { // Bottom (Satisfactory)
                                 tooltipY = labelPos.y + 25;
                             } else if (stat.angle === 60 || stat.angle === 120) { // Right (Exp, Coins)
-                                tooltipX = labelPos.x + 10;
-                                tooltipY = labelPos.y - 50; // Center vertically relative to tooltip height
+                                tooltipX = labelPos.x + 30;
+                                tooltipY = labelPos.y - 25; // Center vertically relative to tooltip height
                             } else { // Left (Balance, Intensity)
-                                tooltipX = labelPos.x - 170;
-                                tooltipY = labelPos.y - 50; // Center vertically
+                                tooltipX = labelPos.x - 200;
+                                tooltipY = labelPos.y - 25; // Center vertically
                             }
 
                             return (

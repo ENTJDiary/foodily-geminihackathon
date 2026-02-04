@@ -132,15 +132,14 @@ const SavedSection: React.FC = () => {
                                 )}
 
                                 {/* Content */}
-                                <div className="p-4 space-y-2">
-                                    <h4 className="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors">
+                                <div className="p-4 flex flex-col h-[120px]">
+                                    <h4 className="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2">
                                         {restaurant.restaurantName}
                                     </h4>
                                     {restaurant.cuisineTypes && restaurant.cuisineTypes.length > 0 && (
                                         <p className="text-xs text-slate-600 font-medium">{restaurant.cuisineTypes.join(', ')}</p>
                                     )}
-
-                                    <div className="flex items-center justify-between pt-2">
+                                    <div className="flex items-center justify-between mt-auto">
                                         <div className="flex items-center gap-1">
                                             {Array.from({ length: 5 }).map((_, i) => (
                                                 <svg
