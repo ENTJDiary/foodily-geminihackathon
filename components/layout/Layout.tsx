@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Hide header on Profile page */}
       {!isActive('/Profile') && (
         <header className="fixed top-4 left-4 right-4 z-50 transition-all duration-300">
-          <div className="max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 flex items-center justify-between">
+          <div className="relative max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 flex items-center justify-between">
             <button
               onClick={() => currentUser && navigate(`/FoodHunter/${currentUser.uid}`)}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none group"
@@ -65,7 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </h1>
             </button>
 
-            <nav className="hidden lg:flex items-center gap-2 bg-white/50 p-1 rounded-xl border border-white/40">
+            <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-12 bg-white/50 p-1 rounded-xl border border-white/40">
               {[
                 { path: '/FoodHunter', label: 'Discovery' },
                 { path: '/FoodGatcha', label: 'FoodGacha' },
@@ -93,7 +93,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-orange to-orange-400 text-white flex items-center justify-center font-bold text-sm shadow-md">
                     {displayInitial}
                   </div>
-                  <div className="hidden sm:block w-32 text-left">
+                  <div className="hidden sm:block max-w-[150px] text-left">
                     <span className="text-sm font-medium text-brand-slate truncate block">
                       {displayName}
                     </span>
