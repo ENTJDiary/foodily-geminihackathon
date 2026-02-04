@@ -154,7 +154,13 @@ const CommunityInsights: React.FC = () => {
                 </div>
 
                 {/* Right Section - Angled Cards Container */}
-                <div className="relative h-[600px] flex gap-6 justify-center lg:justify-start -rotate-3 scale-[0.85] lg:scale-100 origin-center lg:origin-left">
+                <div className="relative h-[600px] flex gap-6 justify-center lg:justify-start -rotate-6 scale-[0.85] lg:scale-100 origin-center lg:origin-left overflow-hidden">
+
+                    {/* Top Fade */}
+                    <div className="pointer-events-none absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-white to-transparent z-20" />
+
+                    {/* Bottom Fade */}
+                    <div className="pointer-events-none absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent z-20" />
 
                     {/* Left Column (Slides Down) */}
                     <div

@@ -123,19 +123,22 @@ const Landing: React.FC = () => {
                   <span className="text-sm font-semibold text-slate-600 tracking-wide font-inter">World's #1 AI Food Suggestor</span>
                 </div>
 
-                {/* Headline */}
-                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight font-sans text-center">
-                  The World's Best <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400"> AI Food Companion</span>
-                </h1>
+                <div className="space-y-4">
 
-                {/* Subtitle */}
-                <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium font-inter">
-                  Your ultimate personal food suggestor. Discover hyper-personalized restaurant recommendations and dishes tailored exactly to your cravings using advanced AI.
-                </p>
+                  {/* Headline */}
+                  <h1 className="text-5xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight font-sans text-center">
+                    The World's Best <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400"> AI Food Companion</span>
+                  </h1>
+
+                  {/* Subtitle */}
+                  <p className="text-xl text-slate-500 leading-relaxed max-w-xxl font-medium font-inter">
+                    Your ultimate personal food suggestor. Discover hyper-personalized restaurant recommendations and dishes tailored exactly to your cravings using advanced AI.
+                  </p>
+                </div>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-center pt-4 gap-8 w-full sm:w-auto">
                   <button
                     onClick={() => navigate('/signup')}
                     className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-slate-200 font-inter font-medium"
@@ -158,7 +161,7 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Stats/Social Proof */}
-                <div className="flex items-center gap-8 pt-4">
+                <div className="flex items-center ">
                   <div className="flex -space-x-3">
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200" style={{ backgroundImage: `url(https://i.pravatar.cc/100?img=${i + 10})`, backgroundSize: 'cover' }} />
@@ -272,7 +275,7 @@ const Landing: React.FC = () => {
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-slate-200 mb-6 shadow-sm flex items-center justify-center">
                     <img src={foodGachaIcon} alt="Food Gacha" className="w-full h-full object-cover" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">FoodGacha</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 font-sans">Food Gacha</h3>
                   <p className="text-slate-600 mb-8 flex-grow leading-relaxed">
                     Feeling adventurous? Spin the Gourmet Slot and let fate decide your next meal. Discover hidden gems.
                   </p>

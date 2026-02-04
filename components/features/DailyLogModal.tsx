@@ -55,10 +55,10 @@ const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, o
 
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="flex gap-6 max-h-[90vh] items-start">
+            <div className="flex gap-6 max-h-[90vh] items-center">
 
                 {/* Floating Sidebar */}
-                <div className="w-64 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 p-6 flex flex-col gap-4 animate-in slide-in-from-left-4 duration-500 overflow-hidden h-[500px]">
+                <div className="w-64 shrink-0 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 p-6 flex flex-col gap-4 animate-in slide-in-from-left-4 duration-500 overflow-hidden h-[500px]">
                     <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</span>
@@ -107,8 +107,8 @@ const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, o
                 </div>
 
                 {/* Main Form Modal */}
-                <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-4 border-orange-50 flex flex-col h-[600px]">
-                    <div className="p-8 border-b border-orange-50 bg-white flex justify-between items-center sticky top-0 z-10">
+                <div className="bg-white w-[480px] shrink-0 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-4 border-orange-50 flex flex-col h-[600px]">
+                    <div className="p-5 pb-0 border-b border-orange-50 bg-white flex justify-between items-center sticky top-0 z-10">
                         <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
                             <span className="text-orange-600 text-2xl">✎</span> Daily Food Log
                         </h3>
@@ -198,7 +198,7 @@ const DailyLogModal: React.FC<DailyLogModalProps> = ({ isOpen, onClose, entry, o
                         </div>
                     </div>
 
-                    <div className="p-8 border-t border-slate-100 bg-slate-50">
+                    <div className="p-6 border-t border-slate-100 bg-slate-50">
                         <button
                             onClick={handleSave}
                             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
