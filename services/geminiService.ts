@@ -238,7 +238,7 @@ export const chatWithGemini = async (message: string) => {
   return result.text;
 };
 
-export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = [], locationCoords?: Location, tasteProfile?: TasteProfile | null): Promise<SearchResult> => {
+export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, dietaryRestrictions: string[] = [], excludeNames: string[] = [], locationCoords?: Location, tasteProfile?: TasteProfile | null): Promise<SearchResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const toolConfig = locationCoords ? {
@@ -260,6 +260,10 @@ export const conciergeChat = async (occasion: string, people: string, request: s
 
   if (budget) {
     detailedPrompt += ` The budget is around $${budget} per person.`;
+  }
+
+  if (dietaryRestrictions.length > 0) {
+    detailedPrompt += ` Ensure results strictly follow these dietary restrictions: ${dietaryRestrictions.join(', ')}.`;
   }
 
   if (excludeNames.length > 0) {

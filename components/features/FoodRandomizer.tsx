@@ -382,20 +382,7 @@ const FoodRandomizer: React.FC<FoodRandomizerProps> = ({ applyFilters, onToggleF
         )}
       </div>
 
-      {getUserProfile().dietaryRestrictions.length > 0 && (
-        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-orange-50">
-          <input
-            id="apply-dietary-randomizer"
-            type="checkbox"
-            checked={applyFilters}
-            onChange={onToggleFilters}
-            className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-          />
-          <label htmlFor="apply-dietary-randomizer" className="text-xs font-black text-slate-600 uppercase tracking-widest cursor-pointer select-none">
-            Filter by my dietary needs: <span className="text-orange-600">{getUserProfile().dietaryRestrictions.join(', ')}</span>
-          </label>
-        </div>
-      )}
+
     </div>
   );
 };

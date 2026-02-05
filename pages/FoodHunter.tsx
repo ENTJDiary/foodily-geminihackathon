@@ -19,7 +19,7 @@ import { extractCuisineFromSearch } from '../services/cuisineExtractionService';
 
 
 const FoodHunter: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userPreferences } = useAuth();
   const [dish, setDish] = useState('');
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,8 +33,7 @@ const FoodHunter: React.FC = () => {
   const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
   const resultsRef = React.useRef<HTMLDivElement | null>(null);
 
-  const profile = getUserProfile();
-  const hasRestrictions = profile.dietaryRestrictions.length > 0;
+  const hasRestrictions = userPreferences?.dietaryRestrictions && userPreferences.dietaryRestrictions.length > 0;
 
   useEffect(() => {
     console.log('🚀 [FoodHunter] Component mounted - useEffect triggered');
@@ -92,7 +91,7 @@ const FoodHunter: React.FC = () => {
         prompt = "Recommend top-rated restaurants near me.";
       }
 
-      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const restrictions = applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(
         prompt,
         locationName ? undefined : (currentCoords || undefined),
@@ -146,7 +145,7 @@ const FoodHunter: React.FC = () => {
         prompt = "Recommend top-rated restaurants near me.";
       }
 
-      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const restrictions = applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(
         prompt,
         locationName ? undefined : (currentCoords || undefined),
@@ -218,7 +217,7 @@ const FoodHunter: React.FC = () => {
                 className="w-5 h-5 rounded-md text-brand-orange focus:ring-brand-orange border-brand-orange/30 cursor-pointer"
               />
               <label htmlFor="apply-dietary" className="text-xs font-bold text-brand-slate uppercase tracking-widest cursor-pointer select-none">
-                Filter by my dietary needs: <span className="text-brand-orange">{profile.dietaryRestrictions.join(', ')}</span>
+                Filter by my dietary needs: <span className="text-brand-orange">{userPreferences?.dietaryRestrictions.join(', ')}</span>
               </label>
             </div>
           )}

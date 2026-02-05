@@ -17,11 +17,12 @@ import { extractCuisineFromSearch } from '../services/cuisineExtractionService';
 
 
 const Concierge: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userPreferences } = useAuth();
   const [occasion, setOccasion] = useState('');
   const [people, setPeople] = useState('');
   const [request, setRequest] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [applyFilters, setApplyFilters] = useState(false);
   const [location, setLocation] = useState('');
   const [budget, setBudget] = useState(50);
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,8 @@ const Concierge: React.FC = () => {
   } | null>(null);
   const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const hasRestrictions = userPreferences?.dietaryRestrictions && userPreferences.dietaryRestrictions.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +72,8 @@ const Concierge: React.FC = () => {
         locationCoords: coords
       });
 
-      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, [], coords, tasteProfile);
+      const restrictions = applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [];
+      const response = await conciergeChat(occasion, people, request, effectiveLocation, effectiveBudget, restrictions, [], coords, tasteProfile);
       setResult(response);
 
       // Log food search with extracted cuisine from occasion
@@ -101,6 +105,7 @@ const Concierge: React.FC = () => {
         currentSearch.request,
         currentSearch.location,
         currentSearch.budget,
+        applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [],
         pickedRestaurants,
         currentSearch.locationCoords,
         tasteProfile
@@ -273,6 +278,21 @@ const Concierge: React.FC = () => {
               className="w-full px-6 py-5 rounded-2xl bg-white/60 border border-white/20 focus:border-brand-orange focus:bg-white focus:ring-4 focus:ring-brand-orange/10 transition-all font-semibold outline-none resize-none min-h-[140px] text-brand-black placeholder:text-brand-slate/30"
             />
           </div>
+
+          {hasRestrictions && (
+            <div className="flex items-center gap-3 bg-brand-orange/5 p-4 rounded-xl border border-brand-orange/10">
+              <input
+                id="apply-dietary-concierge"
+                type="checkbox"
+                checked={applyFilters}
+                onChange={() => setApplyFilters(!applyFilters)}
+                className="w-5 h-5 rounded-md text-brand-orange focus:ring-brand-orange border-brand-orange/30 cursor-pointer"
+              />
+              <label htmlFor="apply-dietary-concierge" className="text-xs font-bold text-brand-slate uppercase tracking-widest cursor-pointer select-none">
+                Consider my dietary needs: <span className="text-brand-orange">{userPreferences?.dietaryRestrictions.join(', ')}</span>
+              </label>
+            </div>
+          )}
 
           <button
             disabled={loading || !occasion || !people || !request}
