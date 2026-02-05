@@ -21,7 +21,7 @@ import { generateRestaurantId } from '../utils/restaurantIdUtils';
 
 
 const FoodGatcha: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userPreferences } = useAuth();
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string; searchedDish?: string } | null>(null);
@@ -34,8 +34,7 @@ const FoodGatcha: React.FC = () => {
   const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const profile = getUserProfile();
-  const hasRestrictions = profile.dietaryRestrictions.length > 0;
+  const hasRestrictions = userPreferences?.dietaryRestrictions && userPreferences.dietaryRestrictions.length > 0;
 
   useEffect(() => {
     if ((results || loadingResults) && resultsRef.current) {
@@ -86,7 +85,7 @@ const FoodGatcha: React.FC = () => {
     try {
       const prompt = `Suggest top-tier restaurants for ${query} near me.`;
       setCurrentPrompt(prompt);
-      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const restrictions = applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, [], tasteProfile);
       setResults(response);
 
@@ -109,7 +108,7 @@ const FoodGatcha: React.FC = () => {
     try {
       const prompt = `Suggest top-tier restaurants for ${foodName} near me.`;
       setCurrentPrompt(prompt);
-      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const restrictions = applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(prompt, currentCoords || undefined, restrictions, [], tasteProfile);
       setResults(response);
 
@@ -132,7 +131,7 @@ const FoodGatcha: React.FC = () => {
 
     setLoadingMore(true);
     try {
-      const restrictions = applyFilters ? profile.dietaryRestrictions : [];
+      const restrictions = applyFilters && userPreferences ? userPreferences.dietaryRestrictions : [];
       const response = await searchRestaurantsByMaps(currentPrompt, currentCoords || undefined, restrictions, pickedRestaurants, tasteProfile);
 
       setResults(prev => prev ? {
@@ -157,12 +156,28 @@ const FoodGatcha: React.FC = () => {
         </p>
       </div>
 
-      <div className="space-y-12">
+      <div className="space-y-4">
         <FoodRandomizer
           applyFilters={applyFilters}
           onToggleFilters={() => setApplyFilters(!applyFilters)}
           onSelection={handleRandomSelection}
         />
+
+        {hasRestrictions && (
+          <div className="w-full bg-brand-orange/5 p-4 rounded-xl border border-brand-orange/10 flex items-center justify-center gap-3">
+            <input
+              id="apply-dietary-global"
+              type="checkbox"
+              checked={applyFilters}
+              onChange={() => setApplyFilters(!applyFilters)}
+              className="w-5 h-5 rounded-md text-brand-orange focus:ring-brand-orange border-brand-orange/30 cursor-pointer"
+            />
+            <label htmlFor="apply-dietary-global" className="text-xs font-bold text-brand-slate uppercase tracking-widest cursor-pointer select-none">
+              Filter by my dietary needs: <span className="text-brand-orange">{userPreferences?.dietaryRestrictions.join(', ')}</span>
+            </label>
+          </div>
+        )}
+
         <FoodWheel onSelectFood={handleWheelSelection} />
       </div>
 

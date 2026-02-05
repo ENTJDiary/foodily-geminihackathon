@@ -1,14 +1,14 @@
 /**
  * Firebase Cloud Functions for food.ily
- * 
+ *
  * This file contains all Cloud Functions for the application.
  */
 
-import { setGlobalOptions } from "firebase-functions/v2";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
+import {setGlobalOptions} from "firebase-functions/v2";
+import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {onDocumentCreated, onDocumentDeleted} from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import {FieldValue} from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 
 // Initialize Firebase Admin
@@ -25,7 +25,7 @@ setGlobalOptions({
  * This is called from the client after successful authentication
  * Creates the complete essential Firestore schema for new users
  */
-export const initializeUserData = onCall({ cors: true }, async (request) => {
+export const initializeUserData = onCall({cors: true}, async (request) => {
     // Verify the user is authenticated
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be authenticated");
@@ -40,11 +40,11 @@ export const initializeUserData = onCall({ cors: true }, async (request) => {
 
     // Detect authentication provider
     const authProvider = request.auth.token.firebase.sign_in_provider;
-    let providerType: 'google' | 'email' | 'phone' = 'email';
-    if (authProvider === 'google.com') {
-        providerType = 'google';
-    } else if (authProvider === 'phone') {
-        providerType = 'phone';
+    let providerType: "google" | "email" | "phone" = "email";
+    if (authProvider === "google.com") {
+        providerType = "google";
+    } else if (authProvider === "phone") {
+        providerType = "phone";
     }
 
     const emailVerified = request.auth.token.email_verified || false;
@@ -66,7 +66,7 @@ export const initializeUserData = onCall({ cors: true }, async (request) => {
         const userDoc = await userDocRef.get();
 
         if (userDoc.exists) {
-            logger.info("User data already exists", { uid });
+            logger.info("User data already exists", {uid});
             return {
                 success: true,
                 message: "User data already exists",
@@ -92,7 +92,7 @@ export const initializeUserData = onCall({ cors: true }, async (request) => {
             lastLoginAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info("User profile document prepared", { uid });
+        logger.info("User profile document prepared", {uid});
 
         // Create user preferences document with complete schema
         // Schema reference: firestore-schema.md lines 299-325
@@ -125,7 +125,7 @@ export const initializeUserData = onCall({ cors: true }, async (request) => {
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info("User preferences document prepared", { uid });
+        logger.info("User preferences document prepared", {uid});
 
         // Create user stats document with initial values
         const statsDocRef = db.collection("userStats").doc(uid);
@@ -158,9 +158,9 @@ export const initializeUserData = onCall({ cors: true }, async (request) => {
                 trendValue: 0,
             },
             nutrientAnalysis: {
-                protein: { grams: 0, percentage: 0 },
-                fat: { grams: 0, percentage: 0 },
-                sugar: { grams: 0, percentage: 0 },
+                protein: {grams: 0, percentage: 0},
+                fat: {grams: 0, percentage: 0},
+                sugar: {grams: 0, percentage: 0},
             },
             totalRestaurantsExplored: 0,
             totalReviewsWritten: 0,
@@ -171,12 +171,12 @@ export const initializeUserData = onCall({ cors: true }, async (request) => {
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info("User stats document prepared", { uid });
+        logger.info("User stats document prepared", {uid});
 
         // Commit the batch write atomically
         await batch.commit();
 
-        logger.info("User data initialization complete", { uid });
+        logger.info("User data initialization complete", {uid});
 
         return {
             success: true,

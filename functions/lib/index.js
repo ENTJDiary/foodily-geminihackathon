@@ -70,12 +70,12 @@ exports.initializeUserData = (0, https_1.onCall)({ cors: true }, async (request)
     const profilePictureURL = request.auth.token.picture || null;
     // Detect authentication provider
     const authProvider = request.auth.token.firebase.sign_in_provider;
-    let providerType = 'email';
-    if (authProvider === 'google.com') {
-        providerType = 'google';
+    let providerType = "email";
+    if (authProvider === "google.com") {
+        providerType = "google";
     }
-    else if (authProvider === 'phone') {
-        providerType = 'phone';
+    else if (authProvider === "phone") {
+        providerType = "phone";
     }
     const emailVerified = request.auth.token.email_verified || false;
     logger.info("Initializing user data for:", {

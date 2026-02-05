@@ -185,6 +185,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     /**
+     * Sign in with Email and Password
+     */
+    const signInWithEmailPassword = async (email: string, password: string) => {
+        try {
+            const { signInWithEmailPassword: firebaseSignIn } = await import('../firebase/authService');
+            setError(null);
+            setLoading(true);
+            await firebaseSignIn(email, password);
+            // User state will be updated by onAuthStateChanged listener
+        } catch (err: any) {
+            setError(err.userMessage || err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
      * Send OTP code to email
      */
     const signInWithEmailOTP = async (email: string): Promise<string> => {
@@ -285,6 +303,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userPreferences,
         loading,
         signInWithGoogle,
+        signInWithEmailPassword,
         signInWithEmailOTP,
         verifyOTP,
         signOut,
