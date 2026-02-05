@@ -7,7 +7,7 @@ export const extractCuisineFromSearch = async (
     searchQuery: string
 ): Promise<{ cuisine: string; foodType: string }> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
         const prompt = `Analyze this food search query and extract the cuisine type and specific food type.
 
