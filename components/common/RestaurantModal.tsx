@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getRestaurantData, saveReview, getAverageRating, addMenuItem, toggleReviewLike } from '../../services/storageService';
+import { getRestaurantData, addMenuItem } from '../../services/storageService';
+import { subscribeRestaurantReviews } from '../../services/reviewsService';
 import { isRestaurantSaved, toggleSaveRestaurant } from '../../services/savedRestaurantsService';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { getRestaurantDetails } from '../../services/geminiService';
@@ -17,10 +18,11 @@ interface RestaurantModalProps {
   restaurantId: string;
   restaurantName: string;
   searchedDish?: string;
+  initialPostId?: string;
   onClose: () => void;
 }
 
-const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaurantName, searchedDish, onClose }) => {
+const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaurantName, searchedDish, initialPostId, onClose }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [avgRating, setAvgRating] = useState(0);
@@ -68,12 +70,12 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     }
   };
 
-  // Load initial data
+  // Load initial data and subscribe to reviews
   useEffect(() => {
+    // Legacy data for menu items (kept as is for now)
     const data = getRestaurantData(restaurantId);
-    setReviews(data.reviews);
     setMenuItems(data.menuItems);
-    setAvgRating(getAverageRating(restaurantId));
+
     loadDetails();
 
     // Fetch place details from Google Places API
@@ -85,6 +87,21 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     }).catch(error => {
       console.error('Failed to fetch place details:', error);
     });
+
+    // Subscribe to real-time reviews
+    const unsubscribe = subscribeRestaurantReviews(restaurantId, (fetchedReviews) => {
+      setReviews(fetchedReviews);
+
+      // Calculate average rating from fetched reviews
+      if (fetchedReviews.length > 0) {
+        const sum = fetchedReviews.reduce((acc, r) => acc + r.rating, 0);
+        setAvgRating(sum / fetchedReviews.length);
+      } else {
+        setAvgRating(0);
+      }
+    });
+
+    return () => unsubscribe();
   }, [restaurantId, restaurantName]);
 
   // Track restaurant view activity
@@ -129,23 +146,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
     };
   }, [user, restaurantId, restaurantName]);
 
-  // Handlers for Community Insights
-  const handleSubmitInsight = (data: { userName: string; rating: number; comment: string }) => {
-    saveReview(restaurantId, restaurantName, data);
-    const updatedData = getRestaurantData(restaurantId);
-    setReviews(updatedData.reviews);
-    setAvgRating(getAverageRating(restaurantId));
-  };
 
-  const handleToggleReviewLike = (reviewId: string) => {
-    const updatedReviews = toggleReviewLike(restaurantId, reviewId);
-    setReviews(updatedReviews);
-    // Also update selectedReview if it matches
-    if (selectedReview && selectedReview.id === reviewId) {
-      const updatedReview = updatedReviews.find(r => r.id === reviewId);
-      if (updatedReview) setSelectedReview(updatedReview);
-    }
-  };
 
   // Handlers for Community Menu
   const handleSubmitMenuItem = (data: {
@@ -383,6 +384,7 @@ const RestaurantModal: React.FC<RestaurantModalProps> = ({ restaurantId, restaur
             selectedMenuItem={selectedMenuItem}
             showAddDish={showAddDish}
             searchedDish={searchedDish}
+            initialPostId={initialPostId}
             onAddDishClick={() => setShowAddDish(true)}
             onMenuItemClick={setSelectedMenuItem}
             onCloseMenuItemDetail={() => setSelectedMenuItem(null)}

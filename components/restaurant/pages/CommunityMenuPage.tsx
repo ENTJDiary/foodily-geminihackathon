@@ -12,6 +12,7 @@ interface CommunityMenuPageProps {
     selectedMenuItem: MenuItem | null;
     showAddDish: boolean;
     searchedDish?: string;
+    initialPostId?: string;
     onAddDishClick: () => void;
     onMenuItemClick: (item: MenuItem) => void;
     onCloseMenuItemDetail: () => void;
@@ -24,6 +25,7 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
     selectedMenuItem,
     showAddDish,
     searchedDish,
+    initialPostId,
     onAddDishClick,
     onMenuItemClick,
     onCloseMenuItemDetail,
@@ -35,6 +37,10 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
     const [submitting, setSubmitting] = useState(false);
 
     // Subscribe to real-time community posts from Firestore
+    // Use a ref to track if we've already handled the initial post ID
+    const initialPostHandled = React.useRef(false);
+
+    // Subscribe to real-time community posts from Firestore
     useEffect(() => {
         if (!restaurantId) return;
 
@@ -43,10 +49,20 @@ const CommunityMenuPage: React.FC<CommunityMenuPageProps> = ({
             const items = fetchedPosts.map(communityPostToMenuItem);
             setMenuItems(items);
             setLoading(false);
+
+            // Handle initial post selection if provided and not yet handled
+            if (initialPostId && !initialPostHandled.current && items.length > 0) {
+                const targetPost = items.find(item => item.id === initialPostId);
+                if (targetPost) {
+                    console.log("Found target post, opening:", targetPost.title);
+                    onMenuItemClick(targetPost);
+                    initialPostHandled.current = true;
+                }
+            }
         });
 
         return () => unsubscribe();
-    }, [restaurantId]);
+    }, [restaurantId, initialPostId, onMenuItemClick]);
 
     const handleSubmitMenuItem = async (data: {
         title: string;

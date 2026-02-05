@@ -17,7 +17,7 @@ const SavedSection: React.FC = () => {
     const [savedRestaurants, setSavedRestaurants] = useState<SavedRestaurant[]>([]);
     const [savedMenuItems, setSavedMenuItems] = useState<SavedMenuItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string } | null>(null);
+    const [selectedRestaurant, setSelectedRestaurant] = useState<{ id: string; name: string; postId?: string } | null>(null);
 
     // Subscribe to saved restaurants from Firestore
     useEffect(() => {
@@ -186,6 +186,11 @@ const SavedSection: React.FC = () => {
                         {savedMenuItems.map((item) => (
                             <div
                                 key={item.saveId}
+                                onClick={() => setSelectedRestaurant({
+                                    id: item.restaurantId,
+                                    name: item.restaurantName,
+                                    postId: item.menuItemId
+                                })}
                                 className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all cursor-pointer"
                             >
                                 {/* Image */}
@@ -259,6 +264,7 @@ const SavedSection: React.FC = () => {
                 <RestaurantModal
                     restaurantId={selectedRestaurant.id}
                     restaurantName={selectedRestaurant.name}
+                    initialPostId={selectedRestaurant.postId}
                     onClose={() => setSelectedRestaurant(null)}
                 />
             )}

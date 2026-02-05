@@ -68,9 +68,9 @@ export const saveMenuItem = async (
             restaurantId: itemData.restaurantId,
             restaurantName: itemData.restaurantName,
             title: itemData.title,
-            image: itemData.image || undefined,
-            price: itemData.price || undefined,
-            rating: itemData.rating || undefined,
+            image: itemData.image || null,
+            price: itemData.price || null,
+            rating: itemData.rating || null,
             savedAt: serverTimestamp(),
         };
 

@@ -12,7 +12,7 @@ export const searchRestaurantsByMaps = async (
   excludeNames: string[] = [],
   tasteProfile?: TasteProfile | null
 ): Promise<SearchResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
   const toolConfig = location ? {
     retrievalConfig: {
@@ -102,7 +102,7 @@ export const getRestaurantDetails = async (name: string): Promise<SearchResult> 
       }
 
       console.log(`📡 API Call: getRestaurantDetails for "${name}" (attempt ${attempt + 1}/${maxRetries + 1})`);
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -183,7 +183,7 @@ export const expandSlotOptions = async (
     return slotOptionsCache.get(cacheKey)!;
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
   // Reduced from 25 to 12 for faster response
   const prompt = targetType === 'food'
@@ -214,7 +214,7 @@ export const expandSlotOptions = async (
 };
 
 export const analyzeWeeklyHabits = async (history: HistoryEntry[]): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const historySummary = history.map(h => `${h.date}: ${h.cuisine} ${h.foodType}`).join(', ');
 
   const response = await ai.models.generateContent({
@@ -226,7 +226,7 @@ export const analyzeWeeklyHabits = async (history: HistoryEntry[]): Promise<stri
 };
 
 export const chatWithGemini = async (message: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const chat = ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
@@ -239,7 +239,7 @@ export const chatWithGemini = async (message: string) => {
 };
 
 export const conciergeChat = async (occasion: string, people: string, request: string, locationInput?: string, budget?: number, excludeNames: string[] = [], locationCoords?: Location, tasteProfile?: TasteProfile | null): Promise<SearchResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
   const toolConfig = locationCoords ? {
     retrievalConfig: {

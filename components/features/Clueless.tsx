@@ -200,7 +200,7 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
 
     const generateDynamicQuestions = async (choices: string[]): Promise<Question[]> => {
         const { GoogleGenAI, Type } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
         const prompt = `Based on these user food preferences, generate 2 follow-up questions to narrow down their craving:
     
@@ -272,7 +272,7 @@ const Clueless: React.FC<CluelesModalProps> = ({ isOpen, onClose, onComplete }) 
 
     const generateDishOptions = async (choices: string[]): Promise<DishOption[]> => {
         const { GoogleGenAI, Type } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
         const prompt = `Based on ALL these user preferences, suggest 4 GENERAL dish names (like "Pizza", "Spaghetti", "Tacos", "Burger" - keep it simple and broad, NOT specific variations):
     
