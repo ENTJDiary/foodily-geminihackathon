@@ -107,7 +107,7 @@ const StatsSection: React.FC = () => {
         { key: 'coinsSpent', label: 'Coins', value: stats.coinsSpent, angle: 120, description: 'Total value of coins redeemed for discounts and offers.' },
         { key: 'satisfactory', label: 'Satisfactory', value: stats.satisfactory, angle: 180, description: 'Average satisfaction rating from your reviews.' },
         { key: 'balance', label: 'Balance', value: stats.balance, angle: 240, description: 'Variety score based on different cuisines tried.' },
-        { key: 'intensity', label: 'Intensity', value: stats.intensity, angle: 300, description: 'Frequency of dining out vs. home cooking.' },
+        { key: 'intensity', label: 'Intensity', value: stats.intensity, angle: 300, description: 'Average intensity of flavors consumed this month.' },
     ];
 
     const primaryHexData = getHexagonConfig(displayedStats);

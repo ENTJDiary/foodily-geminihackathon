@@ -23,6 +23,76 @@ export const getLastMonthRange = () => {
     };
 };
 
+/**
+ * Calculate flavor intensity based on cuisine and food type
+ * Returns a value from 0-100 representing flavor intensity
+ */
+export const calculateFlavorIntensity = (cuisine: string, foodType: string): number => {
+    const cuisineLower = cuisine.toLowerCase();
+    const foodTypeLower = foodType.toLowerCase();
+
+    // High intensity foods/cuisines (70-95)
+    const highIntensityKeywords = [
+        'curry', 'laksa', 'spicy', 'szechuan', 'sichuan', 'kimchi', 'vindaloo',
+        'hot pot', 'thai', 'indian', 'korean bbq', 'wasabi', 'chili', 'cajun',
+        'jerk', 'tandoori', 'buffalo', 'sriracha', 'gochujang', 'sambal'
+    ];
+
+    // Medium-high intensity (50-70)
+    const mediumHighKeywords = [
+        'mexican', 'taco', 'burrito', 'salsa', 'garlic', 'onion', 'ginger',
+        'barbecue', 'bbq', 'teriyaki', 'pho', 'ramen', 'miso', 'soy sauce',
+        'fish sauce', 'anchovy', 'blue cheese', 'feta', 'olives'
+    ];
+
+    // Medium intensity (35-50)
+    const mediumKeywords = [
+        'italian', 'pasta', 'pizza', 'tomato', 'basil', 'oregano', 'chinese',
+        'japanese', 'sushi', 'burger', 'cheese', 'bacon', 'mushroom',
+        'american', 'french', 'mediterranean'
+    ];
+
+    // Low intensity (10-35)
+    const lowIntensityKeywords = [
+        'salad', 'caesar', 'lettuce', 'cucumber', 'plain', 'steamed', 'boiled',
+        'grilled chicken', 'rice', 'bread', 'toast', 'oatmeal', 'yogurt',
+        'smoothie', 'soup', 'broth', 'mild', 'bland'
+    ];
+
+    const combinedText = `${cuisineLower} ${foodTypeLower}`;
+
+    // Check for high intensity
+    for (const keyword of highIntensityKeywords) {
+        if (combinedText.includes(keyword)) {
+            return 70 + Math.floor(Math.random() * 26); // 70-95
+        }
+    }
+
+    // Check for medium-high intensity
+    for (const keyword of mediumHighKeywords) {
+        if (combinedText.includes(keyword)) {
+            return 50 + Math.floor(Math.random() * 21); // 50-70
+        }
+    }
+
+    // Check for medium intensity
+    for (const keyword of mediumKeywords) {
+        if (combinedText.includes(keyword)) {
+            return 35 + Math.floor(Math.random() * 16); // 35-50
+        }
+    }
+
+    // Check for low intensity
+    for (const keyword of lowIntensityKeywords) {
+        if (combinedText.includes(keyword)) {
+            return 10 + Math.floor(Math.random() * 26); // 10-35
+        }
+    }
+
+    // Default medium intensity for unknown foods
+    return 40 + Math.floor(Math.random() * 21); // 40-60
+};
+
 // --- Stat Calculation Logic ---
 
 /**
@@ -89,10 +159,35 @@ export const calculateUserStats = (logs: FoodLog[]): UserStats => {
     const balance = Math.min(100, (uniqueCuisines - 1) * 25);
 
 
-    // 6. Intensity (Frequency of Eating Out)
-    // Assuming these logs are "eating out".
-    // 0 logs = 0 intensity. 30 logs (daily) = 100 intensity.
-    const intensity = Math.min(100, Math.round((logs.length / 30) * 100));
+    // 6. Intensity (Average Flavor Intensity - Weighted by Frequency)
+    // Calculate weighted average of flavor intensities
+    // Foods eaten more frequently have greater impact
+    let intensity = 0;
+    if (logs.length > 0) {
+        // Count frequency of each food type
+        const foodFrequency: Record<string, { count: number, intensity: number }> = {};
+
+        logs.forEach(log => {
+            const key = `${log.cuisine}|${log.foodType}`.toLowerCase();
+            const flavorIntensity = calculateFlavorIntensity(log.cuisine, log.foodType);
+
+            if (!foodFrequency[key]) {
+                foodFrequency[key] = { count: 0, intensity: flavorIntensity };
+            }
+            foodFrequency[key].count += 1;
+        });
+
+        // Calculate weighted average
+        let totalWeightedIntensity = 0;
+        let totalCount = 0;
+
+        Object.values(foodFrequency).forEach(({ count, intensity: foodIntensity }) => {
+            totalWeightedIntensity += foodIntensity * count;
+            totalCount += count;
+        });
+
+        intensity = Math.round(totalWeightedIntensity / totalCount);
+    }
 
     return {
         healthLevel,
